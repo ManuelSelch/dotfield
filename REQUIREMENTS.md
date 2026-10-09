@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–4 implemented — mobile board, growth, staggered half-unit dispatch, per-batch border combat, round completion and replay. Enemy AI is not implemented; milestones 5–10 remain planned.
+Status: milestones 1–4 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion and replay. Enemy AI is not implemented; milestones 5–10 remain planned.
 
 ## 1. Purpose
 
@@ -15,7 +15,7 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - Working name: **Dotfield**. Name availability has not been checked.
 - Real-time territory conquest using simple circles and growing unit counts.
 - Rounds last a few minutes.
-- Attacking sends **half the source circle's units**.
+- Attacking sends **all available source units except one**, excluding units reserved for existing orders.
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
 - Persistent upgrades should be few in number: starting units and growth speed initially; other skills may be considered later.
@@ -39,7 +39,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 ### First playable prototype
 
 - One fixed map, one player, one AI faction, and neutral circles.
-- Automatic unit generation, half-unit dispatch, visible travel, combat, and capture.
+- Automatic unit generation, all-but-one dispatch, visible travel, combat, and capture.
 - A basic active opponent, with tunable parameters.
 - Clear victory/defeat and immediate replay.
 - Touch controls on iPhone and pointer controls on desktop for development.
@@ -81,7 +81,8 @@ These proposals are the planning baseline, not authorization to expand scope.
 ### FR-02: Dispatch
 
 - Drag from a player-owned source circle to a distinct target circle to send units.
-- Dispatch half the source's available whole units, rounded down; a source with fewer than two units sends nothing.
+- Order all available whole units except one; a source with fewer than two unreserved units sends nothing.
+- Keep route/selection feedback, but do not display a numeric dispatch label.
 - Reserve ordered units immediately, but deduct them from the source counter only as each group launches. Queued troops remain defenders and cannot be ordered twice.
 - If a source is captured, cancel its unlaunched groups; already airborne units continue. A depleted source launches only available units, keeping at least one.
 - Units travel visibly and resolve on arrival.
@@ -192,7 +193,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | --- | --- | --- |
 | 1 (complete) | Minimal project and static board | Board fits a portrait phone viewport; circles and counts are readable; project builds. |
 | 2 (complete) | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
-| 3 (complete) | Half-unit dispatch and travel | Valid drag sends the correct rounded half; invalid drag cancels; moving units are visible; input and rule tests pass. |
+| 3 (complete) | All-but-one dispatch and travel | Valid drag orders all unreserved units except one; counters reduce per launch; invalid drag cancels; groups spread after launch and converge before impact; input and rule tests pass. |
 | 4 (complete) | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
 | 5 | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |

@@ -6,7 +6,7 @@ import { resolveCombat } from './combat';
 import { TRAVEL_SPEED } from './settings';
 
 const nodes = [
-  { id: 'source', owner: 'player' as const, units: 20, x: 0, y: 0 },
+  { id: 'source', owner: 'player' as const, units: 11, x: 0, y: 0 },
   { id: 'target', owner: 'neutral' as const, units: 12, x: 200, y: 0 },
 ];
 

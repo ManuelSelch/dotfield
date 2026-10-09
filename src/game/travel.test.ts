@@ -27,13 +27,13 @@ describe('elapsed-time travel', () => {
     const state = launched();
     const next = advanceTravel(state, 10000);
     expect(next.transfers).toEqual([]);
-    expect(next.arrivals.reduce((sum, batch) => sum + batch.units, 0)).toBe(18);
+    expect(next.arrivals.reduce((sum, batch) => sum + batch.units, 0)).toBe(35);
     expect(transferPosition(next.arrivals[0])).toEqual(next.arrivals[0].to);
-    expect(next.territories.at(-1)!.units).toBe(18);
+    expect(next.territories.at(-1)!.units).toBe(1);
     expect(next.territories.find(node => node.id === 'centre')!.units).toBe(20);
     const units = next.territories.reduce((sum, node) => sum + node.units, 0) + next.arrivals.reduce((sum, batch) => sum + batch.units, 0);
     expect(units).toBe(TERRITORIES.reduce((sum, node) => sum + node.units, 0));
-    expect(advanceTravel(next, 10000).arrivals).toHaveLength(4);
+    expect(advanceTravel(next, 10000).arrivals).toHaveLength(7);
   });
 
   it('leaves zero-time updates unchanged', () => {

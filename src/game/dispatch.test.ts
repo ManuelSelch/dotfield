@@ -7,8 +7,8 @@ function initial(units = 36) {
   return createSimulation(TERRITORIES.map((node) => node.id === 'south' ? { ...node, units } : node));
 }
 
-describe('half-unit dispatch', () => {
-  it.each([[36, 18], [37, 18], [2, 1]])('sends half of %i units, rounded down', (units, sent) => {
+describe('all-but-one dispatch', () => {
+  it.each([[36, 35], [37, 36], [2, 1]])('orders all but one of %i available units', (units, sent) => {
     const state = initial(units);
     const next = dispatchUnits(state, 'south', 'centre');
     expect(next.territories.at(-1)!.units).toBe(units - Math.min(5, sent));
@@ -34,14 +34,17 @@ describe('half-unit dispatch', () => {
   it('deducts each first group and assigns unique ids to repeated orders', () => {
     let state = initial();
     state = dispatchUnits(state, 'south', 'centre');
+    const reserved = state;
+    expect(dispatchUnits(state, 'south', 'north')).toBe(reserved);
+    state = { ...state, territories: state.territories.map(n => n.id === 'south' ? { ...n, units: n.units + 10 } : n) };
     state = dispatchUnits(state, 'south', 'north');
-    expect(state.territories.at(-1)!.units).toBe(26);
-    expect(state.transfers.map((transfer) => transfer.units)).toEqual([5, 5, 5, 3, 5, 4]);
-    expect(new Set(state.transfers.map((transfer) => transfer.id)).size).toBe(6);
+    expect(state.territories.at(-1)!.units).toBe(36);
+    expect(state.transfers.map((transfer) => transfer.units)).toEqual([5, 5, 5, 5, 5, 5, 5, 5, 5]);
+    expect(new Set(state.transfers.map((transfer) => transfer.id)).size).toBe(9);
   });
 
   it('allows a friendly destination without yet resolving reinforcement', () => {
     const state = createSimulation(TERRITORIES.map((node) => node.id === 'centre' ? { ...node, owner: 'player' as const } : node));
-    expect(dispatchUnits(state, 'south', 'centre').transfers).toHaveLength(4);
+    expect(dispatchUnits(state, 'south', 'centre').transfers).toHaveLength(7);
   });
 });

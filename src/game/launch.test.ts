@@ -19,20 +19,24 @@ describe('deducting on batch launch', () => {
     const original = createSimulation(map);
     let state = dispatchUnits(original, 'source', 'target');
     expect(state.territories[0].units).toBe(16);
-    expect(state.transfers.filter(t => t.elapsedMs < 0)).toHaveLength(1);
+    expect(state.transfers.filter(t => t.elapsedMs < 0)).toHaveLength(3);
     expect(accounted(state)).toBe(41);
     state = advanceTravel(state, BATCH_INTERVAL_MS - 1);
     expect(state.territories[0].units).toBe(16);
     state = advanceTravel(state, 1);
     expect(state.territories[0].units).toBe(11);
     expect(accounted(state)).toBe(41);
+    state = advanceTravel(state, 2 * BATCH_INTERVAL_MS);
+    expect(state.territories[0].units).toBe(1);
+    expect(state.transfers.filter(t => t.elapsedMs < 0)).toHaveLength(0);
+    expect(accounted(state)).toBe(41);
     expect(original.territories[0].units).toBe(21);
   });
 
   it('reserves queued units, so another order cannot spend them twice', () => {
     let state = dispatchUnits(createSimulation(map), 'source', 'target');
-    state = dispatchUnits(state, 'source', 'target');
-    expect(state.transfers.map(t => t.units)).toEqual([5, 5, 5]);
+    expect(dispatchUnits(state, 'source', 'target')).toBe(state);
+    expect(state.transfers.map(t => t.units)).toEqual([5, 5, 5, 5]);
     expect(accounted(state)).toBe(41);
   });
 

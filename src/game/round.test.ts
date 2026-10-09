@@ -53,7 +53,7 @@ describe('round outcomes', () => {
     expect(advanceRound(state, duration - 1).roundStatus).toBe('playing');
     state = advanceRound(state, duration);
     expect(state.roundStatus).toBe('victory');
-    expect(state.transfers).toHaveLength(1); // Remaining player batch freezes on victory.
+    expect(state.transfers).toHaveLength(3); // Remaining player batches freeze on victory.
     expect(state.territories[1]).toMatchObject({ owner: 'player', units: 2 });
   });
   it('freezes time, growth, troops and new orders after round end', () => {

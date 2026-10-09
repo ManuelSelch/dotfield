@@ -8,8 +8,8 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const target = state.territories.find((node) => node.id === targetId);
   if (!source || !target || source === target || source.owner !== 'player' || source.units < 2) return state;
 
-  const units = Math.floor(availableUnits(state, sourceId) / 2);
-  if (units === 0) return state;
+  const units = availableUnits(state, sourceId) - 1;
+  if (units <= 0) return state;
   const batches: Transfer[] = [];
   const dx = target.x - source.x;
   const dy = target.y - source.y;

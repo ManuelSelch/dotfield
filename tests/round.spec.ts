@@ -28,8 +28,8 @@ test('victory freezes the board and replay resets units, troops, outcome and clo
   const finished = await image();
   const details = page.getByRole('list', { name: 'Territory details' });
   const finishedCounts = await details.textContent();
-  // One queued/travelling friendly batch is frozen, not allowed to reinforce later.
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(1);
+  // Remaining friendly batches are frozen, not allowed to reinforce later.
+  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(3);
   await page.screenshot({ path: 'test-results/victory.png' });
   await attack(page);
   await page.clock.runFor(60000);
@@ -44,7 +44,7 @@ test('victory freezes the board and replay resets units, troops, outcome and clo
   await page.clock.runFor(1100);
   await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 21 units.');
   await attack(page);
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(2);
+  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(4);
   await page.clock.runFor(5000);
   await expect(result).toBeVisible(); // A second round finishes without duplicate listeners.
 });

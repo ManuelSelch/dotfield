@@ -25,9 +25,5 @@ export function drawDrag(ctx: CanvasRenderingContext2D, territories: readonly Te
     ctx.arc(node.x, node.y, node.radius + 8, 0, Math.PI * 2);
     ctx.stroke();
   }
-  ctx.fillStyle = '#267c72';
-  ctx.textAlign = 'center';
-  ctx.font = '600 12px system-ui, sans-serif';
-  ctx.fillText(`Send ${Math.floor(source.units / 2)}`, source.x, source.y - source.radius - 18);
   ctx.restore();
 }
