@@ -30,6 +30,12 @@ City circles remain the **only troop spawn and region-impact boundaries**; per-d
 
 Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus and activate a target. Escape cancels. Focus and selection show on the full region. Region fills update immediately without decorative transition animations; essential troop spreading/convergence remains tied to actual collision geometry even under reduced-motion preferences.
 
+## Nonvisual session lifecycle foundation
+
+`src/game/session.ts` exposes a UI-independent `createSession(map, ai, growthRules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
+
+This foundation is tested but **not yet wired into the screen**. The existing app still auto-starts and retains its current replay behavior; no new visual controls or confirmation UI were added in this slice.
+
 ## Enemy AI architecture and tuning
 
 The opponent is deterministic and browser-independent. Small modules under `src/game/ai/` separate responsibilities:
