@@ -16,7 +16,9 @@ for (const viewport of [
     await page.goto('/');
     await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Troop composition' })).toBeVisible();
+    const composition = page.getByRole('region', { name: 'Troop composition' });
+    await expect(composition).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
     await expect(page.getByText('Room to grow.')).toHaveCount(0);
     await expect(page.getByText('Meadow', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
@@ -24,7 +26,13 @@ for (const viewport of [
     await expect(canvas).toBeVisible();
     await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(13);
     const box = await canvas.boundingBox();
+    const pauseBox = await page.getByRole('button', { name: 'Pause' }).boundingBox();
+    const compositionBox = await composition.boundingBox();
     expect(box).not.toBeNull();
+    expect(pauseBox).not.toBeNull();
+    expect(compositionBox).not.toBeNull();
+    expect(pauseBox!.y + pauseBox!.height).toBeLessThanOrEqual(box!.y);
+    expect(pauseBox!.x).toBeGreaterThan(compositionBox!.x + compositionBox!.width - 50);
     expect(box!.width).toBeGreaterThanOrEqual(280);
     expect(box!.height).toBeGreaterThanOrEqual(300);
     expect(box!.x).toBeGreaterThanOrEqual(0);
