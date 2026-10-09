@@ -1,52 +1,30 @@
-:root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #253c33;
-  background: #f6f7f3;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  color-scheme: light;
+@layer theme, base, mantine, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+/* Mantine supplies the base styles; omit Tailwind Preflight to avoid reset conflicts. */
+@import "@mantine/core/styles.layer.css";
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  --color-page: #f6f7f3;
+  --color-ink: #253c33;
+  --color-field: #eef1e9;
+  --color-player: #267c72;
+  --color-enemy: #bd624e;
+  --color-muted: #6b776e;
+  --color-border: #dce2d8;
 }
 
+:root { font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
 * { box-sizing: border-box; }
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
-/* Fix the document itself so iOS cannot rubber-band an otherwise fitting board. */
-body { margin: 0; position: fixed; inset: 0; }
+/* Keep the iOS viewport lock independent of component-library styles. */
+body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background: var(--color-page); }
 #root { height: 100%; overflow: hidden; }
 
-.app {
-  width: min(100%, 496px);
-  height: 100%;
-  min-height: 0;
-  margin: 0 auto;
+.app-safe-area {
   padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  display: flex;
-  flex-direction: column;
 }
 
-.header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 24px; }
-h1 { margin: 0; display: flex; align-items: center; gap: 9px; font-size: 24px; font-weight: 650; letter-spacing: -1px; }
-.brand-mark { width: 11px; height: 11px; border-radius: 50%; background: #267c72; box-shadow: 0 0 0 4px #e2ebe3; }
-.preview-badge { font-size: 10px; font-weight: 600; color: #627067; border: 1px solid #dce2d8; border-radius: 20px; padding: 7px 10px; white-space: nowrap; }
-
-.field { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.field-heading { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 14px; }
-.eyebrow { margin: 0 0 5px; color: #68756d; font-size: 9px; font-weight: 650; letter-spacing: 1.8px; }
-h2 { margin: 0; font-size: 23px; font-weight: 500; letter-spacing: -0.7px; }
-.field-number { color: #a9b4a9; font-size: 13px; font-variant-numeric: tabular-nums; }
-.board { display: block; width: 100%; flex: 1; min-height: 0; border-radius: 20px; background: #eef1e9; touch-action: none; user-select: none; -webkit-user-select: none; }
-
-.footer { padding: 20px 8px 0; }
-.legend { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; gap: 25px; }
-.legend li { display: flex; align-items: center; gap: 7px; color: #47564d; font-size: 11px; font-weight: 500; }
-.legend-marker { display: inline-block; width: 7px; height: 7px; }
-.legend-marker.player { border-radius: 50%; background: #267c72; }
-.legend-marker.enemy { background: #bd624e; }
-.legend-marker.neutral { height: 2px; background: #808b80; }
-.footer p { margin: 16px 0 0; text-align: center; font-size: 11px; color: #6b776e; }
-
-.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-
 @media (min-width: 600px) {
-  .app { padding-top: 32px; padding-bottom: 24px; }
+  .app-safe-area { padding-top: max(32px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 }

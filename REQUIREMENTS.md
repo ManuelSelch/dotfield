@@ -21,6 +21,7 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - Persistent upgrades should be few in number: starting units and growth speed initially; other skills may be considered later.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
 - Single-player only.
+- Tailwind CSS and Mantine for interface styling; keep feature modules and files small.
 
 ### Proposed direction, not yet explicitly confirmed
 
@@ -166,6 +167,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 ## 7. Proposed technical structure
 
 - **Vite + React + TypeScript:** a small web project with minimal dependencies.
+- **Tailwind CSS + Mantine:** utility-driven layout and Mantine UI components/theme; layered styles with no Tailwind Preflight. Keep custom CSS focused on viewport locking and safe areas.
 - **Canvas 2D:** draw territories, counts, travelling units, and touch feedback.
 - **Independent TypeScript simulation:** growth, dispatch, travel, combat, lifecycle, and AI. No React or Canvas dependency in core rules.
 - **Simulation clock:** fixed-step updates or another explicitly frame-independent approach; rendering uses `requestAnimationFrame`.

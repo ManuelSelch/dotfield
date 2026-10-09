@@ -4,7 +4,7 @@ A small personal territory-conquest game, built one milestone at a time.
 
 ## Current milestone: simulation and growth
 
-React + TypeScript + Vite, with a responsive Canvas 2D field and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
+React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 
 This is a **growth preview**, not a playable round yet. Dispatch, combat, AI, progression, and offline installation are not implemented. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
 
@@ -55,7 +55,12 @@ Small modules are grouped by feature; production modules currently stay under 80
 - `src/board/drawBoard.ts`: Canvas rendering of the current simulation snapshot.
 - `src/board/startBoard.ts`: browser animation, resize, visibility and cleanup adapter.
 - `src/board/FieldCanvas.tsx`, `TerritoryDetails.tsx`: Canvas wrapper and accessible counts.
-- `src/App.tsx`, `styles.css`: mobile interface and portrait styling.
+- `src/App.tsx`: mobile screen composition.
+- `src/ui/`: small header, field heading, footer, and shared Mantine theme modules.
+- `src/styles.css`: Tailwind palette, CSS layer order, global viewport lock and safe-area padding.
+- `vite.config.ts`: Tailwind's Vite integration; client-only boundary-warning handling.
+
+Use Tailwind for layout/spacing and Mantine for interface components. Mantine styles are layered below Tailwind utilities; Tailwind Preflight is intentionally omitted to avoid competing resets. Canvas visuals remain in the board renderer. Browser tests use port 5180 to avoid reusing a possibly stale user development server on 5173.
 
 Simulation modules have no React, Canvas, or browser dependency. React receives snapshots only when whole-unit counts change, not every animation frame. Growth batches elapsed fixed steps; future movement/combat may need per-step updates.
 

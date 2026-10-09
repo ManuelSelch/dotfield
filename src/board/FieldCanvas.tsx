@@ -15,7 +15,7 @@ export function FieldCanvas() {
 
   return (
     <>
-      <canvas ref={canvasRef} className="board" role="img" aria-label="Territory board" aria-describedby="territory-details">
+      <canvas ref={canvasRef} className="block min-h-0 w-full flex-1 touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby="territory-details">
         Your browser does not support Canvas. Territory details are listed below.
       </canvas>
       <TerritoryDetails territories={territories} />
