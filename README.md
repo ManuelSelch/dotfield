@@ -2,9 +2,11 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: thirteen-city map with forgiving region controls
+## Current milestone: map variety and a minimal home screen
 
-The opening field now has **13 cities** on the same fixed phone screen: one player, one opponent and eleven neutral cities. City radius is 21 board units; troop radius/spacing are 4.8/12. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
+Choose **Meadow** (13 cities), **Forks** (11 cities) or **Ridge** (9 cities) on the home screen, then press **Play**. A static preview shows the opening cities/regions; nothing simulates before Play. All three maps have equal 36-unit starting armies, rotationally matched defenders/positions, nonoverlapping circles and full-region touch targets. No difficulty changes, procedural maps or progression are included.
+
+Meadow retains the original field with one player, one opponent and eleven neutral cities. City radius is 21 board units; troop radius/spacing are 4.8/12. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
 
 React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 
@@ -14,7 +16,7 @@ Opposing dots now destroy each other **one-for-one on contact during travel**; f
 
 Victory/defeat counts both owned territories (even empty ones that can grow) and airborne troops. Queued units count through their source garrison, not as independent survivors. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. The opponent is now active: it expands, attacks vulnerable regions, reinforces threatened allies and moves reserves toward the frontline. It uses the same growth, all-but-one dispatch, batch travel and combat rules as the player. Progression and offline installation remain later milestones. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
 
-Growth rate, batch cadence, territory radius, travel speed and simulation step are configurable in `src/game/settings.ts`; starting counts are in `src/board/map.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading starts fresh.
+Growth rate, batch cadence, territory radius, travel speed and simulation step are configurable in `src/game/settings.ts`; starting positions/counts are in `src/board/map.ts` and `src/board/maps.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading returns to the home screen with Meadow selected. Selection is kept in memory when returning home, not saved to storage.
 
 ## City regions and map generation
 
@@ -34,9 +36,9 @@ Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus a
 
 `src/game/session.ts` exposes a UI-independent `createSession(map, ai, growthRules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
 
-The board adapter uses this controller for simulation frames, player dispatch and background suspension. The screen auto-starts until a future home screen provides round entry. A compact **pause icon** sits above the field; **Restart** is available only in the pause screen. Pause cancels active selection and freezes growth, launches, travel, collisions and AI; the paused screen offers **Resume** and **Restart**. Backgrounding never overrides a manual pause. Resume excludes paused time without catch-up.
+The board adapter uses this controller for simulation frames, player dispatch and background suspension. Play mounts a fresh session for the selected map. Home unmounts it and disposes the animation, input and visibility listeners. A compact **pause icon** sits above the field; **Restart** is available only in the pause screen. Pause cancels active selection and freezes growth, launches, travel, collisions and AI; the paused screen offers **Resume**, **Restart** and **Home**. Backgrounding never overrides a manual pause. Resume excludes paused time without catch-up.
 
-Restart immediately resets the map, troops, growth fractions, clock, outcome and AI deadline, then starts the fresh round—**no confirmation or ready popup**. Finished rounds retain **Play again**, using the same controller reset without recreating browser listeners. Region keyboard controls are disabled while paused, and pause actions have 44px minimum touch height.
+Restart immediately resets the map, troops, growth fractions, clock, outcome and AI deadline, then starts the fresh round—**no confirmation or ready popup**. Finished rounds offer **Play again** on the same map and **Home** to choose another. Restart/replay use the same controller reset without recreating browser listeners. Home abandons the current round without confirmation. Region keyboard controls are disabled while paused, and pause actions have 44px minimum touch height.
 
 ## Enemy AI architecture and tuning
 
@@ -50,7 +52,7 @@ The opponent is deterministic and browser-independent. Small modules under `src/
 
 Prototype cadence: first decision after **1.8 seconds**, then every **1.8 seconds**; armies must have at least six units to send. Busy sources wait for their existing groups to finish. The policy considers travel time, defender growth, incoming groups, source exposure and existing captures, without extra resources or knowledge of future player input. It does not stop making decisions simply because it is winning or losing.
 
-Tune `DEFAULT_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain the next milestone, not hidden advantages in this one.
+Tune `DEFAULT_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain deferred; the current opponent is unchanged across all three maps.
 
 ## Run
 
@@ -88,7 +90,7 @@ Automated checks currently use Chromium/Chrome. Real iPhone Safari and safe-area
 
 ## Source layout
 
-Small modules are grouped by feature; production modules currently stay under 80 lines.
+Small modules are grouped by feature.
 
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
 - `src/game/settings.ts`, `growth.ts`: tuning defaults and pure elapsed-time growth rules.
@@ -98,12 +100,12 @@ Small modules are grouped by feature; production modules currently stay under 80
 - `src/game/sweep.ts`, `contacts.ts`, `collisions.ts`: swept-circle math, individual contact detection and deterministic one-for-one destruction.
 - `src/game/ai/`: separately configurable timing, forecasting and action policy.
 - `src/game/round.ts`: faction survival, outcomes and stepping that stops at round end.
-- `src/board/map.ts`, `layout.ts`: starting map and aspect-preserving projection.
+- `src/board/map.ts`, `maps.ts`, `layout.ts`: original field, fixed map catalog and aspect-preserving projection.
 - `src/board/drawBoard.ts`: Canvas rendering of the current simulation snapshot.
 - `src/board/startBoard.ts`: browser animation, resize, visibility and cleanup adapter.
 - `src/board/FieldCanvas.tsx`, `TerritoryDetails.tsx`: Canvas wrapper and accessible counts.
 - `src/App.tsx`: mobile screen composition.
-- `src/ui/`: small header, field heading, footer, and shared Mantine theme modules.
+- `src/ui/`: home/map preview, pause/results, header, field heading, footer, and shared Mantine theme.
 - `src/styles.css`: Tailwind palette, CSS layer order, global viewport lock and safe-area padding.
 - `vite.config.ts`: Tailwind's Vite integration; client-only boundary-warning handling.
 
@@ -111,4 +113,4 @@ Use Tailwind for layout/spacing and Mantine for interface components. Mantine st
 
 Simulation modules have no React, Canvas, or browser dependency. React receives snapshots on counts, dispatch, arrival or outcome changes, not every animation frame. Round updates run growth, travel, combat and elimination in fixed steps, stopping at the winning/losing step even after a delayed frame.
 
-**First playable checkpoint reached.** Playtest the basic loop on the target phone before adding features. Next milestone: difficulty presets and tactical improvements based on playtest weaknesses.
+**First playable checkpoint reached.** Playtest the basic loop on the target phone before adding features. Playtest all three maps for round duration and tactical fairness; symmetry is not proof of enjoyable balance. Real-device checks and the 2–4 minute duration goal remain unverified. Difficulty remains deferred; progression costs/rewards/caps still require agreement.

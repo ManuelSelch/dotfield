@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached; milestones 6–10 remain planned.
+Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, real-iPhone/duration playtesting and milestones 9–10 remain outstanding.
 
 ## 1. Purpose
 
@@ -19,6 +19,7 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
 - Persistent upgrades should be few in number: starting units and growth speed initially; other skills may be considered later.
+- Three fixed maps (Meadow, Forks, Ridge), a minimal home screen with preview/map selection/Play, and Home navigation from pause/results. Restart and Play again retain the selected map. Selection is memory-only; reloading defaults to Meadow.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
 - Single-player only.
 - Tailwind CSS and Mantine for interface styling; keep feature modules and files small.
@@ -158,11 +159,20 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-09: Pause and offline use
 
-- Provide Pause/Resume and immediate Restart actions with 44px minimum touch height. Restart resets state and starts the round without confirmation. No ready popup; a home screen will later provide round entry.
+- Provide Pause/Resume and immediate Restart actions with 44px minimum touch height. Restart resets state and starts the round without confirmation. No ready popup; home-screen Play starts a fresh round on the selected map. A 44px pause icon is the only in-round menu control; Restart is inside the pause overlay.
 - Pause freezes growth, launches, travel, collisions, orders and AI; background automatically suspends the clock without overriding manual pause.
 - Resume without simulating all the elapsed background time or granting offline growth.
 - After offline support is added and the app has been loaded successfully online, a new round can be played without a connection.
 - Home Screen installation is supported as a later delivery step, not a prerequisite for testing the first round.
+
+### FR-10: Fixed map variety and home screen
+
+- Offer three distinct fixed maps with a static region/city preview and Play; no simulation or AI runs on Home.
+- Preserve the original 13-city field as Meadow. Forks has 11 cities and two flanks; Ridge has 9 cities and diagonal starting positions.
+- Give both factions 36 starting units, rotationally paired positions/neutral defenders and identical rules/AI configuration. Check bounds, circle clearance and nonempty generously sized touch regions.
+- Return Home from pause/results, abandon the current round and dispose its browser adapter. Keep the selected map in memory. A subsequent Play creates a fresh round; reload returns to default Meadow.
+- Restart/replay must reset the current map, not silently return to the original field.
+- Keep the fixed screen, no pan/zoom or scrolling. Duration and human tactical balance need playtesting; do not infer them from symmetry or automated checks.
 
 ## 6. Interface and quality requirements
 
@@ -210,7 +220,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | 5 (complete) | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |
-| 8 | Replayable map variety | Maps avoid overlap and inaccessible touch targets; starting positions are checked for obvious unfairness; rounds generally fit the target duration. |
+| 8 (implemented; playtest pending) | Replayable map variety and minimal home | Three fixed presets, equal/mirrored starts, nonoverlapping cities and region targets checked; home/Play/map-aware restart/navigation verified. Target round duration and human tactical fairness still need playtesting. |
 | 9 | Two capped upgrades and local saves | Effects, costs, and caps are confirmed first; rewards cannot be granted twice; save/reset/fallback behaviours are tested. |
 | 10 | Offline and Home Screen support | Previously loaded app starts and plays offline; installed layout respects safe areas; update caching does not leave missing assets. |
 
@@ -238,7 +248,7 @@ Resolve only those needed for the next milestone; the rest can wait.
 
 ### After the first playable round
 
-4. Map presets versus random maps, and whether later rounds need more than one AI faction.
+4. Three fixed map presets are confirmed/implemented; random maps and more AI factions remain out of scope.
 5. How much fine-grained AI tuning belongs in the normal interface.
 6. Upgrade levels, effect sizes, costs, and rewards for wins versus losses.
 7. Whether AI receives equivalent upgrades or progression intentionally gives the player a small advantage.

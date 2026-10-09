@@ -14,6 +14,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await page.getByRole('radio', { name, exact: true }).check();
       await expect(page.getByRole('img', { name: `${name} map preview` })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
+      await page.screenshot({ path: `test-results/home-${name.toLowerCase()}-${viewport.width}.png` });
       expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
       await page.getByRole('button', { name: 'Play', exact: true }).click();
       await expect(page.getByText(name, { exact: true })).toBeVisible();
@@ -30,6 +31,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await page.getByRole('button', { name: 'Restart', exact: true }).click();
       await expect(details.getByRole('listitem')).toHaveCount(cities);
       await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
+      await page.clock.runFor(2000);
+      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText('north →');
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Home', exact: true }).click();
       await expect(page.getByRole('radio', { name, exact: true })).toBeChecked();
