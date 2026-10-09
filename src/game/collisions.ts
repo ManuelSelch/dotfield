@@ -9,6 +9,7 @@ export function hasOpposingTransfers(state: SimulationState): boolean {
 }
 
 interface Bounds { minX: number; minY: number; maxX: number; maxY: number }
+const COLLISION_CELL_SIZE = 64;
 
 function transferBounds(transfer: Transfer, motion: Trajectory): Bounds {
   const padding = DOT_RADIUS + Math.max(0, transfer.formationSize - 1) * DOT_SPACING / 2;
@@ -30,6 +31,42 @@ export function mayContact(first: Bounds, second: Bounds): boolean {
     && first.minY <= second.maxY && first.maxY >= second.minY;
 }
 
+function cellKey(x: number, y: number) { return `${x},${y}`; }
+
+function coveredCells(bounds: Bounds) {
+  const cells: string[] = [];
+  const minX = Math.floor(bounds.minX / COLLISION_CELL_SIZE);
+  const maxX = Math.floor(bounds.maxX / COLLISION_CELL_SIZE);
+  const minY = Math.floor(bounds.minY / COLLISION_CELL_SIZE);
+  const maxY = Math.floor(bounds.maxY / COLLISION_CELL_SIZE);
+  for (let x = minX; x <= maxX; x++) for (let y = minY; y <= maxY; y++) cells.push(cellKey(x, y));
+  return cells;
+}
+
+/** Returns only spatially plausible opposing group pairs. */
+export function spatialCandidates(first: readonly Transfer[], second: readonly Transfer[], bounds: ReadonlyMap<number, Bounds>) {
+  const grid = new Map<string, Transfer[]>();
+  for (const transfer of second) {
+    for (const key of coveredCells(bounds.get(transfer.id)!)) {
+      const cell = grid.get(key);
+      if (cell) cell.push(transfer);
+      else grid.set(key, [transfer]);
+    }
+  }
+  const pairs: [Transfer, Transfer][] = [];
+  for (const transfer of first) {
+    const seen = new Set<number>();
+    for (const key of coveredCells(bounds.get(transfer.id)!)) {
+      for (const other of grid.get(key) ?? []) {
+        if (seen.has(other.id) || !mayContact(bounds.get(transfer.id)!, bounds.get(other.id)!)) continue;
+        seen.add(other.id);
+        pairs.push([transfer, other]);
+      }
+    }
+  }
+  return pairs;
+}
+
 export function resolveTravelCollisions(state: SimulationState, elapsedMs: number,
   motions?: ReadonlyMap<number, Trajectory>): SimulationState {
   if (state.roundStatus !== 'playing' || elapsedMs === 0 || !hasOpposingTransfers(state)) return state;
@@ -44,8 +81,7 @@ export function resolveTravelCollisions(state: SimulationState, elapsedMs: numbe
   ]));
   const contacts = [] as ReturnType<typeof groupContacts>;
   for (let i = 0; i < factionIds.length; i++) for (let j = i + 1; j < factionIds.length; j++) {
-    for (const first of groups.get(factionIds[i])!) for (const second of groups.get(factionIds[j])!) {
-      if (!mayContact(bounds.get(first.id)!, bounds.get(second.id)!)) continue;
+    for (const [first, second] of spatialCandidates(groups.get(factionIds[i])!, groups.get(factionIds[j])!, bounds)) {
       contacts.push(...groupContacts(first, second, elapsedMs, resolvedMotions.get(first.id), resolvedMotions.get(second.id)));
     }
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSimulation } from './state';
-import { mayContact, resolveTravelCollisions } from './collisions';
+import { mayContact, resolveTravelCollisions, spatialCandidates } from './collisions';
 import type { Faction, Point, Transfer } from './types';
 
 function batch(id: number, owner: Faction, from: Point, to: Point, units = 1, elapsedMs = 400): Transfer {
@@ -12,6 +12,18 @@ const backward = (units = 5) => batch(2, 'enemy', { x: 100, y: 100 }, { x: 0, y:
 const game = (...transfers: Transfer[]) => ({ ...createSimulation([]), transfers });
 
 describe('individual opposing dot collisions', () => {
+  it('indexes only nearby opposing paths as collision candidates', () => {
+    const first = [forward(), { ...forward(), id: 3, from: { x: 1000, y: 1000 }, to: { x: 1100, y: 1000 } }];
+    const second = [backward(), { ...backward(), id: 4, from: { x: 1000, y: 1100 }, to: { x: 1100, y: 1100 } }];
+    const bounds = new Map([
+      [1, { minX: -20, minY: 80, maxX: 120, maxY: 120 }],
+      [2, { minX: -20, minY: 80, maxX: 120, maxY: 120 }],
+      [3, { minX: 980, minY: 980, maxX: 1120, maxY: 1020 }],
+      [4, { minX: 980, minY: 1080, maxX: 1120, maxY: 1120 }],
+    ]);
+    expect(spatialCandidates(first, second, bounds).map(([a, b]) => [a.id, b.id])).toEqual([[1, 2]]);
+  });
+
   it('rejects distant paths before dot-level collision checks', () => {
     expect(mayContact(
       { minX: 0, minY: 0, maxX: 10, maxY: 10 },
