@@ -2,7 +2,9 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: country-style city regions and forgiving touch controls
+## Current milestone: thirteen-city map with forgiving region controls
+
+The opening field now has **13 cities** on the same fixed phone screen: one player, one opponent and eleven neutral cities. City radius is 21 board units; troop radius/spacing are 4.8/12. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
 
 React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 

@@ -77,7 +77,7 @@ describe('board lifecycle adapter', () => {
     const [_, getTerritories, __, dispatch] = vi.mocked(bindDrag).mock.lastCall!;
     dispatch('source', 'target');
     board.frame(0);
-    board.frame(1300);
+    board.frame(1800);
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
     const requests = board.request.mock.calls.length;

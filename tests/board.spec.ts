@@ -18,7 +18,7 @@ for (const viewport of [
     await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
     const canvas = page.getByRole('img', { name: 'Territory board' });
     await expect(canvas).toBeVisible();
-    await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(7);
+    await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(13);
     const box = await canvas.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.width).toBeGreaterThanOrEqual(280);

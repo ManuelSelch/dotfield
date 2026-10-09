@@ -12,10 +12,10 @@ test('the opponent dispatches real groups and captures a neutral region', async 
   await page.clock.runFor(1700);
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(250);
-  await expect(transfers).toContainText('5 units: north → north-east · travelling');
+  await expect(transfers).toContainText('5 units: north → north-west · travelling');
   await expect(page.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText('north: Opponent, 32 units.');
   await page.clock.runFor(6000);
-  await expect(page.getByRole('listitem').filter({ hasText: /^north-east:/ })).toHaveText(/north-east: Opponent, \d+ units\./);
+  await expect(page.getByRole('listitem').filter({ hasText: /^north-west:/ })).toHaveText(/north-west: Opponent, \d+ units\./);
   await page.screenshot({ path: 'test-results/ai-expansion.png' });
 });
 
@@ -34,7 +34,7 @@ test('backgrounding pauses AI decisions, not just growth', async ({ page }) => {
   });
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(300);
-  await expect(transfers).toContainText('north → north-east');
+  await expect(transfers).toContainText('north → north-west');
 });
 
 test('an idle player can lose a real round and replay restarts the opponent', async ({ page }) => {
@@ -57,6 +57,6 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   await page.clock.runFor(1700);
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(300);
-  await expect(transfers).toContainText('north → north-east');
+  await expect(transfers).toContainText('north → north-west');
   expect(errors).toEqual([]);
 });

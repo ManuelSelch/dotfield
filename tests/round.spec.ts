@@ -20,7 +20,7 @@ async function attack(page: import('@playwright/test').Page) {
 test('victory freezes the board and replay resets units, troops, outcome and clock', async ({ page }) => {
   await setup(page);
   await attack(page);
-  await page.clock.runFor(4100);
+  await page.clock.runFor(5500);
   const result = page.getByRole('region', { name: 'Victory' });
   await expect(result).toBeVisible();
   const canvas = page.getByRole('img', { name: 'Territory board' });
@@ -29,7 +29,7 @@ test('victory freezes the board and replay resets units, troops, outcome and clo
   const details = page.getByRole('list', { name: 'Territory details' });
   const finishedCounts = await details.textContent();
   // Remaining friendly batches are frozen, not allowed to reinforce later.
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(3);
+  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(2);
   await page.screenshot({ path: 'test-results/victory.png' });
   await attack(page);
   await page.clock.runFor(60000);
@@ -45,7 +45,7 @@ test('victory freezes the board and replay resets units, troops, outcome and clo
   await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 21 units.');
   await attack(page);
   await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(4);
-  await page.clock.runFor(5000);
+  await page.clock.runFor(6500);
   await expect(result).toBeVisible(); // A second round finishes without duplicate listeners.
 });
 

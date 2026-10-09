@@ -11,7 +11,7 @@ describe('elapsed-time travel', () => {
     const state = launched();
     const duration = state.transfers[0].durationMs;
     const next = advanceTravel(state, duration / 2);
-    expect(transferPosition(next.transfers[0])).toEqual({ x: 178.5, y: 327 });
+    expect(transferPosition(next.transfers[0])).toEqual({ x: 180, y: 340 });
     expect(state.transfers[0].elapsedMs).toBe(0);
   });
 

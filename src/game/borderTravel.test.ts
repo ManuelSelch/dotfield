@@ -13,14 +13,14 @@ const nodes = [
 describe('border-to-border travel', () => {
   it('launches at the source edge and ends at the target edge', () => {
     const batch = dispatchUnits(createSimulation(nodes), 'source', 'target').transfers[0];
-    expect(batch.from).toEqual({ x: 29, y: 0 });
-    expect(batch.to).toEqual({ x: 171, y: 0 });
-    expect(batch.durationMs).toBeCloseTo(142 / TRAVEL_SPEED * 1000);
+    expect(batch.from).toEqual({ x: 21, y: 0 });
+    expect(batch.to).toEqual({ x: 179, y: 0 });
+    expect(batch.durationMs).toBeCloseTo(158 / TRAVEL_SPEED * 1000);
   });
 
   it('applies combat at the border before a center-to-center flight would finish', () => {
     let state = dispatchUnits(createSimulation(nodes), 'source', 'target');
-    const borderHitMs = 142 / TRAVEL_SPEED * 1000;
+    const borderHitMs = 158 / TRAVEL_SPEED * 1000;
     state = resolveCombat(advanceTravel(state, borderHitMs - 1));
     expect(state.territories[1].units).toBe(12);
     state = resolveCombat(advanceTravel(state, 1));
@@ -30,7 +30,7 @@ describe('border-to-border travel', () => {
 
   it.each([[180, 55], [177, 229], [-100, -100]])('uses the correct edges in direction %i,%i', (x, y) => {
     const batch = dispatchUnits(createSimulation([nodes[0], { ...nodes[1], x, y }]), 'source', 'target').transfers[0];
-    expect(Math.hypot(batch.from.x, batch.from.y)).toBeCloseTo(29);
-    expect(Math.hypot(batch.to.x - x, batch.to.y - y)).toBeCloseTo(29);
+    expect(Math.hypot(batch.from.x, batch.from.y)).toBeCloseTo(21);
+    expect(Math.hypot(batch.to.x - x, batch.to.y - y)).toBeCloseTo(21);
   });
 });

@@ -1,6 +1,6 @@
 # Bigger map — revision 1
 
-Status: in review; not approved for production.
+Status: revision 1 approved. User: “looks good. implement it”. Owned preview process stopped and port listener removal verified before implementation.
 
 ## Scope
 13 cities on the existing 360 × 480 logical field, no pan/zoom or scrolling. Whole Voronoi regions remain touch targets. Preserve the approved city-region visual language.
