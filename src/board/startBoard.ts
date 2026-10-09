@@ -53,7 +53,13 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     session.setHidden(document.hidden);
     if (session.active) frameId = requestAnimationFrame(frame);
   }
-  const observer = new ResizeObserver(() => { drag.cancel(); redraw(); });
+  let bounds = canvas.getBoundingClientRect();
+  const observer = new ResizeObserver(() => {
+    const next = canvas.getBoundingClientRect();
+    // ResizeObserver also fires after initial observe; preserve immediate first input.
+    if (next.width !== bounds.width || next.height !== bounds.height) drag.cancel();
+    bounds = next; redraw();
+  });
   observer.observe(canvas);
   window.addEventListener('resize', redraw);
   document.addEventListener('visibilitychange', onVisibilityChange);

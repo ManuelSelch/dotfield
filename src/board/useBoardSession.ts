@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { createSimulation } from '../game/state';
 import type { SessionPhase } from '../game/session';
 import type { Territory } from '../game/types';
@@ -9,7 +9,8 @@ export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, ter
   const controller = useRef<ReturnType<typeof startBoard> | null>(null);
   const [state, setState] = useState(() => createSimulation(territories));
   const [phase, setPhase] = useState<SessionPhase>(autoStart ? 'running' : 'ready');
-  useEffect(() => {
+  // Bind input before the freshly mounted field can receive its first key/tap.
+  useLayoutEffect(() => {
     if (!canvas.current) return;
     const board = startBoard(canvas.current, setState, territories, ai, { autoStart, onPhase: setPhase });
     controller.current = board;

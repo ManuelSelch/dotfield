@@ -2,10 +2,10 @@ import { ActionIcon, Button, FocusTrap, Paper, Text, Title } from '@mantine/core
 import type { SessionPhase } from '../game/session';
 
 interface Props {
-  phase: SessionPhase;
+  phase: SessionPhase; onHome?: () => void;
   onPause: () => void; onResume: () => void; onRestart: () => void;
 }
-export function SessionControls({ phase, onPause, onResume, onRestart }: Props) {
+export function SessionControls({ phase, onPause, onResume, onRestart, onHome }: Props) {
   return <>
     {phase === 'running' && <div className="absolute top-2 right-2 z-10">
       <ActionIcon variant="light" radius="xl" size={44} aria-label="Pause" title="Pause" onClick={onPause}>
@@ -22,6 +22,7 @@ export function SessionControls({ phase, onPause, onResume, onRestart }: Props) 
           <Text size="sm" c="dimmed" mt="xs">Your field will wait.</Text>
           <Button data-autofocus fullWidth mt="lg" radius="xl" mih={44} onClick={onResume}>Resume</Button>
           <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onRestart}>Restart</Button>
+          {onHome && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onHome}>Home</Button>}
         </Paper>
       </div>
     </FocusTrap>}

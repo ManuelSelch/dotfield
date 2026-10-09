@@ -14,6 +14,7 @@ for (const viewport of [
       if (message.type() === 'error') errors.push(message.text());
     });
     await page.goto('/');
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
     await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
     const canvas = page.getByRole('img', { name: 'Territory board' });
@@ -43,6 +44,7 @@ test('resizes the backing canvas for high-density displays and viewport changes'
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
   const page = await context.newPage();
   await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   const canvas = page.getByRole('img', { name: 'Territory board' });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
     await page.setViewportSize(viewport);

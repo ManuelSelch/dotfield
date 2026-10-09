@@ -24,14 +24,24 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   vi.stubGlobal('cancelAnimationFrame', cancel);
   vi.stubGlobal('document', document);
   vi.stubGlobal('window', window);
-  vi.stubGlobal('ResizeObserver', class { observe = observe; disconnect = disconnect; });
-  const canvas = { getBoundingClientRect: () => ({ width: 360, height: 480 }) } as HTMLCanvasElement;
+  let onResize = () => {};
+  vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { onResize = callback; } observe = observe; disconnect = disconnect; });
+  let bounds = { width: 360, height: 480 };
+  const canvas = { getBoundingClientRect: () => bounds } as HTMLCanvasElement;
   const onCounts = vi.fn();
   const stop = startBoard(canvas, onCounts, territories, ai, { autoStart });
-  return { frame: (time: number) => callback(time), document, request, cancel, disconnect, onCounts, stop };
+  return { resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, request, cancel, disconnect, onCounts, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('does not cancel first input on the initial same-size observer notification', () => {
+    const board = harness();
+    const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
+    board.resize(); expect(input.cancel).not.toHaveBeenCalled();
+    board.resize(320, 400); expect(input.cancel).toHaveBeenCalledOnce();
+    board.resize(320, 400); expect(input.cancel).toHaveBeenCalledOnce();
+    board.stop();
+  });
   it('starts ready, pauses input and frames, restarts cleanly and ignores disposed commands', () => {
     const board = harness(TERRITORIES, null, false);
     const [_, getTerritories, __, dispatch] = vi.mocked(bindDrag).mock.lastCall!;

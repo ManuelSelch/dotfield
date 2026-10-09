@@ -7,7 +7,7 @@ const MESSAGES = {
   draw: { title: 'Draw', detail: 'Neither side remains.' },
 };
 
-export function RoundResult({ status, onReplay }: { status: RoundStatus; onReplay: () => void }) {
+export function RoundResult({ status, onReplay, onHome }: { status: RoundStatus; onReplay: () => void; onHome?: () => void }) {
   if (status === 'playing') return null;
   const message = MESSAGES[status];
   return (
@@ -17,7 +17,8 @@ export function RoundResult({ status, onReplay }: { status: RoundStatus; onRepla
           <Title id="round-result-title" order={2} className="text-ink">{message.title}</Title>
           <Text size="sm" c="dimmed" mt="xs">{message.detail}</Text>
         </div>
-        <Button autoFocus fullWidth mt="lg" radius="xl" onClick={onReplay}>Play again</Button>
+        <Button autoFocus fullWidth mt="lg" radius="xl" mih={44} onClick={onReplay}>Play again</Button>
+        {onHome && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onHome}>Home</Button>}
       </Paper>
     </div>
   );

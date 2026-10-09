@@ -5,6 +5,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/'); // Real app, with default opponent enabled.
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
 });
 
 test('the opponent dispatches real groups and captures a neutral region', async ({ page }) => {
@@ -48,6 +49,7 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   await page.screenshot({ path: 'test-results/ai-defeat.png' });
   await page.clock.runFor(20000);
   expect(await details.textContent()).toBe(finished);
+  await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Play again' }).click();
   await expect(page.getByRole('region', { name: 'Defeat' })).toHaveCount(0);
   await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText('north: Opponent, 36 units.');
@@ -59,4 +61,9 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   await page.clock.runFor(300);
   await expect(transfers).toContainText('north → north-west');
   expect(errors).toEqual([]);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'Meadow', exact: true })).toBeChecked();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
+  await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);
 });

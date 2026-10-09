@@ -6,6 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
 });
 
 test('starts immediately; pause freezes the board and survives backgrounding', async ({ page }) => {

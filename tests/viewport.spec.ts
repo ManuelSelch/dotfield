@@ -4,6 +4,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 480 }
   test(`page stays locked at ${viewport.width} × ${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/');
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
     const app = page.locator('main');
     const before = await app.boundingBox();
     expect(before!.height).toBe(viewport.height);
@@ -26,6 +27,7 @@ test('touch swipes cannot move the page or board', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
   const page = await context.newPage();
   await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   const canvas = page.getByRole('img', { name: 'Territory board' });
   const before = await canvas.boundingBox();
   const session = await context.newCDPSession(page);

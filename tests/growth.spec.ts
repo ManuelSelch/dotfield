@@ -14,6 +14,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
 });
 
 test('whole-unit counts and Canvas grow together; neutrals remain unchanged', async ({ page }) => {
@@ -56,5 +57,6 @@ test('a fresh page starts from the initial map rather than previous live state',
   await page.clock.runFor(3100);
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 39 units.');
   await page.reload();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
 });
