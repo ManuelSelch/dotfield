@@ -2,15 +2,29 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: combat, round completion and replay
+## Current milestone: basic active enemy AI
 
 React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 
 Drag from a player territory to order all available units except one. Units already reserved for another order cannot be sent again; newly grown units remain available. The drag guide shows the route without a numeric dispatch label. Units are reserved for the order but deducted only as groups of up to five launch, 600 ms apart. Queued troops remain defenders; capturing their source cancels unlaunched groups. Groups travel border-to-border, spread over the first 30% of flight and converge over the final 20% before impact. Each arriving batch immediately reinforces a friendly region or reduces hostile defenders one-for-one. Ownership changes only when attackers exceed defenders; ties leave the current owner at zero.
 
-Victory/defeat counts both owned territories (even empty ones that can grow) and airborne troops. Queued units count through their source garrison, not as independent survivors. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. AI is not implemented yet, so the opponent currently grows but does not send troops. Progression and offline installation remain later milestones. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
+Victory/defeat counts both owned territories (even empty ones that can grow) and airborne troops. Queued units count through their source garrison, not as independent survivors. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. The opponent is now active: it expands, attacks vulnerable regions, reinforces threatened allies and moves reserves toward the frontline. It uses the same growth, all-but-one dispatch, batch travel and combat rules as the player. Progression and offline installation remain later milestones. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
 
 Growth rate, batch cadence, territory radius, travel speed and simulation step are configurable in `src/game/settings.ts`; starting counts are in `src/board/map.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading starts fresh.
+
+## Enemy AI architecture and tuning
+
+The opponent is deterministic and browser-independent. Small modules under `src/game/ai/` separate responsibilities:
+
+- `config.ts`: decision cadence, minimum useful army, action scores, source-risk penalty and frontline distance threshold.
+- `forecast.ts`: immutable forecasts of growth and already-known orders, using the real launch/travel/combat rules. Skips quiet simulation steps, not combat events.
+- `score.ts`: evaluates expansion, attack, defensive reinforcement and forward army concentration.
+- `decision.ts`: enumerates legal candidates, compares forecasts, and picks one useful order; waits if none are worthwhile.
+- `tick.ts`: schedules decisions on active simulation time, not rendering frames or wall-clock timers.
+
+Prototype cadence: first decision after **1.8 seconds**, then every **1.8 seconds**; armies must have at least six units to send. Busy sources wait for their existing groups to finish. The policy considers travel time, defender growth, incoming groups, source exposure and existing captures, without extra resources or knowledge of future player input. It does not stop making decisions simply because it is winning or losing.
+
+Tune `DEFAULT_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain the next milestone, not hidden advantages in this one.
 
 ## Run
 
@@ -42,7 +56,7 @@ If you already have Google Chrome installed, you can avoid the Chromium download
 PLAYWRIGHT_CHANNEL=chrome npm run test:browser
 ```
 
-The suite checks three phone viewports and desktop, no scrolling/browser errors, and Canvas sizing at device pixel ratio 3 after resizing. Controlled-clock tests also verify visible growth, per-batch border impacts, victory/defeat, frozen finished rounds, replay, fresh-page state, and simulated background/resume without catch-up. Round UI tests use small deterministic maps in a test-only Vite fixture. Screenshots are written to `test-results/` (ignored by Git).
+The suite checks three phone viewports and desktop, no scrolling/browser errors, and Canvas sizing at device pixel ratio 3 after resizing. Controlled-clock tests also verify visible growth, per-batch border impacts, victory/defeat, frozen finished rounds, replay, fresh-page state, and simulated background/resume without catch-up. AI browser tests run the real app and verify expansion, background-paused decisions, an idle-player defeat and replay. Isolated dispatch/round tests use test-only Vite fixtures with AI disabled. Screenshots are written to `test-results/` (ignored by Git).
 
 Automated checks currently use Chromium/Chrome. Real iPhone Safari and safe-area behaviour still require device testing.
 
@@ -53,7 +67,8 @@ Small modules are grouped by feature; production modules currently stay under 80
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
 - `src/game/settings.ts`, `growth.ts`: tuning defaults and pure elapsed-time growth rules.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
-- `src/game/dispatch.ts`, `travel.ts`, `combat.ts`: staggered batches, border travel and arrival resolution.
+- `src/game/dispatch.ts`, `launch.ts`, `route.ts`, `travel.ts`, `combat.ts`: shared faction orders, reservations, staggered launches, border travel and arrival resolution.
+- `src/game/ai/`: separately configurable timing, forecasting and action policy.
 - `src/game/round.ts`: faction survival, outcomes and stepping that stops at round end.
 - `src/board/map.ts`, `layout.ts`: starting map and aspect-preserving projection.
 - `src/board/drawBoard.ts`: Canvas rendering of the current simulation snapshot.
@@ -68,4 +83,4 @@ Use Tailwind for layout/spacing and Mantine for interface components. Mantine st
 
 Simulation modules have no React, Canvas, or browser dependency. React receives snapshots on counts, dispatch, arrival or outcome changes, not every animation frame. Round updates run growth, travel, combat and elimination in fixed steps, stopping at the winning/losing step even after a delayed frame.
 
-Next milestone: basic active enemy AI.
+**First playable checkpoint reached.** Playtest the basic loop on the target phone before adding features. Next milestone: difficulty presets and tactical improvements based on playtest weaknesses.

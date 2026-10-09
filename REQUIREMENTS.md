@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–4 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion and replay. Enemy AI is not implemented; milestones 5–10 remain planned.
+Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached; milestones 6–10 remain planned.
 
 ## 1. Purpose
 
@@ -119,6 +119,9 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Remain active while winning or losing: exploit advantages, seek recoverable targets, and look for counterattacks.
 - Waiting is valid when no sensible order exists; constant suicidal attacks are not the goal.
 - Being ahead or behind must not disable AI decision-making; the position may still change its tactical priorities.
+- Implemented baseline: pure modules separate config, known-order forecasting, candidate scoring/selection and simulation-time scheduling. Default first decision and interval: 1.8 seconds; minimum sent army: six units. No resource or growth bonuses.
+- Forecast current orders and defender growth through the relevant arrivals; avoid duplicate secured captures and abandoning a source under known threat. Concentrate reserves toward the frontline when individual armies are insufficient.
+- The current heuristic does not predict future player orders or guarantee optimal play. Difficulty presets and tactical refinements remain milestone 6.
 
 ### FR-06: Difficulty and tuning
 
@@ -195,14 +198,14 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | 2 (complete) | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
 | 3 (complete) | All-but-one dispatch and travel | Valid drag orders all unreserved units except one; counters reduce per launch; invalid drag cancels; groups spread after launch and converge before impact; input and rule tests pass. |
 | 4 (complete) | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
-| 5 | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
+| 5 (complete) | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |
 | 8 | Replayable map variety | Maps avoid overlap and inaccessible touch targets; starting positions are checked for obvious unfairness; rounds generally fit the target duration. |
 | 9 | Two capped upgrades and local saves | Effects, costs, and caps are confirmed first; rewards cannot be granted twice; save/reset/fallback behaviours are tested. |
 | 10 | Offline and Home Screen support | Previously loaded app starts and plays offline; installed layout respects safe areas; update caching does not leave missing assets. |
 
-**First playtest checkpoint: after step 5.** Decide whether attacking, growth, and travel feel satisfying before adding progression or offline packaging. Revise numbers and AI before adding features.
+**First playtest checkpoint reached: step 5 complete.** Decide whether attacking, growth, travel and the basic opponent feel satisfying before adding progression or offline packaging. Revise numbers and AI before adding features.
 
 ## 9. Verification approach
 
