@@ -19,7 +19,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
 
   return (
     <>
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="mb-3 flex shrink-0 items-center gap-3">
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
         {phase === 'running' && <PauseButton onPause={session.pause} />}
       </div>
