@@ -63,7 +63,7 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   expect(errors).toEqual([]);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByRole('radio', { name: 'Meadow', exact: true })).toBeChecked();
+  await expect(page.getByRole('img', { name: 'Map 1 preview' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
   await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);
 });

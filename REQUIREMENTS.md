@@ -19,7 +19,7 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
 - For now, enable upgrade effects before Play without progression. Effects apply only to the player; the opponent retains baseline settings. Industry (+25% owned-city production) is the first implementation. Later progression may determine active effects. Proposed effects and architecture are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
-- Three fixed maps (Meadow, Forks, Ridge), a minimal home screen with preview/map selection/Play, and Home navigation from pause/results. Restart and Play again retain the selected map. Selection is memory-only; reloading defaults to Meadow.
+- Four fixed maps with 9, 11, 13, and 21 cities. Home shows one map preview at a time with left/right arrow controls and a visual position indicator; map names/descriptions are omitted. Restart and Play again retain the selected map. Selection is memory-only; reloading defaults to the first map.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
 - Single-player only.
 - Tailwind CSS and Mantine for interface styling; keep feature modules and files small.
@@ -168,10 +168,10 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-10: Fixed map variety and home screen
 
-- Offer three distinct fixed maps with a static region/city preview and Play; no simulation or AI runs on Home.
-- Preserve the original 13-city field as Meadow. Forks has 11 cities and two flanks; Ridge has 9 cities and diagonal starting positions.
+- Offer four distinct fixed maps through one visual preview with left/right arrows and Play; do not show map names or descriptions. No simulation or AI runs on Home.
+- Preserve the original 13-city field and the 9- and 11-city variants. Add a rotationally balanced 21-city field. Maps are selected visually, without names or descriptions.
 - Give both factions 36 starting units, rotationally paired positions/neutral defenders and identical rules/AI configuration. Check bounds, circle clearance and nonempty generously sized touch regions.
-- Return Home from pause/results, abandon the current round and dispose its browser adapter. Keep the selected map in memory. A subsequent Play creates a fresh round; reload returns to default Meadow.
+- Return Home from pause/results, abandon the current round and dispose its browser adapter. Keep the selected map in memory. A subsequent Play creates a fresh round; reload returns to the first map.
 - Restart/replay must reset the current map, not silently return to the original field.
 - Keep the fixed screen, no pan/zoom or scrolling. Duration and human tactical balance need playtesting; do not infer them from symmetry or automated checks.
 

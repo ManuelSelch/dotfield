@@ -30,8 +30,12 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.screenshot({ path: `test-results/industry-home-${viewport.width}.png` });
     const city = (id: string) => page.getByRole('list', { name: 'Territory details' })
       .getByRole('listitem').filter({ hasText: new RegExp(`^${id}:`) });
-    for (const map of ['Meadow', 'Forks', 'Ridge']) {
-      await page.getByRole('radio', { name: map, exact: true }).check();
+    let currentMap = 0;
+    for (let mapIndex = 0; mapIndex < 4; mapIndex++) {
+      while (currentMap !== mapIndex) {
+        await page.getByRole('button', { name: 'Next map' }).click();
+        currentMap = (currentMap + 1) % 4;
+      }
       await page.getByRole('button', { name: 'Play', exact: true }).click();
       await expect(city('south')).toHaveText('south: You, 36 units.');
       // Before the opponent's first dispatch: faction production is independently observable.

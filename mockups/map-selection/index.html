@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — Choose a map</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header><h1><span aria-hidden="true"></span>dotfield</h1></header>
+    <section class="home" aria-labelledby="title">
+      <div class="intro"><p>READY WHEN YOU ARE</p><h2 id="title">Choose your field.</h2></div>
+      <div class="selector" aria-label="Choose a map">
+        <button class="arrow previous" type="button" aria-label="Previous map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
+        <div class="map-frame" aria-live="polite"><svg id="map" viewBox="0 0 360 480" role="img" aria-label="Map 1 preview"></svg></div>
+        <button class="arrow next" type="button" aria-label="Next map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+      </div>
+      <div class="dots" aria-label="Selected map 1 of 4"><i class="active"></i><i></i><i></i><i></i></div>
+      <button class="play" type="button">Play</button>
+    </section>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
