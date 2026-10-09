@@ -1,4 +1,4 @@
-import { createSession } from '../game/session';
+import { createSession, type SessionPhase } from '../game/session';
 import type { SimulationState, Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { bindBoardInput } from './bindBoardInput';
@@ -6,10 +6,13 @@ import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
-export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | null = DEFAULT_AI) {
+interface BoardOptions { autoStart?: boolean; onPhase?: (phase: SessionPhase) => void }
+
+export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | null = DEFAULT_AI, options: BoardOptions = {}) {
   const session = createSession(territories, ai);
   session.setHidden(document.hidden);
-  session.start(); // Preserve the current auto-start screen until visual controls are approved.
+  if (options.autoStart !== false) session.start();
+  let disposed = false;
   let state = session.state;
   let selection: DragSelection | null = null;
   let frameId = 0;
@@ -17,10 +20,11 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     const bounds = canvas.getBoundingClientRect();
     drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection);
   }
-  const drag = bindBoardInput(canvas, () => session.active
+  const drag = bindBoardInput(canvas, () => !disposed && session.active
     ? state.territories : [],
     (next) => { selection = next; redraw(); },
     (source, target) => {
+      if (disposed) return;
       session.setHidden(document.hidden);
       const next = session.dispatch(source, target);
       if (next === state) return;
@@ -31,7 +35,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
 
   function frame(timestamp: number) {
     session.setHidden(document.hidden);
-    if (!session.active) return;
+    if (disposed || !session.active) return;
     const previous = state;
     state = session.frame(timestamp);
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
@@ -55,12 +59,26 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   document.addEventListener('visibilitychange', onVisibilityChange);
   redraw();
   onState(state);
+  options.onPhase?.(session.phase);
   if (session.active) frameId = requestAnimationFrame(frame);
-  return () => {
+  function command(action: 'start' | 'pause' | 'resume' | 'restart') {
+    if (disposed) return;
+    cancelAnimationFrame(frameId);
+    drag.cancel(); session.setHidden(document.hidden); session[action]();
+    state = session.state; onState(state); options.onPhase?.(session.phase); redraw();
+    if (session.active) frameId = requestAnimationFrame(frame);
+  }
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
     cancelAnimationFrame(frameId);
     drag.dispose();
     observer.disconnect();
     window.removeEventListener('resize', redraw);
     document.removeEventListener('visibilitychange', onVisibilityChange);
   };
+  return Object.assign(dispose, {
+    start: () => command('start'), pause: () => command('pause'),
+    resume: () => command('resume'), restart: () => command('restart'),
+  });
 }

@@ -12,7 +12,7 @@ vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose
 vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
-function harness(territories = TERRITORIES, ai: AiConfig | null = null) {
+function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStart = true) {
   let callback = (_time: number) => {};
   const request = vi.fn((next: (time: number) => void) => { callback = next; return 1; });
   const cancel = vi.fn();
@@ -27,11 +27,30 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null) {
   vi.stubGlobal('ResizeObserver', class { observe = observe; disconnect = disconnect; });
   const canvas = { getBoundingClientRect: () => ({ width: 360, height: 480 }) } as HTMLCanvasElement;
   const onCounts = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories, ai);
+  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart });
   return { frame: (time: number) => callback(time), document, request, cancel, disconnect, onCounts, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('starts ready, pauses input and frames, restarts cleanly and ignores disposed commands', () => {
+    const board = harness(TERRITORIES, null, false);
+    const [_, getTerritories, __, dispatch] = vi.mocked(bindDrag).mock.lastCall!;
+    expect(board.request).not.toHaveBeenCalled(); expect(getTerritories()).toEqual([]);
+    board.stop.start(); board.frame(0); dispatch('south', 'centre'); board.frame(250);
+    board.stop.pause(); const paused = board.onCounts.mock.lastCall![0];
+    const requests = board.request.mock.calls.length;
+    board.frame(60000); dispatch('south', 'north');
+    board.document.hidden = true; board.document.dispatchEvent(new Event('visibilitychange'));
+    board.document.hidden = false; board.document.dispatchEvent(new Event('visibilitychange'));
+    expect(board.request).toHaveBeenCalledTimes(requests); expect(getTerritories()).toEqual([]);
+    board.stop.resume(); board.frame(61000); board.frame(61100);
+    board.stop.restart();
+    expect(board.onCounts.mock.lastCall![0]).toMatchObject({ elapsedMs: 0, transfers: [], nextTransferId: 1 });
+    expect(board.onCounts.mock.lastCall![0]).not.toBe(paused); expect(getTerritories()).toEqual([]);
+    board.stop(); const stoppedRequests = board.request.mock.calls.length;
+    board.stop.start(); board.stop.resume(); board.frame(100000);
+    expect(board.request).toHaveBeenCalledTimes(stoppedRequests);
+  });
   it('publishes partial dot losses even if group count and territory counters do not change', () => {
     const board = harness([
       { id: 'source', owner: 'player', units: 6, x: 0, y: 0 },
