@@ -7,8 +7,9 @@ import type { DragSelection } from './drag';
 import { bindDrag } from './bindDrag';
 import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
+import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
-export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES) {
+export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | null = DEFAULT_AI) {
   let state = evaluateRound(createSimulation(territories));
   let selection: DragSelection | null = null;
   const clock = createClock();
@@ -31,7 +32,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   function frame(timestamp: number) {
     if (document.hidden || state.roundStatus !== 'playing') return;
     const previous = state;
-    state = advanceRound(state, clock.advance(timestamp));
+    state = advanceRound(state, clock.advance(timestamp), ai);
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
       || state.roundStatus !== previous.roundStatus;

@@ -36,6 +36,7 @@ export type RoundStatus = 'playing' | 'victory' | 'defeat' | 'draw';
 
 export interface SimulationState {
   readonly roundStatus: RoundStatus;
+  readonly aiNextDecisionMs: number | null;
   readonly elapsedMs: number;
   readonly territories: readonly TerritoryState[];
   readonly rules: GrowthRules;

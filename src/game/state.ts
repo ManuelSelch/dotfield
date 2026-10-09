@@ -11,6 +11,7 @@ export function createSimulation(
 
   return {
     roundStatus: 'playing',
+    aiNextDecisionMs: null,
     elapsedMs: 0,
     transfers: [],
     arrivals: [],

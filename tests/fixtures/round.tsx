@@ -8,8 +8,9 @@ import { FieldHeading } from '../../src/ui/FieldHeading';
 import { theme } from '../../src/ui/theme';
 import '../../src/styles.css';
 
-const defeated = new URLSearchParams(location.search).has('defeat');
-const territories = TERRITORIES.map(node => ({ ...node,
+const params = new URLSearchParams(location.search);
+const defeated = params.has('defeat');
+const territories = params.has('passive') ? TERRITORIES : TERRITORIES.map(node => ({ ...node,
   owner: node.id === 'south' ? (defeated ? 'enemy' : 'player') as 'enemy' | 'player'
     : node.id === 'centre' ? 'enemy' as const : 'neutral' as const,
   units: node.id === 'south' ? 20 : node.id === 'centre' ? 1 : node.units,
@@ -21,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
       <AppHeader />
       <section className="flex min-h-0 flex-1 flex-col">
         <FieldHeading />
-        <FieldCanvas territories={territories} />
+        <FieldCanvas territories={territories} ai={null} />
       </section>
       <AppFooter />
     </main>

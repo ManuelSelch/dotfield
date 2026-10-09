@@ -41,6 +41,10 @@ describe('basic enemy policy', () => {
     expect(chooseOrder(state(node('back', 'enemy', 20, 0), node('front', 'enemy', 2, 200), node('player', 'player', 100, 400))))
       .toMatchObject({ sourceId: 'back', targetId: 'front', kind: 'reinforce' });
   });
+  it('concentrates armies at the frontline when individual regions cannot beat the player', () => {
+    expect(chooseOrder(state(node('back', 'enemy', 30, 0), node('front', 'enemy', 40, 200), node('player', 'player', 60, 400))))
+      .toMatchObject({ sourceId: 'back', targetId: 'front', kind: 'reinforce' });
+  });
   it('does not abandon a source that an incoming attack would otherwise fail to capture', () => {
     let game = state(node('base', 'enemy', 20, 0), node('neutral', 'neutral', 2, -300), node('player', 'player', 15, 200));
     game = dispatchUnits(game, 'player', 'base');

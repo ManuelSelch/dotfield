@@ -1,5 +1,4 @@
 import type { SimulationState, TerritoryState } from '../types';
-import { availableUnits } from '../launch';
 import type { AiConfig } from './config';
 
 export type OrderKind = 'expand' | 'attack' | 'reinforce';
@@ -29,8 +28,7 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
       if (before.owner === 'enemy' && after.units <= before.units) return null;
       score = config.defenceScore;
     } else {
-      if (distanceToPlayer(state, source) - distanceToPlayer(state, target) < config.frontlineAdvance
-        || availableUnits(state, source.id) <= availableUnits(state, target.id) + config.minDispatchUnits) return null;
+      if (distanceToPlayer(state, source) - distanceToPlayer(state, target) < config.frontlineAdvance) return null;
       score = config.frontlineScore;
     }
   }

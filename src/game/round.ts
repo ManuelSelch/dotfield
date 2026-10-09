@@ -3,6 +3,8 @@ import { advanceTravel } from './travel';
 import { resolveCombat } from './combat';
 import { SIMULATION_STEP_MS } from './settings';
 import type { SimulationState } from './types';
+import type { AiConfig } from './ai/config';
+import { advanceAi } from './ai/tick';
 
 export function evaluateRound(state: SimulationState): SimulationState {
   if (state.roundStatus !== 'playing') return state;
@@ -17,13 +19,14 @@ export function evaluateRound(state: SimulationState): SimulationState {
   return { ...state, roundStatus: player ? 'victory' : enemy ? 'defeat' : 'draw' };
 }
 
-export function advanceRound(state: SimulationState, elapsedMs: number): SimulationState {
+export function advanceRound(state: SimulationState, elapsedMs: number, ai: AiConfig | null = null): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');
   let next = evaluateRound(state);
   // Stop at the winning step, even when a delayed frame spans multiple arrivals.
   for (let remaining = elapsedMs; remaining > 0 && next.roundStatus === 'playing';) {
     const step = Math.min(remaining, SIMULATION_STEP_MS);
     next = evaluateRound(resolveCombat(advanceTravel(advanceGrowth(next, step), step)));
+    if (ai) next = advanceAi(next, ai);
     remaining -= step;
   }
   return next;

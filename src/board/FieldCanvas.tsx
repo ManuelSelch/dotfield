@@ -6,16 +6,19 @@ import { startBoard } from './startBoard';
 import { TerritoryDetails } from './TerritoryDetails';
 import { RoundResult } from '../ui/RoundResult';
 import type { Territory } from '../game/types';
+import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
-export function FieldCanvas({ territories = TERRITORIES }: { territories?: readonly Territory[] } = {}) {
+interface FieldCanvasProps { territories?: readonly Territory[]; ai?: AiConfig | null }
+
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Text snapshots change on counts/dispatch/arrival, never on each travel frame.
   const [state, setState] = useState(() => createSimulation(territories));
   const [round, setRound] = useState(0);
 
   useEffect(() => {
-    if (canvasRef.current) return startBoard(canvasRef.current, setState, territories);
-  }, [round, territories]);
+    if (canvasRef.current) return startBoard(canvasRef.current, setState, territories, ai);
+  }, [round, territories, ai]);
 
   function replay() {
     setState(createSimulation(territories));

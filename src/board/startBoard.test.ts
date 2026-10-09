@@ -3,12 +3,14 @@ import { drawBoard } from './drawBoard';
 import { startBoard } from './startBoard';
 import { bindDrag } from './bindDrag';
 import { TERRITORIES } from './map';
+import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
+import type { SimulationState } from '../game/types';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
-function harness(territories = TERRITORIES) {
+function harness(territories = TERRITORIES, ai: AiConfig | null = null) {
   let callback = (_time: number) => {};
   const request = vi.fn((next: (time: number) => void) => { callback = next; return 1; });
   const cancel = vi.fn();
@@ -23,11 +25,30 @@ function harness(territories = TERRITORIES) {
   vi.stubGlobal('ResizeObserver', class { observe = observe; disconnect = disconnect; });
   const canvas = { getBoundingClientRect: () => ({ width: 360, height: 480 }) } as HTMLCanvasElement;
   const onCounts = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories);
+  const stop = startBoard(canvas, onCounts, territories, ai);
   return { frame: (time: number) => callback(time), document, request, cancel, disconnect, onCounts, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('pauses the AI decision deadline while hidden and excludes background catch-up', () => {
+    const board = harness(TERRITORIES, DEFAULT_AI);
+    board.frame(0);
+    board.frame(1700);
+    expect(board.onCounts.mock.lastCall![0].transfers).toEqual([]);
+    board.document.hidden = true;
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    board.frame(60000);
+    board.document.hidden = false;
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    board.frame(61000);
+    expect(board.onCounts.mock.lastCall![0].transfers).toEqual([]);
+    board.frame(61150);
+    const active: SimulationState = board.onCounts.mock.lastCall![0];
+    expect(active.elapsedMs).toBe(1850);
+    expect(active.transfers.some(t => t.owner === 'enemy')).toBe(true);
+    board.stop();
+  });
+
   it('stops frames and rejects orders after victory, including on visibility resume', () => {
     const board = harness([
       { id: 'source', owner: 'player', units: 20, x: 0, y: 0 },

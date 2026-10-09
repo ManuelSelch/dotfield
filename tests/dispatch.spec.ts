@@ -6,7 +6,8 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto('/');
+  // Isolate player controls/combat from AI orders; actual AI is covered separately.
+  await page.goto('/tests/fixtures/round.html?passive');
 });
 
 test('drag sends all but one and reduces the target as each real batch arrives', async ({ page }) => {
