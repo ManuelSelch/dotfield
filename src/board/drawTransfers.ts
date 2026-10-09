@@ -12,9 +12,12 @@ export function drawTransfers(ctx: CanvasRenderingContext2D, state: SimulationSt
     const dy = transfer.to.y - transfer.from.y;
     const length = Math.hypot(dx, dy) || 1;
     ctx.fillStyle = PALETTE[transfer.owner].fill;
-    // A compact row across the flight direction; every dot has the same arrival time.
+    // Smoothly gather the row during the final 20%, keeping flight timing unchanged.
+    const progress = transfer.elapsedMs / transfer.durationMs;
+    const gathering = Math.max(0, Math.min(1, (progress - 0.8) / 0.2));
+    const spread = 1 - gathering * gathering * (3 - 2 * gathering);
     for (let index = 0; index < transfer.units; index++) {
-      const offset = (index - (transfer.units - 1) / 2) * 18;
+      const offset = (index - (transfer.units - 1) / 2) * 18 * spread;
       ctx.beginPath();
       ctx.arc(point.x - dy / length * offset, point.y + dx / length * offset, 7.2, 0, Math.PI * 2);
       ctx.fill();
