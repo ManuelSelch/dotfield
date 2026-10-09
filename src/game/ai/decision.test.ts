@@ -45,9 +45,15 @@ describe('basic enemy policy', () => {
     expect(chooseOrder(state(node('back', 'enemy', 30, 0), node('front', 'enemy', 40, 200), node('player', 'player', 60, 400))))
       .toMatchObject({ sourceId: 'back', targetId: 'front', kind: 'reinforce' });
   });
-  it('does not abandon a source that an incoming attack would otherwise fail to capture', () => {
+  it('counterattacks when head-on collisions intercept incoming troops and protect the source', () => {
     let game = state(node('base', 'enemy', 20, 0), node('neutral', 'neutral', 2, -300), node('player', 'player', 15, 200));
     game = dispatchUnits(game, 'player', 'base');
+    expect(chooseOrder(game)).toMatchObject({ sourceId: 'base', targetId: 'player', kind: 'attack' });
+  });
+  it('does not abandon a source when attacks from two directions cannot both be intercepted', () => {
+    let game = state(node('base', 'enemy', 20, 0), node('neutral', 'neutral', 2, -300),
+      node('player', 'player', 15, 200), node('flank', 'player', 6, 0, 200));
+    game = dispatchUnits(dispatchUnits(game, 'player', 'base'), 'flank', 'base');
     expect(chooseOrder(game)).toBeNull();
   });
   it('is deterministic and does not mutate the simulation', () => {

@@ -5,6 +5,7 @@ import { bindDrag } from './bindDrag';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { SimulationState } from '../game/types';
+import * as roundRules from '../game/round';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
@@ -30,6 +31,24 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null) {
 }
 
 describe('board lifecycle adapter', () => {
+  it('publishes partial dot losses even if group count and territory counters do not change', () => {
+    const board = harness([
+      { id: 'source', owner: 'player', units: 6, x: 0, y: 0 },
+      { id: 'target', owner: 'enemy', units: 20, x: 300, y: 0 },
+    ]);
+    const dispatch = vi.mocked(bindDrag).mock.lastCall![3];
+    dispatch('source', 'target');
+    const before: SimulationState = board.onCounts.mock.lastCall![0];
+    const after = { ...before, transfers: [{ ...before.transfers[0], units: 4, dotSlots: [0, 1, 3, 4] }] };
+    const spy = vi.spyOn(roundRules, 'advanceRound').mockReturnValueOnce(after);
+    const publications = board.onCounts.mock.calls.length;
+    board.frame(0);
+    expect(board.onCounts).toHaveBeenCalledTimes(publications + 1);
+    expect(board.onCounts.mock.lastCall![0]).toBe(after);
+    spy.mockRestore();
+    board.stop();
+  });
+
   it('pauses the AI decision deadline while hidden and excludes background catch-up', () => {
     const board = harness(TERRITORIES, DEFAULT_AI);
     board.frame(0);

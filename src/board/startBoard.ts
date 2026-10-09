@@ -35,6 +35,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     state = advanceRound(state, clock.advance(timestamp), ai);
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
+      || state.transfers.reduce((sum, t) => sum + t.units, 0) !== previous.transfers.reduce((sum, t) => sum + t.units, 0)
       || state.roundStatus !== previous.roundStatus;
     if (state.roundStatus !== 'playing') drag.cancel();
     if (changed) onState(state);
