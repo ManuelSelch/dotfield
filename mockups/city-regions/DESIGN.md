@@ -1,8 +1,8 @@
 # City regions — visual review
 
 Revision: 1
-Review status: in review
-Approval: not yet approved for production implementation.
+Review status: approved
+Approval: revision 1 explicitly approved by the user: “looks good. implement it”. Approved mockup source is preserved for production reference.
 
 ## Goal
 
@@ -34,4 +34,4 @@ Make touch dispatch forgiving by using the whole surrounding city region as the 
 
 ## Outstanding review
 
-Approve tint strength, border weight, full-region highlighting and source/target touch behavior before production implementation. The user has requested the proposed visuals, but has not yet reviewed this revision.
+Revision 1 approved: tint strength, border weight, full-region highlights, whole-region source/target input and preserved circle impact borders. Production remains Canvas/React with the real simulator; SVG and fake preview game logic are not carried over.
