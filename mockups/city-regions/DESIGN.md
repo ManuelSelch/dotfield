@@ -35,3 +35,10 @@ Make touch dispatch forgiving by using the whole surrounding city region as the 
 ## Outstanding review
 
 Revision 1 approved: tint strength, border weight, full-region highlights, whole-region source/target input and preserved circle impact borders. Production remains Canvas/React with the real simulator; SVG and fake preview game logic are not carried over.
+
+## Production handoff
+
+- Owned mockup Vite process and listener were verified and stopped before production edits. Approved source is preserved.
+- Implemented dependency-free clipped Voronoi geometry, layout/position caching, Canvas region fills/borders, full-region pointer input and keyboard controls. Production screenshots/pixel checks compare tint/highlight/capture states at phone viewport sizes.
+- Production region fills change instantly (no decorative transitions). Troop spreading/convergence remains essential collision geometry and is not disabled for reduced motion; unlike the fake preview, changing those positions would desynchronize visible dots from combat. Core circle borders, per-dot collisions and AI are unchanged.
+- Reset-preview control and fake motion/combat were deliberately not ported; actual game uses its existing round/replay lifecycle.

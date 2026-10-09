@@ -1,6 +1,6 @@
 import type { Territory } from '../game/types';
 
-const OWNER_LABELS = { player: 'You', enemy: 'Opponent', neutral: 'Neutral' };
+export const OWNER_LABELS = { player: 'You', enemy: 'Opponent', neutral: 'Neutral' };
 
 export function TerritoryDetails({ territories }: { territories: readonly Territory[] }) {
   return (

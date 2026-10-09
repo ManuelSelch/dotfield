@@ -9,6 +9,7 @@ import * as roundRules from '../game/round';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
+vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 function harness(territories = TERRITORIES, ai: AiConfig | null = null) {

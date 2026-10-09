@@ -14,7 +14,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 480 }
     await page.evaluate(() => window.scrollTo(0, 500));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     expect(await app.boundingBox()).toEqual(before);
-    await expect(page.getByText('Drag to send · leave one behind.')).toBeInViewport();
+    await expect(page.getByText('Drag between regions · leave one behind.')).toBeInViewport();
     expect(await page.locator('html').evaluate((el) => getComputedStyle(el).overscrollBehaviorY)).toBe('none');
     expect(await page.getByRole('img', { name: 'Territory board' })
       .evaluate((el) => getComputedStyle(el).touchAction)).toBe('none');

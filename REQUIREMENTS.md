@@ -80,13 +80,13 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-02: Dispatch
 
-- Drag from a player-owned source circle to a distinct target circle to send units.
+- Drag from anywhere in a player-owned city region to a distinct target region to send units. Each city circle remains the troop spawn/impact spot.
 - Order all available whole units except one; a source with fewer than two unreserved units sends nothing.
 - Keep route/selection feedback, but do not display a numeric dispatch label.
 - Reserve ordered units immediately, but deduct them from the source counter only as each group launches. Queued troops remain defenders and cannot be ordered twice.
 - If a source is captured, cancel its unlaunched groups; already airborne units continue. A depleted source launches only available units, keeping at least one.
 - Units travel visibly and resolve on arrival.
-- Dropping outside a valid target cancels without changing counts.
+- Dropping outside the board or inside the source's own region cancels without changing counts. Points anywhere inside another region are valid targets.
 - Ignore input from non-player sources and while paused or after the round ends.
 - Proposed rule: allow friendly reinforcement as well as attacks.
 - There are no unit orders or redirection while units are in transit in the initial version.
@@ -168,7 +168,11 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Portrait-first single-screen board; no panning or zooming required initially.
 - Clean circles, readable numbers, restrained faction colours, and smooth unit movement.
 - Avoid decorative themes, heavy panels, and menus during play.
-- Clear source selection and valid-target feedback; touch actions must not accidentally scroll the page.
+- Clear full-region source selection and valid-target feedback; touch actions must not accidentally scroll the page.
+- Automatically generate straight-edged Voronoi city regions from circle positions, clipped to the whole Canvas including margins; use nearest-city input with deterministic map-order ties.
+- Subtle faction fills and thin city borders persist even between allied cities. Ownership recolors cells without regenerating geometry; cache cells until city positions/identities or layout dimensions change.
+- Keep outer region borders visual/interactive only; never replace circle impact borders or per-dot collision geometry.
+- Provide keyboard/screen-reader city controls with visible whole-region focus, Enter/Space activation, Escape cancellation and disabled controls after round end.
 - Respect iPhone safe areas and keep controls comfortably tappable.
 - Check readability and faction distinction without relying solely on subtle colour differences.
 - Aim for smooth animation on the actual target iPhone; measure before adding visual complexity.

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createCityRegions } from './geometry';
 import { createRegionCache } from './cache';
 import { TERRITORIES } from '../map';
+import { hitTest } from '../hitTest';
 import type { Point } from '../../game/types';
 
 function area(points: readonly Point[]) {
@@ -28,6 +29,9 @@ describe('automatically generated city regions', () => {
     expect(cells.reduce((sum, cell) => sum + area(cell.points), 0)).toBeCloseTo(width * height, 5);
     for (const cell of cells) {
       expect(area(cell.points)).toBeGreaterThan(0);
+      const center = cell.points.reduce((sum, p) => ({ x: sum.x + p.x / cell.points.length,
+        y: sum.y + p.y / cell.points.length }), { x: 0, y: 0 });
+      expect(hitTest(TERRITORIES, width, height, center)).toBe(cell.id);
       for (const p of cell.points) {
         expect(p.x).toBeGreaterThanOrEqual(-1e-7);
         expect(p.x).toBeLessThanOrEqual(width + 1e-7);

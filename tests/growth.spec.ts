@@ -34,7 +34,7 @@ test('whole-unit counts and Canvas grow together; neutrals remain unchanged', as
   await expect(territories.getByText('south: You, 39 units.', { exact: true })).toBeAttached();
   await expect(territories.getByText('north-west: Neutral, 8 units.', { exact: true })).toBeAttached();
   await expect(territories.getByText('centre: Neutral, 20 units.', { exact: true })).toBeAttached();
-  await expect(page.getByText('Drag to send · leave one behind.')).toBeVisible();
+  await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
   expect(errors).toEqual([]);
   await page.screenshot({ path: 'test-results/growth.png' });
 });

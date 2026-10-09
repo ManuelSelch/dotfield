@@ -5,6 +5,7 @@ import { TERRITORIES } from './map';
 import { startBoard } from './startBoard';
 import { TerritoryDetails } from './TerritoryDetails';
 import { RoundResult } from '../ui/RoundResult';
+import { RegionControls } from './RegionControls';
 import type { Territory } from '../game/types';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
@@ -32,6 +33,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI }: Fiel
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby="territory-details">
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
+        <RegionControls state={state} />
         <RoundResult status={state.roundStatus} onReplay={replay} />
       </div>
       <TerritoryDetails territories={state.territories} />

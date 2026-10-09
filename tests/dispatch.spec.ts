@@ -73,7 +73,7 @@ test('repeated orders do not re-send the troops still waiting inside the source'
   await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
 });
 
-test('off-circle, self-target and non-player drags spend nothing', async ({ page }) => {
+test('off-board, self-target and non-player region drags spend nothing', async ({ page }) => {
   const { source, target, outside, enemy } = await fieldPoints(page);
   for (const [from, to] of [[source, outside], [source, source], [enemy, target], [target, source]]) {
     await page.mouse.move(from.x, from.y);
