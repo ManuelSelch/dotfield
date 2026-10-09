@@ -9,8 +9,9 @@ import { RoundResult } from '../ui/RoundResult';
 import { RegionControls } from './RegionControls';
 import type { RulesInput, Territory } from '../game/types';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
+import type { AiConfigurations } from '../game/ai/tick';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | null; autoStart?: boolean; onHome?: () => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void }
 
 export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

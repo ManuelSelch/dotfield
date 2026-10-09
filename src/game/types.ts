@@ -1,7 +1,8 @@
 import type { TerritoryFeature } from './features/types';
 
-export type Owner = 'player' | 'enemy' | 'neutral';
-export type Faction = Exclude<Owner, 'neutral'>;
+export type FactionId = string;
+export type Owner = FactionId | 'neutral';
+export type Faction = FactionId;
 
 export interface Territory {
   readonly id: string;
@@ -21,8 +22,7 @@ export interface GrowthRules {
   readonly unitsPerSecond: number;
 }
 
-// Configurations are keyed by identity; gameplay currently supports player/enemy only.
-export type FactionId = string;
+// Configurations and ownership are keyed by stable identity.
 export interface FactionRules extends GrowthRules {
   readonly travelSpeed: number;
   readonly batchIntervalMs: number;
@@ -38,7 +38,7 @@ export interface Transfer {
   readonly id: number;
   readonly sourceId: string;
   readonly targetId: string;
-  readonly owner: Exclude<Owner, 'neutral'>;
+  readonly owner: FactionId;
   readonly units: number;
   readonly formationSize: number;
   readonly dotSlots: readonly number[];
@@ -53,6 +53,7 @@ export type RoundStatus = 'playing' | 'victory' | 'defeat' | 'draw';
 export interface SimulationState {
   readonly roundStatus: RoundStatus;
   readonly aiNextDecisionMs: number | null;
+  readonly aiDecisionDeadlines: Readonly<Record<FactionId, number>>;
   readonly elapsedMs: number;
   readonly territories: readonly TerritoryState[];
   readonly rules: SimulationRules;

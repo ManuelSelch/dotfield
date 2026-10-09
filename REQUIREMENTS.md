@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, player-only Industry/Factory and independent faction rules implemented. Watchtower is now implemented alongside Industry/Factory; real-iPhone/duration playtesting and offline support remain outstanding; progression is deferred.
+Status: mobile board, simulation, AI, pause/replay, four-map home, and Industry/Factory/Watchtower are implemented. Multi-faction combat and independent per-enemy AI behavior, rules and upgrade selections are implemented; the two-enemy map remains next. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
 
 ## 1. Purpose
 
@@ -18,10 +18,10 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - Attacking sends **all available source units except one**, replacing any existing unlaunched source groups while preserving airborne groups.
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
-- For now, enable upgrade effects before Play without progression. Effects apply only to the player; the opponent retains baseline settings. Industry (+25% owned-city production) is the first implementation. Later progression may determine active effects. Proposed effects and architecture are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
+- Enable upgrade effects before Play without progression. Player and each AI faction have independent in-memory upgrade selections and AI behavior; reload resets them. Industry (+25% owned-city production), Factory and Watchtower are implemented. Details are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
 - Four fixed maps with 9, 11, 13, and 21 cities. Home shows one map preview at a time with left/right arrow controls and a visual position indicator; map names/descriptions are omitted. Restart and Play again retain the selected map. Selection is memory-only; reloading defaults to the first map.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
-- Single-player only.
+- One human player and a target map with two independent AI enemies. Each enemy's AI behavior and upgrade effects are selectable separately. All factions are hostile; no alliances/teams. Settings remain in memory and reset on reload. Multiplayer/networking is out of scope.
 - Tailwind CSS and Mantine for interface styling; keep feature modules and files small.
 
 ### Proposed direction, not yet explicitly confirmed
@@ -140,14 +140,15 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-07: Pre-game upgrade effects; progression deferred
 
-- Enable effects before Play without currency, prices, rewards or unlocks. Defaults are disabled and effects apply only to the player.
-- Industry increases production of every player-owned city by 25%; ownership at growth time determines the rate. Enemy and neutral growth remain unchanged.
-- Factory doubles only the starting player's city production, stacking multiplicatively with Industry (2.5 units/sec). It remains attached after capture but benefits only its original faction while owning the city. Recapture restores the bonus.
+- Enable effects before Play without currency, prices, rewards or unlocks. Player upgrades and each AI faction's upgrade effects are configured independently; all are in memory and reset on reload.
+- Industry increases production of every city owned by the faction that selected it by 25%; ownership at growth time determines the rate. Neutral growth remains unchanged.
+- Factory doubles only the selecting faction's starting city production, stacking multiplicatively with Industry (2.5 units/sec). It remains attached after capture but benefits only its original faction while owning the city. Recapture restores the bonus.
 - Show a factory silhouette on its host (dimmed while inactive) and one upward chevron on Industry-boosted cities. Use both icons when stacked; reserve double chevrons for a later improved Industry level. Do not obscure counts or change touch/combat geometry.
 - Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain selected effects without stacking them. Home allows changing selections; reload resets them.
 - Preserve paused/hidden/terminal freeze and fractional growth. Numeric modifiers must not mutate shared defaults or map seeds.
-- Watchtower attaches to the starting city, covers a visible 72-field-unit radius and destroys up to four hostile airborne dots per second (one every 250ms). Its allegiance follows current city ownership, so it shoots its former owner after capture; neutral towers are inactive. Live simulation and AI forecasting share deterministic fixed-step firing.
+- Watchtower attaches to the selecting faction's starting city, covers a visible 72-field-unit radius and destroys up to four hostile airborne dots per second (one every 250ms). Its allegiance follows current city ownership; neutral towers are inactive. Live simulation and AI forecasting share deterministic fixed-step firing.
+- Each AI faction has its own selectable Balanced, Aggressive, or Defensive behavior and upgrade effects. No alliances/teams; no settings persist across reloads.
 - Later progression supplies the same selected effect IDs. Reward formula, prices and caps remain unresolved and out of current scope.
 
 ### FR-08: Settings and persistence

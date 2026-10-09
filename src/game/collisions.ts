@@ -2,31 +2,34 @@ import { groupContacts } from './contacts';
 import type { SimulationState } from './types';
 
 export function hasOpposingTransfers(state: SimulationState): boolean {
-  return state.transfers.some(t => t.owner === 'player') && state.transfers.some(t => t.owner === 'enemy');
+  return new Set(state.transfers.map(t => t.owner)).size > 1;
 }
 
 export function resolveTravelCollisions(state: SimulationState, elapsedMs: number): SimulationState {
   if (state.roundStatus !== 'playing' || elapsedMs === 0 || !hasOpposingTransfers(state)) return state;
-  const players = state.transfers.filter(t => t.owner === 'player');
-  const enemies = state.transfers.filter(t => t.owner === 'enemy');
-  const contacts = players.flatMap(player => enemies.flatMap(enemy => groupContacts(player, enemy, elapsedMs)));
-  contacts.sort((a, b) => a.time - b.time || a.playerId - b.playerId || a.playerSlot - b.playerSlot
-    || a.enemyId - b.enemyId || a.enemySlot - b.enemySlot);
-  const destroyed = new Map<number, Set<number>>();
-  for (const contact of contacts) {
-    if (destroyed.get(contact.playerId)?.has(contact.playerSlot) || destroyed.get(contact.enemyId)?.has(contact.enemySlot)) continue;
-    for (const [id, slot] of [[contact.playerId, contact.playerSlot], [contact.enemyId, contact.enemySlot]]) {
-      const slots = destroyed.get(id) ?? new Set<number>();
-      slots.add(slot);
-      destroyed.set(id, slots);
+  const groups = new Map<string, typeof state.transfers>();
+  for (const transfer of state.transfers) groups.set(transfer.owner, [...(groups.get(transfer.owner) ?? []), transfer]);
+  const factionIds = [...groups.keys()].sort();
+  const contacts = [] as ReturnType<typeof groupContacts>;
+  for (let i = 0; i < factionIds.length; i++) for (let j = i + 1; j < factionIds.length; j++) {
+    for (const first of groups.get(factionIds[i])!) for (const second of groups.get(factionIds[j])!) {
+      contacts.push(...groupContacts(first, second, elapsedMs));
     }
   }
-  if (destroyed.size === 0) return state;
+  contacts.sort((a, b) => a.time - b.time || a.firstId - b.firstId || a.firstSlot - b.firstSlot
+    || a.secondId - b.secondId || a.secondSlot - b.secondSlot);
+  const destroyed = new Map<number, Set<number>>();
+  for (const contact of contacts) {
+    if (destroyed.get(contact.firstId)?.has(contact.firstSlot) || destroyed.get(contact.secondId)?.has(contact.secondSlot)) continue;
+    for (const [id, slot] of [[contact.firstId, contact.firstSlot], [contact.secondId, contact.secondSlot]]) {
+      const slots = destroyed.get(id) ?? new Set<number>(); slots.add(slot); destroyed.set(id, slots);
+    }
+  }
+  if (!destroyed.size) return state;
   const transfers = state.transfers.flatMap(batch => {
-    const removed = destroyed.get(batch.id);
-    if (!removed) return [batch];
+    const removed = destroyed.get(batch.id); if (!removed) return [batch];
     const dotSlots = batch.dotSlots.filter(slot => !removed.has(slot));
-    return dotSlots.length === 0 ? [] : [{ ...batch, units: dotSlots.length, dotSlots }];
+    return dotSlots.length ? [{ ...batch, units: dotSlots.length, dotSlots }] : [];
   });
   return { ...state, transfers };
 }

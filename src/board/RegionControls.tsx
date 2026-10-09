@@ -15,7 +15,7 @@ export function RegionControls({ state, disabled = false }: { state: SimulationS
         {state.territories.map(node => (
           <button key={node.id} type="button" data-city-id={node.id} className="sr-only pointer-events-none"
             disabled={disabled || state.roundStatus !== 'playing'} aria-describedby="region-keyboard-help"
-            aria-label={`Select ${node.id} region: ${OWNER_LABELS[node.owner]}, ${node.units} units${featureLabels(node)}`}>
+            aria-label={`Select ${node.id} region: ${OWNER_LABELS[node.owner] ?? `Faction ${node.owner}`}, ${node.units} units${featureLabels(node)}`}>
             {node.id}
           </button>
         ))}

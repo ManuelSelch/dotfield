@@ -1,13 +1,16 @@
-import { GROWTH_RULES } from './settings';
 import type { RulesInput, SimulationState, Territory } from './types';
-import { createRules, getFactionRules } from './rules';
+import { BASE_FACTION_RULES, createRules, getFactionRules } from './rules';
 import { snapshotTerritories } from './features/snapshot';
 
 export function createSimulation(
   territories: readonly Territory[],
-  rules: RulesInput = GROWTH_RULES,
+  rules?: RulesInput,
 ): SimulationState {
-  const resolved = createRules(rules);
+  const factionIds = [...new Set(['player', ...territories.map(city => city.owner)
+    .filter((owner): owner is string => owner !== 'neutral')])];
+  const configured = rules && 'factions' in rules ? rules : { factions: Object.fromEntries(factionIds.map(id =>
+    [id, { ...BASE_FACTION_RULES, ...(rules ?? {}) }])) };
+  const resolved = createRules(configured);
   const opening = snapshotTerritories(territories);
   for (const city of opening) {
     if (city.owner !== 'neutral') getFactionRules({ rules: resolved }, city.owner);
@@ -19,6 +22,7 @@ export function createSimulation(
   return {
     roundStatus: 'playing',
     aiNextDecisionMs: null,
+    aiDecisionDeadlines: {},
     elapsedMs: 0,
     transfers: [],
     arrivals: [],
