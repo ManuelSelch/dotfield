@@ -3,9 +3,9 @@ import type { FieldMap } from '../board/maps';
 import { createCityRegions } from '../board/regions/geometry';
 import { PALETTE } from '../board/palette';
 
-export function MapPreview({ map }: { map: FieldMap }) {
+export function MapPreview({ map, index }: { map: FieldMap; index: number }) {
   const regions = useMemo(() => createCityRegions(map.territories, 360, 480), [map]);
-  return <svg viewBox="0 0 360 480" role="img" aria-label={`${map.name} map preview`}
+  return <svg viewBox="0 0 360 480" role="img" aria-label={`Map ${index + 1} preview`}
     className="block h-full w-full rounded-[20px] bg-field" preserveAspectRatio="xMidYMid meet">
     {regions.map(region => {
       const city = map.territories.find(city => city.id === region.id)!;

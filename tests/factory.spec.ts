@@ -14,10 +14,14 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await factory.focus(); await page.keyboard.press('Space');
     const city = (id: string) => page.getByRole('list', { name: 'Territory details' })
       .getByRole('listitem').filter({ hasText: new RegExp(`^${id}:`) });
+    let currentMap = 0;
     for (const stack of [false, true]) {
       await industry.setChecked(stack);
-      for (const map of ['Meadow', 'Forks', 'Ridge']) {
-        await page.getByRole('radio', { name: map, exact: true }).check();
+      for (let mapIndex = 0; mapIndex < 4; mapIndex++) {
+        while (currentMap !== mapIndex) {
+          await page.getByRole('button', { name: 'Next map' }).click();
+          currentMap = (currentMap + 1) % 4;
+        }
         await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
         await page.screenshot({ path: `test-results/factory-home-${viewport.width}.png` });
         await page.getByRole('button', { name: 'Play', exact: true }).tap();
@@ -27,7 +31,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
         await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
         await expect(city('north')).toHaveText('north: Opponent, 37 units.');
         await expect(city('centre')).toHaveText('centre: Neutral, 20 units.');
-        await page.screenshot({ path: `test-results/factory-board-${map.toLowerCase()}-${viewport.width}.png` });
+        await page.screenshot({ path: `test-results/factory-board-map-${mapIndex + 1}-${viewport.width}.png` });
         await page.getByRole('button', { name: 'Pause', exact: true }).tap();
         await page.clock.runFor(60000);
         await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);

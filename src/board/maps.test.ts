@@ -6,13 +6,14 @@ import { createCityRegions } from './regions/geometry';
 import { hitTest } from './hitTest';
 
 describe('fixed map presets', () => {
-  it('keeps the original field and provides three distinct stable presets', () => {
-    expect(MAPS).toHaveLength(3);
+  it('keeps the original field and provides four distinct stable presets', () => {
+    expect(MAPS).toHaveLength(4);
     expect(MAPS[0].territories).toBe(TERRITORIES);
-    expect(new Set(MAPS.map(map => map.id)).size).toBe(3);
-    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(3);
+    expect(MAPS[3].territories).toHaveLength(21);
+    expect(new Set(MAPS.map(map => map.id)).size).toBe(4);
+    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(4);
   });
-  for (let index = 0; index < 3; index++) {
+  for (let index = 0; index < MAPS.length; index++) {
     it(`map ${index + 1} has equal armies and rotationally balanced positions/defenders`, () => {
       const cities = MAPS[index].territories;
       expect(cities.filter(city => city.owner === 'player').map(city => city.units)).toEqual([36]);
@@ -40,7 +41,7 @@ describe('fixed map presets', () => {
         const area = Math.abs(region.points.reduce((sum, point, i, points) => {
           const next = points[(i + 1) % points.length]; return sum + point.x * next.y - next.x * point.y;
         }, 0)) / 2;
-        expect(area).toBeGreaterThan(44 * 44);
+        expect(area).toBeGreaterThan(index === 3 ? 42 * 42 : 44 * 44);
         const city = projected.find(city => city.id === region.id)!;
         expect(hitTest(map.territories, width, height, city)).toBe(city.id);
       }
