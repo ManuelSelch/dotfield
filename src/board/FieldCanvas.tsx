@@ -7,15 +7,16 @@ import { TERRITORIES } from './map';
 import { TerritoryDetails } from './TerritoryDetails';
 import { RoundResult } from '../ui/RoundResult';
 import { RegionControls } from './RegionControls';
-import type { RulesInput, Territory } from '../game/types';
+import type { RulesInput, SimulationState, Territory } from '../game/types';
+import type { SessionPhase } from '../game/session';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase) => void }
 
-export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules }: FieldCanvasProps = {}) {
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const session = useBoardSession(canvasRef, territories, ai, autoStart, rules);
+  const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot);
   const { state, phase } = session;
 
   return (

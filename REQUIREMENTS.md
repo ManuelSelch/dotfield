@@ -157,14 +157,14 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Reset progression only through an explicit confirmed action.
 - Handle missing, outdated, or corrupt saved data with safe defaults rather than preventing play.
 - Explain that clearing browser/site data can remove progress.
-- Mid-round save/restore is not part of the initial scope.
+- Save the active round locally, including territories, fractional growth, airborne transfers, feature timers, rules and AI settings; restore it after a browser/mobile app reload without simulating closed time.
 
 ### FR-09: Pause and offline use
 
 - Provide Pause/Resume and immediate Restart actions with 44px minimum touch height. Restart resets state and starts the round without confirmation. No ready popup; home-screen Play starts a fresh round on the selected map. A 44px pause icon is the only in-round menu control; Restart is inside the pause overlay.
 - Pause freezes growth, launches, travel, collisions, orders and AI; background automatically suspends the clock without overriding manual pause.
 - Resume without simulating all the elapsed background time or granting offline growth.
-- After offline support is added and the app has been loaded successfully online, a new round can be played without a connection.
+- After offline support is added and the app has been loaded successfully online, a new round can be played without a connection. Current persistence does not grant offline growth or require a service worker.
 - Home Screen installation is supported as a later delivery step, not a prerequisite for testing the first round.
 
 ### FR-10: Fixed map variety and home screen
