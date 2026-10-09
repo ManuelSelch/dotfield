@@ -64,5 +64,11 @@ test.describe('region touch and keyboard controls', () => {
     await source.focus(); await source.press('Enter');
     await target.focus(); await target.press('Space');
     await expect(transfers.getByRole('listitem')).toHaveCount(7);
+    // Reserved defenders remain selectable for a replacement keyboard order.
+    await source.focus(); await source.press('Enter');
+    const nextTarget = page.getByRole('button', { name: /^Select north region:/ });
+    await nextTarget.focus(); await nextTarget.press('Enter');
+    await expect(transfers.getByRole('listitem').filter({ hasText: 'south → centre' })).toHaveCount(1);
+    await expect(transfers.getByRole('listitem').filter({ hasText: 'south → north' })).toHaveCount(6);
   });
 });

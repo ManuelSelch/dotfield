@@ -5,7 +5,6 @@ import { createSimulation } from '../game/state';
 import type { SimulationState, Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { bindBoardInput } from './bindBoardInput';
-import { availableUnits } from '../game/launch';
 import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
@@ -20,7 +19,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection);
   }
   const drag = bindBoardInput(canvas, () => state.roundStatus === 'playing'
-    ? state.territories.map(node => ({ ...node, units: availableUnits(state, node.id) })) : [],
+    ? state.territories : [],
     (next) => { selection = next; redraw(); },
     (source, target) => {
       if (document.hidden || state.roundStatus !== 'playing') return;

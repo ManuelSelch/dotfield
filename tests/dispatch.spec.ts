@@ -61,16 +61,24 @@ test('source units leave one group at a time while normal growth continues', asy
   await expect(south).toHaveText('south: You, 22 units.');
 });
 
-test('repeated orders do not re-send the troops still waiting inside the source', async ({ page }) => {
-  const { source, target } = await fieldPoints(page);
-  for (let i = 0; i < 2; i++) {
+test('replacement drags redirect queued troops and leave old airborne groups travelling', async ({ page }) => {
+  const { source, target, enemy, outside } = await fieldPoints(page);
+  const transfers = page.getByRole('list', { name: 'Unit transfers' });
+  for (const destination of [target, outside, source, enemy]) {
     await page.mouse.move(source.x, source.y);
     await page.mouse.down();
-    await page.mouse.move(target.x, target.y);
+    await page.mouse.move(destination.x, destination.y);
     await page.mouse.up();
+    if (destination !== enemy) {
+      await expect(transfers.getByRole('listitem')).toHaveCount(7);
+      await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
+    }
   }
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 26 units.');
+  await expect(transfers.getByRole('listitem').filter({ hasText: 'south → centre' })).toHaveCount(1);
+  await expect(transfers.getByRole('listitem').filter({ hasText: 'south → north' })).toHaveCount(6);
+  await page.clock.runFor(4700);
+  await expect(page.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText('centre: Neutral, 15 units.');
 });
 
 test('off-board, self-target and non-player region drags spend nothing', async ({ page }) => {
