@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, player-only Industry and independent faction rules implemented. Other upgrade effects, real-iPhone/duration playtesting and offline support remain outstanding; progression is deferred.
+Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, player-only Industry/Factory and independent faction rules implemented. Other upgrade effects, real-iPhone/duration playtesting and offline support remain outstanding; progression is deferred.
 
 ## 1. Purpose
 
@@ -142,7 +142,9 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 - Enable effects before Play without currency, prices, rewards or unlocks. Defaults are disabled and effects apply only to the player.
 - Industry increases production of every player-owned city by 25%; ownership at growth time determines the rate. Enemy and neutral growth remain unchanged.
-- Keep a typed catalog and pure compiler, independent faction-ID keyed rules and a fixed round setup shared by simulation and forecasts.
+- Factory doubles only the starting player's city production, stacking multiplicatively with Industry (2.5 units/sec). It remains attached after capture but benefits only its original faction while owning the city. Recapture restores the bonus.
+- Show a factory silhouette on its host (dimmed while inactive) and one upward chevron on Industry-boosted cities. Use both icons when stacked; reserve double chevrons for a later improved Industry level. Do not obscure counts or change touch/combat geometry.
+- Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain selected effects without stacking them. Home allows changing selections; reload resets them.
 - Preserve paused/hidden/terminal freeze and fractional growth. Numeric modifiers must not mutate shared defaults or map seeds.
 - Further effects are described in [the effect catalog](docs/upgrades/EFFECTS.md); towers and spatial effects require the additional planned simulation work.
@@ -220,7 +222,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |
 | 8 (implemented; playtest pending) | Replayable map variety and minimal home | Three fixed presets, equal/mirrored starts, nonoverlapping cities and region targets checked; home/Play/map-aware restart/navigation verified. Target round duration and human tactical fairness still need playtesting. |
-| 9 (Industry implemented) | Player-only selectable upgrade effects | Industry toggle, independent faction rules, AI forecasting, capture ownership and retained pause/restart/replay verified. Other effects follow the focused upgrade plan; progression/local saves are deferred. |
+| 9 (Industry/Factory implemented) | Player-only selectable upgrade effects | Industry/Factory toggles, independent faction rules, typed city feature, AI forecasting, capture/recapture ownership, vector indicators and retained pause/restart/replay verified. Other effects follow the focused upgrade plan; progression/local saves are deferred. |
 | 10 | Offline and Home Screen support | Previously loaded app starts and plays offline; installed layout respects safe areas; update caching does not leave missing assets. |
 
 **First playtest checkpoint reached: step 5 complete.** Decide whether attacking, growth, travel and the basic opponent feel satisfying before adding progression or offline packaging. Revise numbers and AI before adding features.

@@ -4,7 +4,7 @@
 
 Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support both simple numeric modifiers and territory-attached mechanics such as towers and, later, slow zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
 
-Implementation begins with Industry (+25% player-owned city production); see [effect catalog](EFFECTS.md). Other effects and later slices remain architecture proposals. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
+Industry (+25% player-owned city production) and Factory (2× starting-city production, 2.5× combined) are implemented; see [effect catalog](EFFECTS.md). Other effects and later slices remain architecture proposals. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
 
 ## Scope
 
@@ -33,6 +33,8 @@ Implementation begins with Industry (+25% player-owned city production); see [ef
 - `src/game/upgrades/catalog.ts` defines Industry as a production stat multiplier; `compile.ts` snapshots the map and resolves typed selected IDs. Player-only selection is exposed on Home, off by default and memory-only.
 - Play compiles a setup once. The board/hook/session forward its rules, and restart/replay keep it. Legacy `{ unitsPerSecond }` overrides remain supported and normalize to both current factions.
 - Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
+- Factory is now a typed territory feature with a stable ID, original beneficiary and production multiplier. Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
+- Factory stays attached on capture but boosts only its original faction while owning the host. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
 - No tower/slow-zone system or progression is implemented. Feature-event scheduling and forecast optimizations remain later work.
 
 ### 1. Baseline before Industry: inspected implementation
@@ -125,7 +127,7 @@ type TerritoryFeature =
 - Avoid fields such as `isTower`, `towerRange`, `slowRadius`, `shieldHealth` scattered on every territory. A discriminated union keeps per-feature requirements explicit and supports exhaustiveness checks.
 - Generate feature IDs deterministically from the host city and effect instance; validate uniqueness across the round. Restart recreates deadlines/charges, not references to the old runtime object.
 - A central initializer validates definitions and creates runtime state. Modules such as `features/tower.ts` and `features/slowZone.ts` own their mechanics. Start with explicit typed dispatch/handlers, not a general-purpose dynamic plugin loader.
-- Recommended initial ownership policy: structures remain on capture and use the host's current owner; neutral hosts are inactive. Capture resets tower readiness to a full cooldown to avoid an instant capture shot. These rules still need approval.
+- Confirmed Factory policy: the structure remains on capture but boosts only its original beneficiary while owning it; enemy/neutral hosts are inactive and recapture restores it. Other feature allegiance policies are feature-specific. Proposed tower policy (current host owner, reset cooldown on capture) still needs approval.
 - A future factory would modify `getTerritoryGrowthRate(state, city)` on top of faction growth, not duplicate the growth loop. Faction effects belong to armies; building effects belong to their host.
 - Feature visuals and accessible descriptions consume domain state, never apply damage or advance cooldowns. Add board feature rendering and describe city features in keyboard/screen-reader controls.
 - Preserve existing Voronoi caching keyed by positions/IDs/dimensions; features do not require rebuilding cells.
@@ -174,7 +176,7 @@ Current Transfer uses signed `elapsedMs` for queued launch delay and `elapsedMs 
 
 - Proposed first selectable effects: starting-unit bonus, growth multiplier, movement-speed multiplier and tower. The user has requested examples/architecture, not confirmed this exact set.
 - Confirmed: selected upgrades apply only to the human player for now. Opponent configuration remains baseline; there is no mirrored-effects toggle. Faction-ID keyed rules permit independent future opponent configurations, but do not themselves implement multiple-enemy gameplay.
-- Feature structures stay with the captured city; faction modifiers follow the current owner or issuing army as described above. Capture behavior remains subject to approval.
+- Factory stays with its city and retains its original beneficiary; captured enemies receive no bonus. Other feature capture policies remain subject to approval. Faction modifiers follow the current owner or issuing army as described above.
 - Initial spatial effects are radial and group-level; exact-region and per-dot independent slowing are deferred.
 - Existing engine constants and collision geometry remain unchanged by these upgrades.
 
