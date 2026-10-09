@@ -1,6 +1,7 @@
 import { dispatchUnits } from '../dispatch';
 import { availableUnits } from '../launch';
 import { orderDurationMs } from '../route';
+import { getFactionRules } from '../rules';
 import { SIMULATION_STEP_MS } from '../settings';
 import type { SimulationState } from '../types';
 import { DEFAULT_AI, type AiConfig } from './config';
@@ -19,7 +20,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
       if (source.id === target.id) continue;
       const relevantArrivals = state.transfers.filter(t => t.targetId === target.id || t.targetId === source.id)
         .map(t => t.durationMs - t.elapsedMs);
-      const horizon = Math.ceil(Math.max(orderDurationMs(source, target, units), ...relevantArrivals)
+      const horizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner)), ...relevantArrivals)
         / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
       let baseline = forecasts.get(horizon);
       if (!baseline) { baseline = forecastBattle(state, horizon); forecasts.set(horizon, baseline); }

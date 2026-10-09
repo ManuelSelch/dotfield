@@ -1,5 +1,4 @@
-import { advanceGrowth } from '../growth';
-import { advanceTravel } from '../travel';
+import { advanceWorldStep } from '../worldStep';
 import { resolveCombat } from '../combat';
 import { SIMULATION_STEP_MS } from '../settings';
 import type { SimulationState } from '../types';
@@ -16,7 +15,7 @@ export function forecastBattle(state: SimulationState, horizonMs: number): Simul
       ? -t.elapsedMs : t.durationMs - t.elapsedMs));
     const step = Math.min(remaining, hasOpposingTransfers(next) ? SIMULATION_STEP_MS
       : Math.max(SIMULATION_STEP_MS, Math.ceil(eventMs / SIMULATION_STEP_MS) * SIMULATION_STEP_MS));
-    next = resolveCombat(advanceTravel(advanceGrowth(next, step), step));
+    next = advanceWorldStep(next, step);
     remaining -= step;
   }
   return next;

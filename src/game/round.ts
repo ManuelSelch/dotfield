@@ -1,6 +1,4 @@
-import { advanceGrowth } from './growth';
-import { advanceTravel } from './travel';
-import { resolveCombat } from './combat';
+import { advanceWorldStep } from './worldStep';
 import { SIMULATION_STEP_MS } from './settings';
 import type { SimulationState } from './types';
 import type { AiConfig } from './ai/config';
@@ -25,7 +23,7 @@ export function advanceRound(state: SimulationState, elapsedMs: number, ai: AiCo
   // Stop at the winning step, even when a delayed frame spans multiple arrivals.
   for (let remaining = elapsedMs; remaining > 0 && next.roundStatus === 'playing';) {
     const step = Math.min(remaining, SIMULATION_STEP_MS);
-    next = evaluateRound(resolveCombat(advanceTravel(advanceGrowth(next, step), step)));
+    next = evaluateRound(advanceWorldStep(next, step));
     if (ai) next = advanceAi(next, ai);
     remaining -= step;
   }

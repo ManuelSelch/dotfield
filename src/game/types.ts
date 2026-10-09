@@ -18,6 +18,17 @@ export interface GrowthRules {
   readonly unitsPerSecond: number;
 }
 
+// Configurations are keyed by identity; gameplay currently supports player/enemy only.
+export type FactionId = string;
+export interface FactionRules extends GrowthRules {
+  readonly travelSpeed: number;
+  readonly batchIntervalMs: number;
+}
+export interface SimulationRules {
+  readonly factions: Readonly<Record<FactionId, FactionRules>>;
+}
+export type RulesInput = GrowthRules | SimulationRules;
+
 export interface Point { readonly x: number; readonly y: number }
 
 export interface Transfer {
@@ -41,7 +52,7 @@ export interface SimulationState {
   readonly aiNextDecisionMs: number | null;
   readonly elapsedMs: number;
   readonly territories: readonly TerritoryState[];
-  readonly rules: GrowthRules;
+  readonly rules: SimulationRules;
   readonly transfers: readonly Transfer[];
   readonly arrivals: readonly Transfer[];
   readonly nextTransferId: number;

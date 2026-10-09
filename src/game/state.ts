@@ -1,12 +1,14 @@
 import { GROWTH_RULES } from './settings';
-import type { GrowthRules, SimulationState, Territory } from './types';
+import type { RulesInput, SimulationState, Territory } from './types';
+import { createRules, getFactionRules } from './rules';
 
 export function createSimulation(
   territories: readonly Territory[],
-  rules: GrowthRules = GROWTH_RULES,
+  rules: RulesInput = GROWTH_RULES,
 ): SimulationState {
-  if (!Number.isFinite(rules.unitsPerSecond) || rules.unitsPerSecond < 0) {
-    throw new RangeError('Growth rate must be finite and non-negative.');
+  const resolved = createRules(rules);
+  for (const city of territories) {
+    if (city.owner !== 'neutral') getFactionRules({ rules: resolved }, city.owner);
   }
 
   return {
@@ -16,7 +18,7 @@ export function createSimulation(
     transfers: [],
     arrivals: [],
     nextTransferId: 1,
-    rules: { ...rules },
+    rules: resolved,
     territories: territories.map((node) => ({ ...node, growthRemainder: 0 })),
   };
 }

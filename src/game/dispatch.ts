@@ -1,4 +1,5 @@
-import { BATCH_INTERVAL_MS, BATCH_SIZE } from './settings';
+import { BATCH_SIZE } from './settings';
+import { getFactionRules } from './rules';
 import type { Faction, SimulationState, Transfer } from './types';
 import { createRoute } from './route';
 
@@ -13,7 +14,8 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const units = source.units - 1;
   if (units <= 0) return state;
   const batches: Transfer[] = [];
-  const route = createRoute(source, target);
+  const rules = getFactionRules(state, faction);
+  const route = createRoute(source, target, rules);
   for (let sent = 0; sent < units; sent += BATCH_SIZE) {
     const index = batches.length;
     const count = Math.min(BATCH_SIZE, units - sent);
@@ -22,7 +24,7 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
       units: count, formationSize: count, dotSlots: Array.from({ length: count }, (_, slot) => slot),
       ...route,
       // Negative elapsed time reserves a batch until its launch time.
-      elapsedMs: index === 0 ? 0 : -index * BATCH_INTERVAL_MS,
+      elapsedMs: index === 0 ? 0 : -index * rules.batchIntervalMs,
     });
   }
   return {

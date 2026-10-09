@@ -3,16 +3,17 @@ import { createClock } from './clock';
 import { dispatchUnits } from './dispatch';
 import { advanceRound, evaluateRound } from './round';
 import { createSimulation } from './state';
-import type { GrowthRules, Territory } from './types';
+import type { RulesInput, Territory } from './types';
+import { createRules } from './rules';
 
 export type SessionPhase = 'ready' | 'running' | 'paused';
 
 // UI-independent lifecycle. Round outcomes remain separate from user pause/start state.
-export function createSession(territories: readonly Territory[], ai: AiConfig | null = DEFAULT_AI, rules?: GrowthRules) {
+export function createSession(territories: readonly Territory[], ai: AiConfig | null = DEFAULT_AI, rules?: RulesInput) {
   const opening = territories.map(n => ({ ...n }));
-  const growth = rules ? { ...rules } : undefined;
+  const resolvedRules = createRules(rules);
   const policy = ai ? { ...ai } : null;
-  let state = evaluateRound(createSimulation(opening, growth));
+  let state = evaluateRound(createSimulation(opening, resolvedRules));
   let phase: SessionPhase = 'ready';
   let hidden = false;
   let clock = createClock();
@@ -38,7 +39,7 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
       hidden = value; clock.reset();
     },
     restart() {
-      state = evaluateRound(createSimulation(opening, growth));
+      state = evaluateRound(createSimulation(opening, resolvedRules));
       phase = 'ready'; clock = createClock();
     },
     frame(timestampMs: number) {

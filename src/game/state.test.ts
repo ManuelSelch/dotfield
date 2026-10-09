@@ -17,7 +17,8 @@ describe('simulation state', () => {
     const rules = { unitsPerSecond: 0 };
     const state = createSimulation(TERRITORIES, rules);
     rules.unitsPerSecond = 100;
-    expect(state.rules.unitsPerSecond).toBe(0);
+    expect(state.rules.factions.player.unitsPerSecond).toBe(0);
+    expect(state.rules.factions.enemy.unitsPerSecond).toBe(0);
   });
 
   it.each([-1, NaN, Infinity])('rejects an invalid growth rate: %s', (rate) => {
