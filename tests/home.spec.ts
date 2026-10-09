@@ -17,7 +17,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await page.screenshot({ path: `test-results/home-${name.toLowerCase()}-${viewport.width}.png` });
       expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
       await page.getByRole('button', { name: 'Play', exact: true }).click();
-      await expect(page.getByText(name, { exact: true })).toBeVisible();
+      await expect(page.getByText(name, { exact: true })).toHaveCount(0);
       const details = page.getByRole('list', { name: 'Territory details' });
       await expect(details.getByRole('listitem')).toHaveCount(cities);
       await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
