@@ -6,14 +6,14 @@ import { TERRITORIES } from './map';
 import { TerritoryDetails } from './TerritoryDetails';
 import { RoundResult } from '../ui/RoundResult';
 import { RegionControls } from './RegionControls';
-import type { Territory } from '../game/types';
+import type { RulesInput, Territory } from '../game/types';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; ai?: AiConfig | null; autoStart?: boolean; onHome?: () => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | null; autoStart?: boolean; onHome?: () => void }
 
-export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome }: FieldCanvasProps = {}) {
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const session = useBoardSession(canvasRef, territories, ai, autoStart);
+  const session = useBoardSession(canvasRef, territories, ai, autoStart, rules);
   const { state, phase } = session;
 
   return (

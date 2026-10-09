@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { MantineProvider } from '@mantine/core';
 import { FieldCanvas } from '../../src/board/FieldCanvas';
 import { TERRITORIES } from '../../src/board/map';
+import { compileRoundSetup } from '../../src/game/upgrades/compile';
 import { AppHeader } from '../../src/ui/AppHeader';
 import { AppFooter } from '../../src/ui/AppFooter';
 import { FieldHeading } from '../../src/ui/FieldHeading';
@@ -16,13 +17,15 @@ const territories = params.has('passive') ? TERRITORIES : TERRITORIES.map(node =
   units: node.id === 'south' ? 20 : node.id === 'centre' ? 1 : node.units,
 }));
 
+const setup = compileRoundSetup(territories, { player: params.has('industry') ? ['industry'] : [] });
+
 createRoot(document.getElementById('root')!).render(
   <MantineProvider theme={theme} forceColorScheme="light">
     <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
       <AppHeader />
       <section className="flex min-h-0 flex-1 flex-col">
         <FieldHeading />
-        <FieldCanvas territories={territories} ai={null} autoStart />
+        <FieldCanvas territories={setup.territories} rules={setup.rules} ai={null} autoStart />
       </section>
       <AppFooter />
     </main>

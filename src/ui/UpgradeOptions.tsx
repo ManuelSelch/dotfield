@@ -1,0 +1,14 @@
+import { Checkbox } from '@mantine/core';
+import { UPGRADES, type UpgradeId } from '../game/upgrades/catalog';
+
+export function UpgradeOptions({ selected, onChange }: {
+  selected: readonly UpgradeId[]; onChange: (ids: readonly UpgradeId[]) => void;
+}) {
+  return <div role="group" aria-label="Your upgrades">
+    {Object.values(UPGRADES).map(upgrade => <Checkbox key={upgrade.id}
+      label={upgrade.name} description={upgrade.description} checked={selected.includes(upgrade.id)}
+      styles={{ body: { minHeight: 44, alignItems: 'center' } }}
+      onChange={event => onChange(event.currentTarget.checked
+        ? [...selected, upgrade.id] : selected.filter(id => id !== upgrade.id))} />)}
+  </div>;
+}
