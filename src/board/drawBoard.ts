@@ -8,6 +8,12 @@ import { createRegionCache } from './regions/cache';
 import { drawRegions } from './regions/drawRegions';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
+const MAX_BUSY_PIXEL_RATIO = 2;
+const BUSY_TRANSFER_THRESHOLD = 12;
+
+function renderPixelRatio(pixelRatio: number, transferCount: number) {
+  return transferCount > BUSY_TRANSFER_THRESHOLD ? Math.min(pixelRatio, MAX_BUSY_PIXEL_RATIO) : pixelRatio;
+}
 
 export function drawBoard(
   canvas: HTMLCanvasElement, state: SimulationState,
@@ -15,11 +21,14 @@ export function drawBoard(
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx || width <= 0 || height <= 0) return;
-  const backingWidth = Math.round(width * pixelRatio);
-  const backingHeight = Math.round(height * pixelRatio);
+  // High-DPI phones multiply every filled pixel. Preserve sharpness normally, but
+  // lower the backing resolution during large battles to keep the RAF responsive.
+  const renderRatio = renderPixelRatio(pixelRatio, state.transfers.length);
+  const backingWidth = Math.round(width * renderRatio);
+  const backingHeight = Math.round(height * renderRatio);
   if (canvas.width !== backingWidth) canvas.width = backingWidth;
   if (canvas.height !== backingHeight) canvas.height = backingHeight;
-  ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+  ctx.setTransform(renderRatio, 0, 0, renderRatio, 0, 0);
   ctx.clearRect(0, 0, width, height);
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
