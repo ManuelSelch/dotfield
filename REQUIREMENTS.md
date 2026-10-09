@@ -76,7 +76,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Proposed prototype rule: neutral circles have defenders but do not generate units.
 - Keep growth rate and initial unit counts configurable, not scattered through the code.
 - Milestone-2 prototype baseline: one unit per second for both factions, no neutral growth, 50 ms fixed-step clock with fractional carry. Tuning remains open.
-- Implemented background handling pauses the clock and excludes hidden elapsed time; explicit pause controls remain milestone 7.
+- Implemented background handling pauses the clock and excludes hidden elapsed time; explicit Pause/Resume and immediate Restart controls are implemented. Real-iPhone polish remains milestone 7.
 
 ### FR-02: Dispatch
 
@@ -158,7 +158,8 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-09: Pause and offline use
 
-- Provide a pause action and pause automatically when the app becomes hidden/backgrounded.
+- Provide Pause/Resume and immediate Restart actions with 44px minimum touch height. Restart resets state and starts the round without confirmation. No ready popup; a home screen will later provide round entry.
+- Pause freezes growth, launches, travel, collisions, orders and AI; background automatically suspends the clock without overriding manual pause.
 - Resume without simulating all the elapsed background time or granting offline growth.
 - After offline support is added and the app has been loaded successfully online, a new round can be played without a connection.
 - Home Screen installation is supported as a later delivery step, not a prerequisite for testing the first round.

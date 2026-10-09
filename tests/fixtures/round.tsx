@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
       <AppHeader />
       <section className="flex min-h-0 flex-1 flex-col">
         <FieldHeading />
-        <FieldCanvas territories={territories} ai={null} />
+        <FieldCanvas territories={territories} ai={null} autoStart />
       </section>
       <AppFooter />
     </main>

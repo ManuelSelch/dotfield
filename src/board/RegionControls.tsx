@@ -1,7 +1,7 @@
 import type { SimulationState } from '../game/types';
 import { OWNER_LABELS } from './TerritoryDetails';
 
-export function RegionControls({ state }: { state: SimulationState }) {
+export function RegionControls({ state, disabled = false }: { state: SimulationState; disabled?: boolean }) {
   return (
     <>
       <p id="region-keyboard-help" className="sr-only">
@@ -10,7 +10,7 @@ export function RegionControls({ state }: { state: SimulationState }) {
       <div role="group" aria-label="City region controls">
         {state.territories.map(node => (
           <button key={node.id} type="button" data-city-id={node.id} className="sr-only pointer-events-none"
-            disabled={state.roundStatus !== 'playing'} aria-describedby="region-keyboard-help"
+            disabled={disabled || state.roundStatus !== 'playing'} aria-describedby="region-keyboard-help"
             aria-label={`Select ${node.id} region: ${OWNER_LABELS[node.owner]}, ${node.units} units`}>
             {node.id}
           </button>

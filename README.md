@@ -30,11 +30,13 @@ City circles remain the **only troop spawn and region-impact boundaries**; per-d
 
 Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus and activate a target. Escape cancels. Focus and selection show on the full region. Region fills update immediately without decorative transition animations; essential troop spreading/convergence remains tied to actual collision geometry even under reduced-motion preferences.
 
-## Nonvisual session lifecycle foundation
+## Session lifecycle and mobile controls
 
 `src/game/session.ts` exposes a UI-independent `createSession(map, ai, growthRules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
 
-The board adapter now uses this controller for simulation frames, player dispatch and background suspension. Existing **Play again** recreates the adapter and a fresh session. The screen still auto-starts; no new Start/Pause/Restart buttons or confirmation UI are exposed yet.
+The board adapter uses this controller for simulation frames, player dispatch and background suspension. The screen auto-starts until a future home screen provides round entry. A compact **pause icon** sits above the field; **Restart** is available only in the pause screen. Pause cancels active selection and freezes growth, launches, travel, collisions and AI; the paused screen offers **Resume** and **Restart**. Backgrounding never overrides a manual pause. Resume excludes paused time without catch-up.
+
+Restart immediately resets the map, troops, growth fractions, clock, outcome and AI deadline, then starts the fresh round—**no confirmation or ready popup**. Finished rounds retain **Play again**, using the same controller reset without recreating browser listeners. Region keyboard controls are disabled while paused, and pause actions have 44px minimum touch height.
 
 ## Enemy AI architecture and tuning
 
