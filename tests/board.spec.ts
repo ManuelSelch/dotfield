@@ -23,10 +23,11 @@ for (const viewport of [
     await expect.poll(() => pauseButton.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
     await expect(page.getByText('Room to grow.')).toHaveCount(0);
     await expect(page.getByText('Meadow', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
+    await expect(page.getByText('Drag between regions · leave one behind.')).toHaveCount(0);
     const canvas = page.getByRole('img', { name: 'Territory board' });
     await expect(canvas).toBeVisible();
     await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(13);
+    await expect(page.getByRole('list', { name: 'Factions' })).toHaveCount(0);
     const box = await canvas.boundingBox();
     const pauseBox = await page.getByRole('button', { name: 'Pause' }).boundingBox();
     const compositionBox = await composition.boundingBox();
