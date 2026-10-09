@@ -10,6 +10,7 @@ Pre-game effects, without currency, purchases, levels or unlocks. Selected effec
 | Rapid deployment | Launch groups every 450 ms instead of 600 ms. | Commits armies sooner, but also empties the source sooner. | Proposed |
 | Watchtower | Starting city automatically destroys up to four nearby hostile airborne dots per second, within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented |
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with Industry, inactive for captors |
+| Slow Zone | A randomly selected city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented |
 | Capture shield | Each newly captured city absorbs its first three incoming enemy units without losing garrison. | Helps establish a foothold; shield does not regenerate. | Proposed; recapture policy unresolved |
 
 ## Industry scope
@@ -28,6 +29,15 @@ Pre-game effects, without currency, purchases, levels or unlocks. Selected effec
 - The Factory stays attached after capture, but is inactive for the opponent or neutrals. Recapturing it restores the original player's bonus; existing capture rules reset fractional growth.
 - Restart/Play again recreate the same seed/bonus without stacking another Factory. Home selection is memory-only and reload clears it.
 - Factory is a typed immutable territory feature, not a faction-wide config change. Its rate is used by both real simulation and AI forecasts.
+
+## Slow Zone scope
+
+- Off by default; selecting it attaches one zone to a uniformly selected city from the current map. The selection is resolved once when starting a round; Restart and Play again retain the same host, while a new Home → Play may choose another city.
+- Its fixed 90-unit radius is drawn as a distinct dashed owner-tinted circle with an hourglass marker. The circle uses logical field coordinates and does not change touch regions or combat geometry.
+- A zone owned by a faction slows only hostile airborne groups. Capturing the host switches allegiance immediately. A neutral-owned zone slows both player and enemy airborne groups.
+- The entire formation slows according to its group center. Entering and exiting split the shared trajectory; leaving restores base speed without teleporting or resetting slots/progress.
+- Overlapping eligible zones use only the strongest slowdown (smallest multiplier), never multiplicative stacking. Current multiplier is 0.5.
+- Live simulation, collisions, Watchtower target positions and AI forecasts use the same boundary-aware trajectory. Queued launch timing and garrison units are unaffected.
 
 ## Watchtower scope
 

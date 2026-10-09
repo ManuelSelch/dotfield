@@ -19,7 +19,7 @@ export function App() {
           <FieldCanvas territories={setup.territories} rules={setup.rules} onHome={() => setSetup(null)} />
         </section>
       </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
-        onPlay={() => setSetup(compileRoundSetup(map.territories, { player: upgrades }))} />}
+        onPlay={() => setSetup(compileRoundSetup(map.territories, { player: upgrades }, undefined, Math.random()))} />}
     </main>
   );
 }
