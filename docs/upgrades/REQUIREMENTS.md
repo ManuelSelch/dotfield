@@ -161,6 +161,8 @@ Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel →
 
 ### 7. Slow zones need a movement model extension, not only a setting
 
+The focused [Slow Zone requirements and implementation plan](slow-zone/REQUIREMENTS.md) expands this work. Radius, strength, allegiance, group-center membership and overlap behavior remain proposals pending confirmation.
+
 Current Transfer uses signed `elapsedMs` for queued launch delay and `elapsedMs / durationMs` for both position and formation progress. A per-round speed upgrade can keep this fixed-duration model. A zone that changes speed during flight cannot safely mutate durationMs: that would jump the unit's position and invalidate collision/arrival calculations.
 
 - Separate queued launch time, elapsed flight time and traveled distance/progress when introducing spatial effects. Queued batches are not slowed before launch.
