@@ -32,7 +32,9 @@ describe('shared faction orders', () => {
   it('does not let the enemy double-spend queued groups or act after defeat', () => {
     const initial = createSimulation(nodes);
     const ordered = dispatchUnits(initial, 'enemy', 'player', 'enemy');
-    expect(dispatchUnits(ordered, 'enemy', 'neutral', 'enemy')).toBe(ordered);
+    const replaced = dispatchUnits(ordered, 'enemy', 'neutral', 'enemy');
+    expect(replaced.transfers[0]).toBe(ordered.transfers[0]);
+    expect(replaced.transfers.filter(t => t.targetId === 'neutral').reduce((sum, t) => sum + t.units, 0)).toBe(15);
     const ended = { ...initial, roundStatus: 'defeat' as const };
     expect(dispatchUnits(ended, 'enemy', 'player', 'enemy')).toBe(ended);
   });

@@ -34,13 +34,14 @@ describe('all-but-one dispatch', () => {
   it('deducts each first group and assigns unique ids to repeated orders', () => {
     let state = initial();
     state = dispatchUnits(state, 'south', 'centre');
-    const reserved = state;
-    expect(dispatchUnits(state, 'south', 'north')).toBe(reserved);
+    const airborne = state.transfers[0];
     state = { ...state, territories: state.territories.map(n => n.id === 'south' ? { ...n, units: n.units + 10 } : n) };
     state = dispatchUnits(state, 'south', 'north');
     expect(state.territories.at(-1)!.units).toBe(36);
     expect(state.transfers.map((transfer) => transfer.units)).toEqual([5, 5, 5, 5, 5, 5, 5, 5, 5]);
     expect(new Set(state.transfers.map((transfer) => transfer.id)).size).toBe(9);
+    expect(state.transfers[0]).toBe(airborne);
+    expect(state.transfers.slice(1).every(t => t.targetId === 'north')).toBe(true);
   });
 
   it('allows a friendly destination without yet resolving reinforcement', () => {

@@ -33,9 +33,12 @@ describe('deducting on batch launch', () => {
     expect(original.territories[0].units).toBe(21);
   });
 
-  it('reserves queued units, so another order cannot spend them twice', () => {
+  it('replaces reservations without duplicating or losing units', () => {
     let state = dispatchUnits(createSimulation(map), 'source', 'target');
-    expect(dispatchUnits(state, 'source', 'target')).toBe(state);
+    const original = state;
+    state = dispatchUnits(state, 'source', 'target');
+    expect(state.transfers[0]).toBe(original.transfers[0]);
+    expect(state.transfers.slice(1).every(t => t.id >= original.nextTransferId)).toBe(true);
     expect(state.transfers.map(t => t.units)).toEqual([5, 5, 5, 5]);
     expect(accounted(state)).toBe(41);
   });
