@@ -15,7 +15,7 @@ The differentiators are a modern mobile interface, adjustable and persistent AI 
 - Working name: **Dotfield**. Name availability has not been checked.
 - Real-time territory conquest using simple circles and growing unit counts.
 - Rounds last a few minutes.
-- Attacking sends **all available source units except one**, excluding units reserved for existing orders.
+- Attacking sends **all available source units except one**, replacing any existing unlaunched source groups while preserving airborne groups.
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
 - Persistent upgrades should be few in number: starting units and growth speed initially; other skills may be considered later.
@@ -81,15 +81,15 @@ These proposals are the planning baseline, not authorization to expand scope.
 ### FR-02: Dispatch
 
 - Drag from anywhere in a player-owned city region to a distinct target region to send units. Each city circle remains the troop spawn/impact spot.
-- Order all available whole units except one; a source with fewer than two unreserved units sends nothing.
+- Order all available whole units except one; a source with fewer than two garrison units sends nothing. A new valid order replaces queued groups from that source, restarts the launch cadence and includes newly grown units.
 - Keep route/selection feedback, but do not display a numeric dispatch label.
-- Reserve ordered units immediately, but deduct them from the source counter only as each group launches. Queued troops remain defenders and cannot be ordered twice.
+- Reserve ordered units immediately, but deduct them from the source counter only as each group launches. Queued troops remain defenders; replacement cancels their old reservation before creating the new order, never duplicating troops.
 - If a source is captured, cancel its unlaunched groups; already airborne units continue. A depleted source launches only available units, keeping at least one.
 - Units travel visibly and resolve on arrival.
 - Dropping outside the board or inside the source's own region cancels without changing counts. Points anywhere inside another region are valid targets.
 - Ignore input from non-player sources and while paused or after the round ends.
 - Proposed rule: allow friendly reinforcement as well as attacks.
-- There are no unit orders or redirection while units are in transit in the initial version.
+- Airborne groups cannot be redirected; replacing a source order affects only its unlaunched groups. Invalid orders or cancelled drags leave the current order intact.
 
 ### FR-03: Combat and capture
 
