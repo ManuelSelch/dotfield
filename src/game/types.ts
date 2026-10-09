@@ -1,4 +1,5 @@
 export type Owner = 'player' | 'enemy' | 'neutral';
+export type Faction = Exclude<Owner, 'neutral'>;
 
 export interface Territory {
   readonly id: string;
