@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestone 1 implemented — minimal web project and static board. Gameplay implementation has not started; milestones 2–10 remain planned.
+Status: milestones 1–2 implemented — mobile board, independent simulation, and live unit growth. Dispatch, combat, and AI are not implemented; milestones 3–10 remain planned.
 
 ## 1. Purpose
 
@@ -74,6 +74,8 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Owned circles generate units over elapsed simulation time, independently of rendering frame rate.
 - Proposed prototype rule: neutral circles have defenders but do not generate units.
 - Keep growth rate and initial unit counts configurable, not scattered through the code.
+- Milestone-2 prototype baseline: one unit per second for both factions, no neutral growth, 50 ms fixed-step clock with fractional carry. Tuning remains open.
+- Implemented background handling pauses the clock and excludes hidden elapsed time; explicit pause controls remain milestone 7.
 
 ### FR-02: Dispatch
 
@@ -175,6 +177,8 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 Avoid selecting a large game engine or building general-purpose frameworks before a playable round exists.
 
+Group code by feature: independent rules under `src/game/`, board/browser integration under `src/board/`. Keep files small and focused; do not grow a single simulation, rendering, or React component into a catch-all.
+
 ## 8. Incremental implementation plan
 
 Each step must leave a small verifiable result. Do not build the full game in one pass.
@@ -182,7 +186,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | Step | Deliverable | Acceptance check |
 | --- | --- | --- |
 | 1 (complete) | Minimal project and static board | Board fits a portrait phone viewport; circles and counts are readable; project builds. |
-| 2 | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
+| 2 (complete) | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
 | 3 | Half-unit dispatch and travel | Valid drag sends the correct rounded half; invalid drag cancels; moving units are visible; input and rule tests pass. |
 | 4 | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
 | 5 | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |

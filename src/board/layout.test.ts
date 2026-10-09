@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FIELD, TERRITORIES, projectBoard } from './board';
+import { FIELD, projectBoard } from './layout';
+import { TERRITORIES } from './map';
 
 describe('static board', () => {
   it('has unique territories, both factions, and neutral defenders', () => {
@@ -13,7 +14,7 @@ describe('static board', () => {
 
   it.each([[288, 300], [288, 350], [358, 540], [448, 650]])(
     'fits every circle into a %i × %i board without overlap', (width, height) => {
-      const nodes = projectBoard(width, height);
+      const nodes = projectBoard(TERRITORIES, width, height);
       for (const node of nodes) {
         expect(node.x - node.radius).toBeGreaterThanOrEqual(0);
         expect(node.x + node.radius).toBeLessThanOrEqual(width);
@@ -31,7 +32,7 @@ describe('static board', () => {
   );
 
   it('centres the field and preserves its proportions', () => {
-    const nodes = projectBoard(FIELD.width * 2, FIELD.height);
+    const nodes = projectBoard(TERRITORIES, FIELD.width * 2, FIELD.height);
     expect(nodes[0].x).toBe(TERRITORIES[0].x + FIELD.width / 2);
     expect(nodes[0].y).toBe(TERRITORIES[0].y);
     expect(nodes[0].radius).toBe(FIELD.radius);

@@ -1,11 +1,11 @@
-import { FieldCanvas } from './FieldCanvas';
+import { FieldCanvas } from './board/FieldCanvas';
 
 export function App() {
   return (
     <main className="app">
       <header className="header">
         <h1><span className="brand-mark" aria-hidden="true" />dotfield</h1>
-        <span className="preview-badge">Board preview</span>
+        <span className="preview-badge">Growth preview</span>
       </header>
 
       <section className="field" aria-labelledby="field-title">
@@ -25,7 +25,7 @@ export function App() {
           <li><span className="legend-marker neutral" aria-hidden="true" />Neutral</li>
           <li><span className="legend-marker enemy" aria-hidden="true" />Opponent</li>
         </ul>
-        <p>Static preview · gameplay comes next.</p>
+        <p>Growth preview · attacks come next.</p>
       </footer>
     </main>
   );

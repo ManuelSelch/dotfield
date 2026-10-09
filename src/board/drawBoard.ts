@@ -1,5 +1,5 @@
-import { projectBoard } from './board';
-import type { Owner } from './board';
+import { projectBoard } from './layout';
+import type { Owner, Territory } from '../game/types';
 
 const PALETTE: Record<Owner, { fill: string; stroke: string; ink: string }> = {
   player: { fill: '#267c72', stroke: '#267c72', ink: '#ffffff' },
@@ -7,12 +7,17 @@ const PALETTE: Record<Owner, { fill: string; stroke: string; ink: string }> = {
   neutral: { fill: '#fcfcfa', stroke: '#cdd3ca', ink: '#404b46' },
 };
 
-export function drawBoard(canvas: HTMLCanvasElement, width: number, height: number, pixelRatio: number) {
+export function drawBoard(
+  canvas: HTMLCanvasElement, territories: readonly Territory[],
+  width: number, height: number, pixelRatio: number,
+) {
   const ctx = canvas.getContext('2d');
   if (!ctx || width <= 0 || height <= 0) return;
 
-  canvas.width = Math.round(width * pixelRatio);
-  canvas.height = Math.round(height * pixelRatio);
+  const backingWidth = Math.round(width * pixelRatio);
+  const backingHeight = Math.round(height * pixelRatio);
+  if (canvas.width !== backingWidth) canvas.width = backingWidth;
+  if (canvas.height !== backingHeight) canvas.height = backingHeight;
   ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   ctx.clearRect(0, 0, width, height);
 
@@ -26,7 +31,7 @@ export function drawBoard(canvas: HTMLCanvasElement, width: number, height: numb
     }
   }
 
-  for (const node of projectBoard(width, height)) {
+  for (const node of projectBoard(territories, width, height)) {
     const palette = PALETTE[node.owner];
 
     if (node.owner !== 'neutral') {
