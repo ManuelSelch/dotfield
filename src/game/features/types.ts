@@ -15,4 +15,11 @@ export interface WatchtowerFeature {
   readonly fireIntervalMs: number;
 }
 
-export type TerritoryFeature = FactoryFeature | WatchtowerFeature;
+export interface SlowZoneFeature {
+  readonly id: string;
+  readonly kind: 'slow-zone';
+  readonly radius: number;
+  readonly speedMultiplier: number;
+}
+
+export type TerritoryFeature = FactoryFeature | WatchtowerFeature | SlowZoneFeature;

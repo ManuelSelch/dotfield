@@ -1,15 +1,18 @@
 import { groupContacts } from './contacts';
 import type { SimulationState } from './types';
+import type { Trajectory } from './trajectory';
 
 export function hasOpposingTransfers(state: SimulationState): boolean {
   return state.transfers.some(t => t.owner === 'player') && state.transfers.some(t => t.owner === 'enemy');
 }
 
-export function resolveTravelCollisions(state: SimulationState, elapsedMs: number): SimulationState {
+export function resolveTravelCollisions(state: SimulationState, elapsedMs: number,
+  motions?: ReadonlyMap<number, Trajectory>): SimulationState {
   if (state.roundStatus !== 'playing' || elapsedMs === 0 || !hasOpposingTransfers(state)) return state;
   const players = state.transfers.filter(t => t.owner === 'player');
   const enemies = state.transfers.filter(t => t.owner === 'enemy');
-  const contacts = players.flatMap(player => enemies.flatMap(enemy => groupContacts(player, enemy, elapsedMs)));
+  const contacts = players.flatMap(player => enemies.flatMap(enemy => groupContacts(player, enemy, elapsedMs,
+    motions?.get(player.id), motions?.get(enemy.id))));
   contacts.sort((a, b) => a.time - b.time || a.playerId - b.playerId || a.playerSlot - b.playerSlot
     || a.enemyId - b.enemyId || a.enemySlot - b.enemySlot);
   const destroyed = new Map<number, Set<number>>();
