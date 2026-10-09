@@ -19,7 +19,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   return (
     <>
       <div className="relative min-h-0 flex-1">
-        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby="territory-details">
+        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby="territory-details upgrade-icon-help">
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
         <RegionControls state={state} disabled={phase !== 'running'} />

@@ -1,6 +1,7 @@
 import type { SimulationState } from '../game/types';
 import type { DragSelection } from './drag';
 import { drawTerritories } from './drawTerritories';
+import { drawCityFeatures } from './drawCityFeatures';
 import { drawDrag } from './drawDrag';
 import { drawTransfers } from './drawTransfers';
 import { createRegionCache } from './regions/cache';
@@ -36,5 +37,6 @@ export function drawBoard(
   // Territories mask the dot edges at launch/impact, keeping counters unobstructed.
   drawTransfers(ctx, state, width, height);
   drawTerritories(ctx, state, width, height);
+  drawCityFeatures(ctx, state, width, height);
   drawDrag(ctx, state.territories, selection, width, height);
 }

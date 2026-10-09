@@ -17,7 +17,10 @@ const territories = params.has('passive') ? TERRITORIES : TERRITORIES.map(node =
   units: node.id === 'south' ? 20 : node.id === 'centre' ? 1 : node.units,
 }));
 
-const setup = compileRoundSetup(territories, { player: params.has('industry') ? ['industry'] : [] });
+const setup = compileRoundSetup(territories, { player: [
+  ...(params.has('industry') ? ['industry' as const] : []),
+  ...(params.has('factory') ? ['factory' as const] : []),
+] });
 
 createRoot(document.getElementById('root')!).render(
   <MantineProvider theme={theme} forceColorScheme="light">
