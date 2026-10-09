@@ -10,7 +10,7 @@ const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 30
 const context = () => ({ save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), arc: vi.fn(),
   fill: vi.fn(), stroke: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
   closePath: vi.fn(), translate: vi.fn(), scale: vi.fn(), globalAlpha: 1 });
-const seed = (upgrades: ('factory' | 'industry')[] = []) => {
+const seed = (upgrades: ('factory' | 'industry' | 'watchtower')[] = []) => {
   const setup = compileRoundSetup([host, enemy], { player: upgrades });
   return createSimulation(setup.territories, setup.rules);
 };
@@ -58,6 +58,14 @@ describe('city upgrade indicators', () => {
   });
   it('adds no indicators when no upgrades are active', () => {
     expect(render().arc).not.toHaveBeenCalled();
+  });
+  it('draws the Watchtower coverage ring and tower silhouette at the starting city', () => {
+    const state = seed(['watchtower']); const ctx = render(state);
+    // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    const radii = ctx.arc.mock.calls.map(call => call[2]);
+    expect(radii.some(radius => radius > 21)).toBe(true);
+    expect(ctx.translate).toHaveBeenCalledOnce(); expect(ctx.fillText).not.toHaveBeenCalled();
   });
   it('supports two stacked chevrons for a future level without enabling that level', () => {
     const ctx = context(); drawChevronIcon(ctx as unknown as CanvasRenderingContext2D, 2);

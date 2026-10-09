@@ -20,6 +20,7 @@ const territories = params.has('passive') ? TERRITORIES : TERRITORIES.map(node =
 const setup = compileRoundSetup(territories, { player: [
   ...(params.has('industry') ? ['industry' as const] : []),
   ...(params.has('factory') ? ['factory' as const] : []),
+  ...(params.has('watchtower') ? ['watchtower' as const] : []),
 ] });
 
 createRoot(document.getElementById('root')!).render(

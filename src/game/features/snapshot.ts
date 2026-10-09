@@ -7,10 +7,16 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
     const kinds = new Set<string>();
     const features = city.features?.map(feature => {
       if (!feature.id || ids.has(feature.id) || kinds.has(feature.kind)) throw new RangeError('Duplicate or invalid city feature.');
-      if (feature.kind !== 'factory' || !feature.beneficiaryId
-        || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
-        throw new RangeError('Invalid Factory definition.');
-      }
+      if (feature.kind === 'factory') {
+        if (!feature.beneficiaryId || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
+          throw new RangeError('Invalid Factory definition.');
+        }
+      } else if (feature.kind === 'watchtower') {
+        if (!Number.isFinite(feature.range) || feature.range <= 0
+          || !Number.isFinite(feature.fireIntervalMs) || feature.fireIntervalMs <= 0) {
+          throw new RangeError('Invalid Watchtower definition.');
+        }
+      } else throw new RangeError('Unknown city feature.');
       ids.add(feature.id); kinds.add(feature.kind);
       return Object.freeze({ ...feature });
     });

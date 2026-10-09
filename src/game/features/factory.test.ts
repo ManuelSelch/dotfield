@@ -81,11 +81,12 @@ describe('Factory city feature', () => {
   });
   it.each([0, -1, NaN, Infinity])('rejects invalid Factory multiplier %s', multiplier => {
     const initial = makeState(); const host = initial.territories.find(n => n.id === 'south')!;
-    expect(() => createSimulation([{ ...host, features: [{ ...host.features![0], productionMultiplier: multiplier }] }])).toThrow();
+    const factory = host.features!.find(feature => feature.kind === 'factory')!;
+    expect(() => createSimulation([{ ...host, features: [{ ...factory, productionMultiplier: multiplier }] }])).toThrow();
   });
   it('rejects duplicate feature IDs and unknown beneficiary IDs', () => {
     const state = makeState(); const host = state.territories.find(n => n.id === 'south')!;
-    const feature = host.features![0];
+    const feature = host.features!.find(feature => feature.kind === 'factory')!;
     expect(() => createSimulation([{ ...host, features: [feature, feature] }])).toThrow();
     expect(() => createSimulation([{ ...host, features: [{ ...feature, beneficiaryId: 'missing' }] }])).toThrow();
     expect(() => createSimulation([{ ...host }, { ...host, id: 'other' }])).toThrow();

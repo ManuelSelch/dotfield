@@ -6,6 +6,11 @@ export function drawFactoryIcon(ctx: CanvasRenderingContext2D) {
   ctx.closePath(); ctx.fill();
 }
 
+export function drawWatchtowerIcon(ctx: CanvasRenderingContext2D) {
+  ctx.beginPath(); ctx.moveTo(-4.5, 4); ctx.lineTo(4.5, 4); ctx.lineTo(3, -1); ctx.lineTo(-3, -1); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(0, -1); ctx.lineTo(0, -6); ctx.moveTo(-2, -4.5); ctx.lineTo(2, -4.5); ctx.stroke();
+}
+
 export function drawChevronIcon(ctx: CanvasRenderingContext2D, level: 1 | 2 = 1) {
   ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.beginPath();

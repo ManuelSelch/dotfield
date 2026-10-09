@@ -3,10 +3,16 @@ import type { FactionId } from '../types';
 export interface FactoryFeature {
   readonly id: string;
   readonly kind: 'factory';
-  // Bonus follows the original beneficiary, not the city's current captor.
   readonly beneficiaryId: FactionId;
   readonly productionMultiplier: number;
 }
 
-// Extend this discriminated union when another territory mechanic is implemented.
-export type TerritoryFeature = FactoryFeature;
+export interface WatchtowerFeature {
+  readonly id: string;
+  readonly kind: 'watchtower';
+  // Coverage is measured in the fixed 360×480 field coordinate system.
+  readonly range: number;
+  readonly fireIntervalMs: number;
+}
+
+export type TerritoryFeature = FactoryFeature | WatchtowerFeature;

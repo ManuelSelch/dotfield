@@ -11,7 +11,9 @@ export function createSimulation(
   const opening = snapshotTerritories(territories);
   for (const city of opening) {
     if (city.owner !== 'neutral') getFactionRules({ rules: resolved }, city.owner);
-    for (const feature of city.features ?? []) getFactionRules({ rules: resolved }, feature.beneficiaryId);
+    for (const feature of city.features ?? []) {
+      if (feature.kind === 'factory') getFactionRules({ rules: resolved }, feature.beneficiaryId);
+    }
   }
 
   return {
@@ -21,6 +23,8 @@ export function createSimulation(
     transfers: [],
     arrivals: [],
     nextTransferId: 1,
+    watchtowerElapsedMs: Object.fromEntries(opening.flatMap(city => (city.features ?? [])
+      .filter(feature => feature.kind === 'watchtower').map(feature => [feature.id, 0]))),
     rules: resolved,
     territories: opening.map((node) => ({ ...node, growthRemainder: 0 })),
   };

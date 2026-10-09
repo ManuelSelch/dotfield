@@ -28,7 +28,9 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
         } else {
           const host = seed.find(city => city.owner === id);
           if (!host) throw new RangeError(`No starting city for faction ${id}.`);
-          const feature = { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}`, beneficiaryId: id };
+          const feature = effect.feature.kind === 'factory'
+            ? { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}`, beneficiaryId: id }
+            : { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}` };
           seed = seed.map(city => city === host ? { ...city, features: [...(city.features ?? []), feature] } : city);
         }
       }

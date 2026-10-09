@@ -59,4 +59,5 @@ export interface SimulationState {
   readonly transfers: readonly Transfer[];
   readonly arrivals: readonly Transfer[];
   readonly nextTransferId: number;
+  readonly watchtowerElapsedMs: Readonly<Record<string, number>>;
 }

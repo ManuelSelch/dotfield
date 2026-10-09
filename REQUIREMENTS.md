@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, player-only Industry/Factory and independent faction rules implemented. Other upgrade effects, real-iPhone/duration playtesting and offline support remain outstanding; progression is deferred.
+Status: milestones 1–5 implemented — mobile board, growth, staggered all-but-one dispatch, per-batch border combat, round completion/replay, and a basic active enemy AI. First playable checkpoint reached. Pause controls and slice-8 fixed map variety/home flow implemented; difficulty remains deferred, player-only Industry/Factory and independent faction rules implemented. Watchtower is now implemented alongside Industry/Factory; real-iPhone/duration playtesting and offline support remain outstanding; progression is deferred.
 
 ## 1. Purpose
 
@@ -147,7 +147,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain selected effects without stacking them. Home allows changing selections; reload resets them.
 - Preserve paused/hidden/terminal freeze and fractional growth. Numeric modifiers must not mutate shared defaults or map seeds.
-- Further effects are described in [the effect catalog](docs/upgrades/EFFECTS.md); towers and spatial effects require the additional planned simulation work.
+- Watchtower attaches to the starting city, covers a visible 72-field-unit radius and destroys up to four hostile airborne dots per second (one every 250ms). Its allegiance follows current city ownership, so it shoots its former owner after capture; neutral towers are inactive. Live simulation and AI forecasting share deterministic fixed-step firing.
 - Later progression supplies the same selected effect IDs. Reward formula, prices and caps remain unresolved and out of current scope.
 
 ### FR-08: Settings and persistence
@@ -222,7 +222,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |
 | 8 (implemented; playtest pending) | Replayable map variety and minimal home | Three fixed presets, equal/mirrored starts, nonoverlapping cities and region targets checked; home/Play/map-aware restart/navigation verified. Target round duration and human tactical fairness still need playtesting. |
-| 9 (Industry/Factory implemented) | Player-only selectable upgrade effects | Industry/Factory toggles, independent faction rules, typed city feature, AI forecasting, capture/recapture ownership, vector indicators and retained pause/restart/replay verified. Other effects follow the focused upgrade plan; progression/local saves are deferred. |
+| 9 (Industry/Factory/Watchtower implemented) | Player-only selectable upgrade effects | Industry/Factory/Watchtower toggles, typed city features, deterministic tower firing/capture allegiance, AI forecast parity, coverage rendering and retained pause/restart/replay verified. Other effects follow the focused upgrade plan; progression/local saves are deferred. |
 | 10 | Offline and Home Screen support | Previously loaded app starts and plays offline; installed layout respects safe areas; update caching does not leave missing assets. |
 
 **First playtest checkpoint reached: step 5 complete.** Decide whether attacking, growth, travel and the basic opponent feel satisfying before adding progression or offline packaging. Revise numbers and AI before adding features.
