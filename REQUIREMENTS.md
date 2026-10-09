@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: initial planning draft. No implementation yet.
+Status: milestone 1 implemented — minimal web project and static board. Gameplay implementation has not started; milestones 2–10 remain planned.
 
 ## 1. Purpose
 
@@ -181,7 +181,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 
 | Step | Deliverable | Acceptance check |
 | --- | --- | --- |
-| 1 | Minimal project and static board | Board fits a portrait phone viewport; circles and counts are readable; project builds. |
+| 1 (complete) | Minimal project and static board | Board fits a portrait phone viewport; circles and counts are readable; project builds. |
 | 2 | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
 | 3 | Half-unit dispatch and travel | Valid drag sends the correct rounded half; invalid drag cancels; moving units are visible; input and rule tests pass. |
 | 4 | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
@@ -210,7 +210,7 @@ Resolve only those needed for the next milestone; the rest can wait.
 
 ### Before the first interactive prototype
 
-1. Confirm the proposed web/React/Canvas direction and portrait layout.
+1. Web/React/Canvas and portrait layout are the implemented milestone-1 baseline; validate their feel on the actual iPhone before interactive gameplay.
 2. Confirm drag controls, friendly reinforcement, and the equal-force tie rule.
 3. Establish first-map numbers through playtesting: circle count, initial forces, growth rate, and travel speed.
 
