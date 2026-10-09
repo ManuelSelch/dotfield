@@ -4,7 +4,7 @@
 
 Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support both simple numeric modifiers and territory-attached mechanics such as towers and, later, slow zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
 
-Industry (+25% player-owned city production) and Factory (2× starting-city production, 2.5× combined) are implemented; see [effect catalog](EFFECTS.md). Other effects and later slices remain architecture proposals. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
+Industry (+25% player-owned city production), Factory (2× starting-city production, 2.5× combined) and Watchtower (72-unit coverage, up to four hostile dots/second) are implemented; see [effect catalog](EFFECTS.md). Remaining effects and later slices remain architecture proposals. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
 
 ## Scope
 
@@ -35,7 +35,7 @@ Industry (+25% player-owned city production) and Factory (2× starting-city prod
 - Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
 - Factory is now a typed territory feature with a stable ID, original beneficiary and production multiplier. Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
 - Factory stays attached on capture but boosts only its original faction while owning the host. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
-- No tower/slow-zone system or progression is implemented. Feature-event scheduling and forecast optimizations remain later work.
+- Watchtower is implemented as a typed territory feature with 250ms simulation-time firing, shared with AI forecasts. Its current city owner controls it; capturing switches allegiance immediately, and the continuous cadence does not reset. It targets the nearest hostile dot center within 72 field units, removes one stable slot, and draws a subtle coverage circle plus tower silhouette.
 
 ### 1. Baseline before Industry: inspected implementation
 
@@ -127,7 +127,7 @@ type TerritoryFeature =
 - Avoid fields such as `isTower`, `towerRange`, `slowRadius`, `shieldHealth` scattered on every territory. A discriminated union keeps per-feature requirements explicit and supports exhaustiveness checks.
 - Generate feature IDs deterministically from the host city and effect instance; validate uniqueness across the round. Restart recreates deadlines/charges, not references to the old runtime object.
 - A central initializer validates definitions and creates runtime state. Modules such as `features/tower.ts` and `features/slowZone.ts` own their mechanics. Start with explicit typed dispatch/handlers, not a general-purpose dynamic plugin loader.
-- Confirmed Factory policy: the structure remains on capture but boosts only its original beneficiary while owning it; enemy/neutral hosts are inactive and recapture restores it. Other feature allegiance policies are feature-specific. Proposed tower policy (current host owner, reset cooldown on capture) still needs approval.
+- Confirmed Factory policy: the structure remains on capture but boosts only its original beneficiary while owning it; enemy/neutral hosts are inactive and recapture restores it. Confirmed Watchtower policy: follows current city ownership, fires against the former owner after capture; neutral-owned towers do not fire. Its global cadence continues through ownership changes.
 - A future factory would modify `getTerritoryGrowthRate(state, city)` on top of faction growth, not duplicate the growth loop. Faction effects belong to armies; building effects belong to their host.
 - Feature visuals and accessible descriptions consume domain state, never apply damage or advance cooldowns. Add board feature rendering and describe city features in keyboard/screen-reader controls.
 - Preserve existing Voronoi caching keyed by positions/IDs/dimensions; features do not require rebuilding cells.
@@ -141,7 +141,7 @@ Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel →
 - The live orchestrator runs world steps and then scheduled AI decisions; the forecast replays only known orders through the same world steps. Never recursively run AI during forecasting.
 - Preserve no-upgrade behavior with regression tests. Changes to existing event timing/combat semantics require explicit review, not incidental changes disguised as refactoring.
 - Use bounded simulation steps and split where needed at launches, tower firing deadlines, zone crossings and arrivals. Damage to moving dots must resolve in time order with existing swept contacts, not via independent passes that each consume the same dot.
-- Define explicit stable tie ordering for simultaneous events, including collision vs shot vs impact, and tower IDs/transfer IDs/slot IDs. At an impact-time tie, a shot must not damage a unit already consumed by arrival. The exact gameplay precedence is an open question.
+- Implemented event precedence within each 50ms world step: travel/collisions, arrivals/combat, then tower firing. Thus a dot consumed by a collision or impact cannot also be shot. Tower target ties sort by distance, transfer ID, then stable slot ID.
 - Initially disable quiet-time skipping whenever active timed/spatial features could change a forecast. Optimize only after equivalence tests and profiling, using a shared next-event calculation rather than maintaining a second simplified simulator.
 - Tower kills change the real `dotSlots`/unit total, retaining survivor slots and formation size. Empty batches disappear. No fake visual projectiles that later apply guessed damage; no refund of destroyed units.
 - Evaluate elimination after damage and impacts. Features are not independent armies: an unowned/inactive tower cannot keep a faction alive.
@@ -151,13 +151,13 @@ Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel →
 
 ### 6. Tower proposal
 
-- One tower on each affected faction's designated starting city, selected by a placement policy during seed compilation rather than hard-coded `south`/`north` logic in combat.
+- One tower on the selected player's starting city, attached during seed compilation rather than hard-coded city IDs in combat.
 - On a firing opportunity, target the nearest eligible enemy airborne dot within range. Stable transfer/slot IDs break equal-distance ties.
 - Remove one real dot per shot; do not damage friendly dots, queued troops or city garrisons. Range uses shared dot-position geometry in board space.
 - A shot requires a live eligible target at that event time. Empty firing opportunities do not accumulate a burst of stored shots.
-- Feature existence, allegiance and shot deadline must be available to rendering and forecasting.
-- Draw a compact tower marker and optional shot/range feedback without obscuring counters or reducing region touch targets.
-- Range, interval, dot-center versus dot-edge eligibility, capture policy and tie precedence are provisional until approved.
+- Feature existence, current-owner allegiance and simulation-time firing cadence are shared by rendering, live simulation and forecasts.
+- Draw a compact tower silhouette and subtle owner-tinted 72-unit coverage circle without changing counters, region touch targets or combat geometry.
+- Confirmed values/policies: 72 field units; 1000ms cadence; dot-center range; tower switches allegiance on capture; impacts/collisions resolve before tower shots in each fixed step.
 
 ### 7. Slow zones need a movement model extension, not only a setting
 
@@ -198,9 +198,9 @@ Add a compact upgrade selection surface before Play, with resolved-effect descri
 
 Add validated discriminated feature definitions, separate runtime initialization, capture policy, board/accessibility feature presentation and shared simulation integration points. Verify old maps without features, unique IDs, copied seed/runtime independence, capture/reset and unchanged Voronoi cache/input. Depends on slices 1–2; no tower damage yet.
 
-### 5. Tower simulation, forecasts and selection
+### 5. Watchtower simulation, forecasts and selection (implemented)
 
-Implement approved tower rules using chronological shot/contact/impact handling, real stable-dot removal and simulation-time cooldowns. Enable tower selection and marker/shot feedback only when the full mechanic works. Verify no-target behavior, no double kills, range/tie boundaries, capture, pause/visibility/restart, last-airborne-unit elimination, live/forecast equivalence and viewport/DPR independence. Depends on slice 4; profile forecast cost before optimizing.
+Attach a tower to the selected player's starting city; at each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette, expose accessible status and select from Home. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.
 
 ### 6. Variable-speed movement foundation
 
@@ -212,11 +212,8 @@ Add approved group-center radial slowing, ownership effects, overlap policy and 
 
 ## Open Questions
 
-1. Which effects should ship first, and what values should starting-unit, growth and movement-speed modifiers use?
+1. Which effects should ship next, and what values should starting-unit and movement-speed modifiers use?
 2. Player-only upgrades are confirmed for now; what opponent-specific presets, if any, should be added in a later multi-enemy feature?
-3. Should structures remain on capture and switch allegiance, and should tower capture reset its firing cooldown?
-4. What tower range and shot interval should we use, and does range include a dot when its center or its edge enters the circle?
-5. What precedence should simultaneous tower shots, troop collisions, launches and impacts have?
-6. Should slow zones affect only hostile groups, and is group-center slowing acceptable instead of independent per-dot slowing?
-7. Should overlapping slow zones use only the strongest effect or multiply effects with a minimum-speed bound?
-8. Should upgrade selections survive browser reloads, or remain in memory like the current map selection?
+3. Should slow zones affect only hostile groups, and is group-center slowing acceptable instead of independent per-dot slowing?
+4. Should overlapping slow zones use only the strongest effect or multiply effects with a minimum-speed bound?
+5. Should upgrade selections survive browser reloads, or remain in memory like the current map selection?
