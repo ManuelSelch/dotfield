@@ -10,6 +10,7 @@ export function createSimulation(
   }
 
   return {
+    roundStatus: 'playing',
     elapsedMs: 0,
     transfers: [],
     arrivals: [],

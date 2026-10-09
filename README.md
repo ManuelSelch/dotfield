@@ -2,13 +2,15 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: simulation and growth
+## Current milestone: combat, round completion and replay
 
 React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 
-This is a **growth preview**, not a playable round yet. Dispatch, combat, AI, progression, and offline installation are not implemented. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
+Drag from a player territory to send half its units, rounded down. Units launch in batches of up to five, 600 ms apart, travel border-to-border, and converge visually before impact. Each arriving batch immediately reinforces a friendly region or reduces hostile defenders one-for-one. Ownership changes only when attackers exceed defenders; ties leave the current owner at zero.
 
-Growth rate and simulation step are configurable in `src/game/settings.ts`; starting counts are in `src/board/map.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading starts fresh.
+Victory/defeat counts both owned territories (even empty ones that can grow) and queued/travelling troops. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. AI is not implemented yet, so the opponent currently grows but does not send troops. Progression and offline installation remain later milestones. See [REQUIREMENTS.md](REQUIREMENTS.md) for the plan.
+
+Growth rate, batch cadence, territory radius, travel speed and simulation step are configurable in `src/game/settings.ts`; starting counts are in `src/board/map.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading starts fresh.
 
 ## Run
 
@@ -40,7 +42,7 @@ If you already have Google Chrome installed, you can avoid the Chromium download
 PLAYWRIGHT_CHANNEL=chrome npm run test:browser
 ```
 
-The suite checks three phone viewports and desktop, no scrolling/browser errors, and Canvas sizing at device pixel ratio 3 after resizing. Controlled-clock tests also verify visible growth, unchanged neutrals, fresh-page state, and simulated background/resume without catch-up. Screenshots are written to `test-results/` (ignored by Git).
+The suite checks three phone viewports and desktop, no scrolling/browser errors, and Canvas sizing at device pixel ratio 3 after resizing. Controlled-clock tests also verify visible growth, per-batch border impacts, victory/defeat, frozen finished rounds, replay, fresh-page state, and simulated background/resume without catch-up. Round UI tests use small deterministic maps in a test-only Vite fixture. Screenshots are written to `test-results/` (ignored by Git).
 
 Automated checks currently use Chromium/Chrome. Real iPhone Safari and safe-area behaviour still require device testing.
 
@@ -51,6 +53,8 @@ Small modules are grouped by feature; production modules currently stay under 80
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
 - `src/game/settings.ts`, `growth.ts`: tuning defaults and pure elapsed-time growth rules.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
+- `src/game/dispatch.ts`, `travel.ts`, `combat.ts`: staggered batches, border travel and arrival resolution.
+- `src/game/round.ts`: faction survival, outcomes and stepping that stops at round end.
 - `src/board/map.ts`, `layout.ts`: starting map and aspect-preserving projection.
 - `src/board/drawBoard.ts`: Canvas rendering of the current simulation snapshot.
 - `src/board/startBoard.ts`: browser animation, resize, visibility and cleanup adapter.
@@ -62,6 +66,6 @@ Small modules are grouped by feature; production modules currently stay under 80
 
 Use Tailwind for layout/spacing and Mantine for interface components. Mantine styles are layered below Tailwind utilities; Tailwind Preflight is intentionally omitted to avoid competing resets. Canvas visuals remain in the board renderer. Browser tests use port 5180 to avoid reusing a possibly stale user development server on 5173.
 
-Simulation modules have no React, Canvas, or browser dependency. React receives snapshots only when whole-unit counts change, not every animation frame. Growth batches elapsed fixed steps; future movement/combat may need per-step updates.
+Simulation modules have no React, Canvas, or browser dependency. React receives snapshots on counts, dispatch, arrival or outcome changes, not every animation frame. Round updates run growth, travel, combat and elimination in fixed steps, stopping at the winning/losing step even after a delayed frame.
 
-Next milestone: half-unit dispatch and visible travel.
+Next milestone: basic active enemy AI.

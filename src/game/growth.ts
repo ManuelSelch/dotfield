@@ -4,7 +4,7 @@ export function advanceGrowth(state: SimulationState, elapsedMs: number): Simula
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
     throw new RangeError('Elapsed time must be finite and non-negative.');
   }
-  if (elapsedMs === 0) return state;
+  if (elapsedMs === 0 || state.roundStatus !== 'playing') return state;
 
   return {
     ...state,

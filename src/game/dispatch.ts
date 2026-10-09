@@ -2,6 +2,7 @@ import { BATCH_INTERVAL_MS, BATCH_SIZE, TERRITORY_RADIUS, TRAVEL_SPEED } from '.
 import type { SimulationState, Transfer } from './types';
 
 export function dispatchUnits(state: SimulationState, sourceId: string, targetId: string): SimulationState {
+  if (state.roundStatus !== 'playing') return state;
   const source = state.territories.find((node) => node.id === sourceId);
   const target = state.territories.find((node) => node.id === targetId);
   if (!source || !target || source === target || source.owner !== 'player' || source.units < 2) return state;

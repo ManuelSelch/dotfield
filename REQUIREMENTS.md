@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: milestones 1–2 implemented — mobile board, independent simulation, and live unit growth. Dispatch, combat, and AI are not implemented; milestones 3–10 remain planned.
+Status: milestones 1–4 implemented — mobile board, growth, staggered half-unit dispatch, per-batch border combat, round completion and replay. Enemy AI is not implemented; milestones 5–10 remain planned.
 
 ## 1. Purpose
 
@@ -93,9 +93,10 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Friendly arrivals add units to the destination.
 - Hostile arrivals cancel defending units one-for-one.
 - If attackers outnumber defenders, ownership changes and surviving attackers become the garrison.
-- Proposed tie rule: equal forces leave the current owner with zero units.
+- Implemented tie rule: equal forces leave the current owner with zero units.
 - Resolve arrivals against ownership at arrival time, not dispatch time.
-- Handle simultaneous arrivals deterministically; specify and test the ordering before implementation.
+- Resolve completed batches by arrival time; exact ties retain dispatch/insertion order.
+- Each batch resolves when it reaches the target border, while later batches continue travelling.
 
 ### FR-04: Round lifecycle
 
@@ -189,8 +190,8 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | --- | --- | --- |
 | 1 (complete) | Minimal project and static board | Board fits a portrait phone viewport; circles and counts are readable; project builds. |
 | 2 (complete) | Simulation and growth | Unit generation matches elapsed time across different update/render frequencies; core tests pass. |
-| 3 | Half-unit dispatch and travel | Valid drag sends the correct rounded half; invalid drag cancels; moving units are visible; input and rule tests pass. |
-| 4 | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
+| 3 (complete) | Half-unit dispatch and travel | Valid drag sends the correct rounded half; invalid drag cancels; moving units are visible; input and rule tests pass. |
+| 4 (complete) | Combat and round completion | Reinforcement, capture, ties, ownership changes in transit, elimination, and replay behave according to tested rules. |
 | 5 | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |

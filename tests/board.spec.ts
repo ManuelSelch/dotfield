@@ -15,7 +15,7 @@ for (const viewport of [
     });
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
-    await expect(page.getByText('Drag to send half · combat comes next.')).toBeVisible();
+    await expect(page.getByText('Drag to send half · capture the field.')).toBeVisible();
     const canvas = page.getByRole('img', { name: 'Territory board' });
     await expect(canvas).toBeVisible();
     await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(7);

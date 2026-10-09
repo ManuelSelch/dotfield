@@ -10,7 +10,7 @@ export function transferPosition(transfer: Transfer) {
 
 export function advanceTravel(state: SimulationState, elapsedMs: number): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');
-  if (elapsedMs === 0 || state.transfers.length === 0) return state;
+  if (elapsedMs === 0 || state.roundStatus !== 'playing' || state.transfers.length === 0) return state;
   const transfers: Transfer[] = [];
   const arrivals = [...state.arrivals];
   // Resolve batches in arrival order, including when a frame spans multiple arrivals.

@@ -16,7 +16,7 @@ export function AppFooter() {
           </li>
         ))}
       </ul>
-      <Text className="mt-4 text-center text-[11px] leading-normal text-muted">Drag to send half · combat comes next.</Text>
+      <Text className="mt-4 text-center text-[11px] leading-normal text-muted">Drag to send half · capture the field.</Text>
     </footer>
   );
 }

@@ -1,7 +1,7 @@
 import type { SimulationState } from './types';
 
 export function resolveCombat(state: SimulationState): SimulationState {
-  if (state.arrivals.length === 0) return state;
+  if (state.roundStatus !== 'playing' || state.arrivals.length === 0) return state;
   let territories = state.territories;
   for (const arrival of state.arrivals) {
     territories = territories.map(target => {
