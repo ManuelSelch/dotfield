@@ -9,7 +9,7 @@ export interface DotContact { time: number; playerId: number; playerSlot: number
 export function groupContacts(player: Transfer, enemy: Transfer, elapsedMs: number): DotContact[] {
   const start = Math.max(0, -player.elapsedMs, -enemy.elapsedMs);
   const end = Math.min(elapsedMs, player.durationMs - player.elapsedMs, enemy.durationMs - enemy.elapsedMs);
-  if (end <= start) return [];
+  if (end < start || player.elapsedMs >= player.durationMs || enemy.elapsedMs >= enemy.durationMs) return [];
   // Cheap broad-phase rejection only. Destruction is always decided per dot below.
   const bound = 2 * DOT_RADIUS + (player.formationSize + enemy.formationSize - 2) * DOT_SPACING / 2;
   if (sweptContact(transferPosition(player, player.elapsedMs + start), transferPosition(player, player.elapsedMs + end),

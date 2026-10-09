@@ -46,6 +46,11 @@ describe('individual opposing dot collisions', () => {
     const enemy = { ...backward(1), from: { x: 200, y: 100 }, durationMs: 100, elapsedMs: 0 };
     expect(resolveTravelCollisions(game(player, enemy), 100).transfers).toHaveLength(2);
   });
+  it('handles a group launching exactly when an opposing dot reaches the same border', () => {
+    const player = batch(1, 'player', { x: 0, y: 0 }, { x: 100, y: 0 }, 1, -50);
+    const enemy = { ...batch(2, 'enemy', { x: 100, y: 0 }, { x: 0, y: 0 }, 1, 0), durationMs: 50 };
+    expect(resolveTravelCollisions(game(player, enemy), 50).transfers).toEqual([]);
+  });
   it('a dot destroys only one opponent even when several dots overlap', () => {
     const player = batch(1, 'player', { x: 0, y: 0 }, { x: 100, y: 0 }, 2, 0);
     const enemy = batch(2, 'enemy', { x: 0, y: 0 }, { x: -100, y: 0 }, 1, 0);
