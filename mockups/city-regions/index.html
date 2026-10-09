@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — City regions preview</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1><span class="brand-dot" aria-hidden="true"></span>dotfield</h1>
+      <button id="reset" class="reset" type="button">Reset preview</button>
+    </header>
+    <section class="heading" aria-labelledby="field-title">
+      <div><p class="eyebrow">FIRST FIELD</p><h2 id="field-title">Room to grow.</h2></div>
+      <span class="field-number" aria-hidden="true">01</span>
+    </section>
+    <div class="field">
+      <svg id="board" role="group" aria-label="City regions" aria-describedby="keyboard-help">
+        <defs><pattern id="grain" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="0.7" fill="#c4cec2" opacity="0.5" /></pattern></defs>
+        <g id="regions"></g>
+        <rect id="texture" fill="url(#grain)" pointer-events="none" />
+        <g id="guide" pointer-events="none"></g>
+        <g id="troops" pointer-events="none"></g>
+        <g id="cities" pointer-events="none" aria-hidden="true"></g>
+      </svg>
+    </div>
+    <footer>
+      <ul aria-label="Factions"><li><i class="player-marker"></i>You</li><li><i class="neutral-marker"></i>Neutral</li><li><i class="enemy-marker"></i>Opponent</li></ul>
+      <p id="hint" role="status" aria-live="polite">Drag from anywhere in your region.</p>
+      <p class="sr-only" id="keyboard-help">Keyboard: focus a region and press Enter to select a friendly source. Focus another region and press Enter to dispatch. Escape cancels.</p>
+    </footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
