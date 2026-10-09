@@ -1,5 +1,5 @@
 import type { SimulationState } from './types';
-import { getFactionRules } from './rules';
+import { getTerritoryGrowthRate } from './features/growthRate';
 
 export function advanceGrowth(state: SimulationState, elapsedMs: number): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) {
@@ -12,7 +12,7 @@ export function advanceGrowth(state: SimulationState, elapsedMs: number): Simula
     elapsedMs: state.elapsedMs + elapsedMs,
     territories: state.territories.map((node) => {
       if (node.owner === 'neutral') return node;
-      const total = node.growthRemainder + elapsedMs * getFactionRules(state, node.owner).unitsPerSecond;
+      const total = node.growthRemainder + elapsedMs * getTerritoryGrowthRate(state, node);
       // Tiny tolerance prevents floating-point rounding from delaying a whole unit.
       const produced = Math.floor((total + 1e-7) / 1000);
       return {

@@ -1,3 +1,5 @@
+import type { TerritoryFeature } from './features/types';
+
 export type Owner = 'player' | 'enemy' | 'neutral';
 export type Faction = Exclude<Owner, 'neutral'>;
 
@@ -7,6 +9,7 @@ export interface Territory {
   readonly units: number;
   readonly x: number;
   readonly y: number;
+  readonly features?: readonly TerritoryFeature[];
 }
 
 export interface TerritoryState extends Territory {

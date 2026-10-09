@@ -5,12 +5,13 @@ import { advanceRound, evaluateRound } from './round';
 import { createSimulation } from './state';
 import type { RulesInput, Territory } from './types';
 import { createRules } from './rules';
+import { snapshotTerritories } from './features/snapshot';
 
 export type SessionPhase = 'ready' | 'running' | 'paused';
 
 // UI-independent lifecycle. Round outcomes remain separate from user pause/start state.
 export function createSession(territories: readonly Territory[], ai: AiConfig | null = DEFAULT_AI, rules?: RulesInput) {
-  const opening = territories.map(n => ({ ...n }));
+  const opening = snapshotTerritories(territories);
   const resolvedRules = createRules(rules);
   const policy = ai ? { ...ai } : null;
   let state = evaluateRound(createSimulation(opening, resolvedRules));
