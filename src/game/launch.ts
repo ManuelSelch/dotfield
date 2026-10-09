@@ -21,7 +21,7 @@ export function launchBatches(state: SimulationState, elapsedMs: number): Simula
     const units = Math.min(batch.units, Math.max(0, source.units - 1));
     if (units === 0) continue;
     territories = territories.map(node => node === source ? { ...node, units: node.units - units } : node);
-    transfers.push({ ...batch, units });
+    transfers.push({ ...batch, units, dotSlots: batch.dotSlots.slice(0, units) });
   }
   return { ...state, territories, transfers };
 }

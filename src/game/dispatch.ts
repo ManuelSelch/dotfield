@@ -15,9 +15,10 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const route = createRoute(source, target);
   for (let sent = 0; sent < units; sent += BATCH_SIZE) {
     const index = batches.length;
+    const count = Math.min(BATCH_SIZE, units - sent);
     batches.push({
       id: state.nextTransferId + index, sourceId, targetId, owner: faction,
-      units: Math.min(BATCH_SIZE, units - sent),
+      units: count, formationSize: count, dotSlots: Array.from({ length: count }, (_, slot) => slot),
       ...route,
       // Negative elapsed time reserves a batch until its launch time.
       elapsedMs: index === 0 ? 0 : -index * BATCH_INTERVAL_MS,

@@ -1,13 +1,7 @@
 import type { SimulationState, Transfer } from './types';
 import { launchBatches } from './launch';
 
-export function transferPosition(transfer: Transfer) {
-  const progress = Math.max(0, Math.min(1, transfer.elapsedMs / transfer.durationMs));
-  return {
-    x: transfer.from.x + (transfer.to.x - transfer.from.x) * progress,
-    y: transfer.from.y + (transfer.to.y - transfer.from.y) * progress,
-  };
-}
+export { transferPosition } from './movement';
 
 export function advanceTravel(state: SimulationState, elapsedMs: number): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');

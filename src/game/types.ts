@@ -26,6 +26,8 @@ export interface Transfer {
   readonly targetId: string;
   readonly owner: Exclude<Owner, 'neutral'>;
   readonly units: number;
+  readonly formationSize: number;
+  readonly dotSlots: readonly number[];
   readonly from: Point;
   readonly to: Point;
   readonly durationMs: number;
