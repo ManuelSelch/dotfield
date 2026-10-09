@@ -2,9 +2,9 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: map variety and a minimal home screen
+## Current milestone: multi-enemy map and configurable home screen
 
-Choose among four maps on the home screen using left/right arrows, then press **Play**. Selection is visual only: one static map preview at a time, with no map names or descriptions. Nothing simulates before Play. All maps have equal 36-unit starting armies, rotationally matched defenders/positions, nonoverlapping circles and full-region touch targets. The largest map has 21 cities. No difficulty changes, procedural maps or progression are included.
+Choose among five maps on the home screen using left/right arrows, then press **Play**. The fifth Crossfire map contains one player and two independent AI enemies. Each enemy can select its own Balanced, Aggressive or Defensive behavior and Industry, Factory or Watchtower effects. Selection is visual only: one static map preview at a time, with no map names or descriptions. Nothing simulates before Play. Settings remain in memory and reset on reload. Slow zones, progression and alliances/teams are out of scope.
 
 The original field has one player, one opponent and eleven neutral cities. City radius is 21 board units; troop radius/spacing are 4.8/12. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
 

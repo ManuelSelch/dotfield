@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: mobile board, simulation, AI, pause/replay, four-map home, and Industry/Factory/Watchtower are implemented. Multi-faction combat and independent per-enemy AI behavior, rules and upgrade selections are implemented; the two-enemy map remains next. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
+Status: mobile board, simulation, AI, pause/replay, five-map home, Industry/Factory/Watchtower, multi-faction combat, and independent per-enemy AI behavior/rules/upgrades are implemented. The fifth Crossfire map contains two AI enemies. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
 
 ## 1. Purpose
 
@@ -169,8 +169,8 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 ### FR-10: Fixed map variety and home screen
 
-- Offer four distinct fixed maps through one visual preview with left/right arrows and Play; do not show map names or descriptions. No simulation or AI runs on Home.
-- Preserve the original 13-city field and the 9- and 11-city variants. Add a rotationally balanced 21-city field. Maps are selected visually, without names or descriptions.
+- Offer five distinct fixed maps through one visual preview with left/right arrows and Play; do not show map names or descriptions. No simulation or AI runs on Home.
+- Preserve the original 13-city field and the 9-, 11- and 21-city variants. Add a 23-city Crossfire field containing one player and two independent AI starts. Maps are selected visually, without names or descriptions.
 - Give both factions 36 starting units, rotationally paired positions/neutral defenders and identical rules/AI configuration. Check bounds, circle clearance and nonempty generously sized touch regions.
 - Return Home from pause/results, abandon the current round and dispose its browser adapter. Keep the selected map in memory. A subsequent Play creates a fresh round; reload returns to the first map.
 - Restart/replay must reset the current map, not silently return to the original field.
@@ -222,7 +222,8 @@ Each step must leave a small verifiable result. Do not build the full game in on
 | 5 (complete) | Basic active AI | One fixed-map round is playable; AI can expand, attack, defend, and continue acting from strong and weak positions. |
 | 6 | Difficulty and tactical improvements | Presets and tuning work; targeted scenarios cover vulnerable targets, incoming threats, and winning/losing positions. |
 | 7 | Mobile feel and pause | Real-iPhone touch play is comfortable; backgrounding pauses without catch-up; restart and pause are obvious. |
-| 8 (implemented; playtest pending) | Replayable map variety and minimal home | Three fixed presets, equal/mirrored starts, nonoverlapping cities and region targets checked; home/Play/map-aware restart/navigation verified. Target round duration and human tactical fairness still need playtesting. |
+| 8 (implemented; playtest pending) | Replayable map variety and minimal home | Five fixed presets, nonoverlapping cities and region targets checked; home/Play/map-aware restart/navigation verified. Target round duration and human tactical fairness still need playtesting.
+| 9 (implemented; playtest pending) | Two-enemy Crossfire map | One player and two mutually hostile AI factions share a fixed 23-city field. Independent AI behavior/upgrades persist through Play, restart, replay and Home in memory. Full round balance and real-device playtesting remain. |
 | 9 (Industry/Factory/Watchtower implemented) | Player-only selectable upgrade effects | Industry/Factory/Watchtower toggles, typed city features, deterministic tower firing/capture allegiance, AI forecast parity, coverage rendering and retained pause/restart/replay verified. Other effects follow the focused upgrade plan; progression/local saves are deferred. |
 | 10 | Offline and Home Screen support | Previously loaded app starts and plays offline; installed layout respects safe areas; update caching does not leave missing assets. |
 

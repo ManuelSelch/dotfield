@@ -17,10 +17,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     let currentMap = 0;
     for (const stack of [false, true]) {
       await industry.setChecked(stack);
-      for (let mapIndex = 0; mapIndex < 4; mapIndex++) {
+      for (let mapIndex = 0; mapIndex < 5; mapIndex++) {
         while (currentMap !== mapIndex) {
           await page.getByRole('button', { name: 'Next map' }).click();
-          currentMap = (currentMap + 1) % 4;
+          currentMap = (currentMap + 1) % 5;
         }
         await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
         await page.screenshot({ path: `test-results/factory-home-${viewport.width}.png` });
@@ -29,7 +29,9 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
         await expect(page.getByRole('button', { name: /^Select south region:.*Factory active/ })).toHaveCount(1);
         await page.clock.runFor(1700);
         await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
-        await expect(city('north')).toHaveText('north: Opponent, 37 units.');
+        const enemyId = mapIndex === 4 ? 'enemy-west' : 'north';
+        const enemyUnits = mapIndex === 4 ? 31 : 37;
+        await expect(city(enemyId)).toHaveText(`${enemyId}: Opponent, ${enemyUnits} units.`);
         await expect(city('centre')).toHaveText('centre: Neutral, 20 units.');
         await page.screenshot({ path: `test-results/factory-board-map-${mapIndex + 1}-${viewport.width}.png` });
         await page.getByRole('button', { name: 'Pause', exact: true }).tap();

@@ -4,7 +4,7 @@
 
 Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support multiple independently configured AI enemies, each with its own settings and upgrade selection. Support numeric modifiers and territory-attached mechanics such as towers and, later, slow zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
 
-Industry (+25% faction-owned city production), Factory (2× selected starting-city production, 2.5× combined) and Watchtower (72-unit coverage, up to four hostile dots/second) are implemented; see [effect catalog](EFFECTS.md). General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. The two-enemy map remains the next slice. Slow zones are deferred. No economy, unlocks or persistence.
+Industry (+25% faction-owned city production), Factory (2× selected starting-city production, 2.5× combined) and Watchtower (72-unit coverage, up to four hostile dots/second) are implemented; see [effect catalog](EFFECTS.md). General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. The two-enemy Crossfire map is implemented as the fifth map. Slow zones are deferred. No economy, unlocks or persistence.
 
 ## Scope
 
@@ -14,7 +14,7 @@ Industry (+25% faction-owned city production), Factory (2× selected starting-ci
 - A small catalog/compiler that resolves each faction's selected upgrades into numeric rules and starting-map features.
 - Explicit territory feature definitions and separate mutable-in-time runtime state.
 - A common world simulation used by live rounds and AI forecasts.
-- A fixed map with two AI enemies, each with independently selectable AI behavior and upgrade effects.
+- A fixed 23-city Crossfire map with one player and two AI enemies, each with independently selectable AI behavior and upgrade effects.
 - Existing pause, visibility, restart/replay, real-unit accounting and accessible controls.
 
 ### Out of Scope
@@ -207,9 +207,9 @@ Replace the two-value player/enemy ownership assumption with stable faction IDs 
 
 Give each AI faction its own AI behavior settings, simulation-time decision schedule, faction rules and selected upgrade IDs. Extend the immutable round setup and compiler to resolve each faction independently; thread the setup through Home → Play → board/session and preserve it on restart/replay. Add Home controls to configure both enemies' AI behavior and upgrade effects separately. Nothing is persisted across reloads. Verify choices affect only their selected enemy, both AIs act independently, baseline defaults are valid, and restart/replay preserve the in-memory choices.
 
-### 9. Two-enemy map and complete round flow (next)
+### 9. Two-enemy map and complete round flow (implemented)
 
-Add a fixed map containing the player, two distinct AI factions and neutrals, with readable non-overlapping starts and appropriate balance. Make it playable through the existing visual map picker. Verify the full Home → Play → multi-enemy combat → player victory/defeat → replay/Home flow, including both enemies' independent settings and upgrades. This is the target deliverable; slow zones and variable-speed movement are excluded.
+Add the 23-city Crossfire map containing the player, two distinct mutually hostile AI factions and neutrals. Make it playable through the existing visual map picker. Verify the full Home → Play → multi-enemy combat → player victory/defeat → replay/Home flow, including both enemies' independent settings and upgrades. Slow zones and variable-speed movement remain excluded.
 
 ## Open Questions
 

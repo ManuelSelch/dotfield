@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const mapCounts = [13, 11, 9, 21];
+const mapCounts = [13, 11, 9, 21, 23];
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
   test(`home uses visual arrow selection and supports every map at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -34,7 +34,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await page.getByRole('button', { name: 'Restart', exact: true }).click();
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await page.clock.runFor(2000);
-      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText('north →');
+      await expect(page.getByRole('list', { name: 'Unit transfers' }))
+        .toContainText(index === 4 ? 'enemy-west →' : 'north →');
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Home', exact: true }).click();
       await expect(page.getByRole('img', { name: `Map ${index + 1} preview` })).toBeVisible();
@@ -67,6 +68,34 @@ test('configures one enemy AI behavior and upgrade independently from player set
   await page.locator('details summary').click();
   await expect(enemyUpgrades.getByRole('checkbox', { name: 'Factory' })).toBeChecked();
   await expect(page.getByLabel('enemy AI behavior')).toHaveValue('aggressive');
+});
+
+test('two-enemy map exposes and retains separate AI behaviors and upgrades', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 480 });
+  await page.goto('/');
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next map' }).click();
+  await expect(page.getByRole('img', { name: 'Map 5 preview' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
+  await page.locator('details summary').click();
+  const enemy = page.getByRole('group', { name: 'enemy upgrades' });
+  const enemy2 = page.getByRole('group', { name: 'enemy-2 upgrades' });
+  await expect(page.getByLabel('enemy AI behavior')).toBeVisible();
+  await expect(page.getByLabel('enemy-2 AI behavior')).toBeVisible();
+  await page.getByLabel('enemy AI behavior').selectOption('aggressive');
+  await page.getByLabel('enemy-2 AI behavior').selectOption('defensive');
+  await enemy.getByRole('checkbox', { name: 'Industry' }).check();
+  await enemy2.getByRole('checkbox', { name: 'Factory' }).check();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  const cities = page.getByRole('list', { name: 'Territory details' });
+  await expect(cities.getByRole('listitem').filter({ hasText: /^enemy-west: / })).toBeVisible();
+  await expect(cities.getByRole('listitem').filter({ hasText: /^enemy-east:/ })).toContainText('Factory');
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await page.locator('details summary').click();
+  await expect(page.getByLabel('enemy AI behavior')).toHaveValue('aggressive');
+  await expect(page.getByLabel('enemy-2 AI behavior')).toHaveValue('defensive');
+  await expect(enemy.getByRole('checkbox', { name: 'Industry' })).toBeChecked();
+  await expect(enemy2.getByRole('checkbox', { name: 'Factory' })).toBeChecked();
 });
 
 test('home arrow selection supports keyboard and resets on page reload', async ({ page }) => {

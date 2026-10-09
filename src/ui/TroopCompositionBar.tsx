@@ -1,4 +1,4 @@
-import { PALETTE } from '../board/palette';
+import { factionPalette } from '../board/palette';
 import { getTroopComposition } from '../game/troopComposition';
 import type { SimulationState } from '../game/types';
 
@@ -12,7 +12,7 @@ export function TroopCompositionBar({ state }: { state: SimulationState }) {
       <div className="flex h-2 w-full overflow-hidden rounded-full bg-[#e7e9e2]" role="img"
         aria-label={total === 0 ? 'No troops remaining' : `Troop composition across ${total} surviving units`}>
         {active.map(faction => <span key={faction.owner} style={{
-          width: `${faction.percentage}%`, backgroundColor: PALETTE[faction.owner].fill,
+          width: `${faction.percentage}%`, backgroundColor: factionPalette(faction.owner).fill,
           borderRight: faction.owner === 'neutral' ? '1px solid #bdc9ba' : undefined,
         }} />)}
       </div>
