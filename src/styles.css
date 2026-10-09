@@ -21,6 +21,25 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background: var(--color-page); }
 #root { height: 100%; overflow: hidden; }
 
+.offline-notice {
+  position: fixed;
+  z-index: 20;
+  top: max(8px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 7px 12px;
+  border: 1px solid #d8cfae;
+  border-radius: 999px;
+  color: #675b2d;
+  background: #fff9dd;
+  box-shadow: 0 3px 12px rgb(37 60 51 / 10%);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+
 .app-safe-area {
   padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }

@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { MAPS } from './board/maps';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
+import { OfflineNotice } from './ui/OfflineNotice';
 import { AppHeader } from './ui/AppHeader';
 import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import type { UpgradeId } from './game/upgrades/catalog';
@@ -31,19 +32,22 @@ export function App() {
   const leaveGame = useCallback(() => { clearSavedGame(); setSaved(null); setSetup(null); }, []);
   const map = MAPS.find(map => map.id === selectedMapId) ?? MAPS[0];
   return (
-    <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
-      <AppHeader />
-      {setup ? <>
-        <section className="flex min-h-0 flex-1 flex-col">
-          <FieldCanvas territories={setup.territories} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
-        </section>
-      </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
-        aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
-        onPlay={() => {
-          clearSavedGame();
-          setSaved(null);
-          setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors));
-        }} />}
-    </main>
+    <>
+      <OfflineNotice />
+      <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
+        <AppHeader />
+        {setup ? <>
+          <section className="flex min-h-0 flex-1 flex-col">
+            <FieldCanvas territories={setup.territories} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
+          </section>
+        </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
+          aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
+          onPlay={() => {
+            clearSavedGame();
+            setSaved(null);
+            setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors));
+          }} />}
+      </main>
+    </>
   );
 }
