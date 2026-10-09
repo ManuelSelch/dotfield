@@ -45,8 +45,8 @@ Add a Slow Zone similar to Watchtower: a visible circle around its host city in 
 
 ## Assumptions
 
-- Proposed randomization lifecycle: each fresh Home → Play setup chooses a host again; Restart and Play again preserve that round's host, consistent with retaining the same captured setup. A fresh choice may select the same city by chance.
-- Proposed distribution: uniform random selection among eligible cities, independent of map order. Eligibility is unresolved; excluding starting cities would best address the concern about stacking all features on the start city.
+- Placement is uniformly random across every city in the selected map, including both starting cities. A fresh Home → Play setup chooses again; Restart and Play again preserve the already compiled host because that is the simpler lifecycle.
+- The UI supplies the random choice when compiling the setup; tests supply a reproducible choice. Physics, rendering and forecasting never reroll placement.
 
 ## Implementation Plan
 
@@ -72,5 +72,4 @@ Description: After slice 4, add browser scenarios showing actual slowed travel i
 
 ## Open Questions
 
-1. Should random placement choose only initially neutral cities (excluding both starting cities), or any city on the map?
-2. Should Restart and Play again keep the same host city, with a new random choice only on Home → Play?
+None.
