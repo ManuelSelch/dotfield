@@ -3,7 +3,6 @@ import { MAPS } from './board/maps';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
 import { AppHeader } from './ui/AppHeader';
-import { AppFooter } from './ui/AppFooter';
 import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import type { UpgradeId } from './game/upgrades/catalog';
 
@@ -19,7 +18,6 @@ export function App() {
         <section className="flex min-h-0 flex-1 flex-col">
           <FieldCanvas territories={setup.territories} rules={setup.rules} onHome={() => setSetup(null)} />
         </section>
-        <AppFooter />
       </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
         onPlay={() => setSetup(compileRoundSetup(map.territories, { player: upgrades }))} />}
     </main>
