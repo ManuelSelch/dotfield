@@ -28,9 +28,12 @@ for (const viewport of [
     const box = await canvas.boundingBox();
     const pauseBox = await page.getByRole('button', { name: 'Pause' }).boundingBox();
     const compositionBox = await composition.boundingBox();
+    const barBox = await page.getByRole('img', { name: /Troop composition across/ }).boundingBox();
     expect(box).not.toBeNull();
     expect(pauseBox).not.toBeNull();
     expect(compositionBox).not.toBeNull();
+    expect(barBox).not.toBeNull();
+    expect(barBox!.width).toBeGreaterThan(180);
     expect(pauseBox!.y + pauseBox!.height).toBeLessThanOrEqual(box!.y);
     expect(pauseBox!.x).toBeGreaterThan(compositionBox!.x + compositionBox!.width - 50);
     expect(box!.width).toBeGreaterThanOrEqual(280);
