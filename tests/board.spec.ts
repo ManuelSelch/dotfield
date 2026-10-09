@@ -18,7 +18,9 @@ for (const viewport of [
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
     const composition = page.getByRole('region', { name: 'Troop composition' });
     await expect(composition).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+    const pauseButton = page.getByRole('button', { name: 'Pause' });
+    await expect(pauseButton).toBeVisible();
+    await expect.poll(() => pauseButton.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
     await expect(page.getByText('Room to grow.')).toHaveCount(0);
     await expect(page.getByText('Meadow', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
