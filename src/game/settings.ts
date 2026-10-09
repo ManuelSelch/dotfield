@@ -4,5 +4,5 @@ import type { GrowthRules } from './types';
 export const GROWTH_RULES: GrowthRules = { unitsPerSecond: 1 };
 export const SIMULATION_STEP_MS = 50;
 export const BATCH_SIZE = 5;
-export const BATCH_INTERVAL_MS = 250;
+export const BATCH_INTERVAL_MS = 300;
 export const TRAVEL_SPEED = 35; // Map-coordinate units per second, independent of screen size.

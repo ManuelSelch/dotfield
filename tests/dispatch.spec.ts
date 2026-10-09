@@ -33,10 +33,10 @@ test('drag sends half and reduces the target as each real batch arrives', async 
   await expect(centre).toHaveText('centre: Neutral, 15 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(3);
   await page.screenshot({ path: 'test-results/first-batch-arrived.png' });
-  await page.clock.runFor(250);
+  await page.clock.runFor(300);
   await expect(centre).toHaveText('centre: Neutral, 10 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(2);
-  await page.clock.runFor(600);
+  await page.clock.runFor(700);
   await expect(centre).toHaveText('centre: Neutral, 2 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await expect(page.getByText('Growth preview', { exact: true })).toHaveCount(0);

@@ -4,6 +4,7 @@ import { createSimulation } from './state';
 import { dispatchUnits } from './dispatch';
 import { advanceTravel } from './travel';
 import { resolveCombat } from './combat';
+import { BATCH_INTERVAL_MS } from './settings';
 
 const target = (state: ReturnType<typeof createSimulation>) => state.territories.find(n => n.id === 'centre')!;
 
@@ -17,9 +18,9 @@ describe('real staggered arrivals', () => {
     state = resolveCombat(advanceTravel(state, 1));
     expect(target(state)).toMatchObject({ owner: 'neutral', units: 15 });
     expect(state.transfers).toHaveLength(3);
-    state = resolveCombat(advanceTravel(state, 250));
+    state = resolveCombat(advanceTravel(state, BATCH_INTERVAL_MS));
     expect(target(state)).toMatchObject({ owner: 'neutral', units: 10 });
-    state = resolveCombat(advanceTravel(state, 500));
+    state = resolveCombat(advanceTravel(state, 2 * BATCH_INTERVAL_MS));
     expect(target(state)).toMatchObject({ owner: 'neutral', units: 2 });
     expect(state.transfers).toHaveLength(0);
     expect(state.arrivals).toHaveLength(0);
@@ -30,9 +31,9 @@ describe('real staggered arrivals', () => {
     let state = dispatchUnits(createSimulation(TERRITORIES.map(n => n.id === 'centre' ? { ...n, units: 7 } : n)), 'south', 'centre');
     state = resolveCombat(advanceTravel(state, state.transfers[0].durationMs));
     expect(target(state)).toMatchObject({ owner: 'neutral', units: 2 });
-    state = resolveCombat(advanceTravel(state, 250));
+    state = resolveCombat(advanceTravel(state, BATCH_INTERVAL_MS));
     expect(target(state)).toMatchObject({ owner: 'player', units: 3 });
-    state = resolveCombat(advanceTravel(state, 500));
+    state = resolveCombat(advanceTravel(state, 2 * BATCH_INTERVAL_MS));
     expect(target(state)).toMatchObject({ owner: 'player', units: 11 });
   });
 });
