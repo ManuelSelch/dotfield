@@ -6,19 +6,24 @@ export interface TroopShare {
   readonly percentage: number;
 }
 
-const OWNERS: readonly Owner[] = ['player', 'neutral', 'enemy'];
-
 /** Counts garrisons and troops that have launched, without counting queued reservations twice. */
 export function getTroopComposition(state: SimulationState): readonly TroopShare[] {
-  const totals: Record<Owner, number> = { player: 0, neutral: 0, enemy: 0 };
+  const owners = new Set<Owner>(['player', 'neutral', 'enemy']);
+  for (const faction of Object.keys(state.rules.factions)) owners.add(faction);
+  for (const territory of state.territories) owners.add(territory.owner);
+  for (const transfer of state.transfers) owners.add(transfer.owner);
+  for (const arrival of state.arrivals) owners.add(arrival.owner);
+
+  const orderedOwners = [...owners];
+  const totals: Record<string, number> = Object.fromEntries(orderedOwners.map(owner => [owner, 0]));
   for (const territory of state.territories) totals[territory.owner] += territory.units;
   for (const transfer of state.transfers) {
     if (transfer.elapsedMs >= 0) totals[transfer.owner] += transfer.units;
   }
   for (const arrival of state.arrivals) totals[arrival.owner] += arrival.units;
 
-  const total = OWNERS.reduce((sum, owner) => sum + totals[owner], 0);
-  return OWNERS.map(owner => ({
+  const total = orderedOwners.reduce((sum, owner) => sum + totals[owner], 0);
+  return orderedOwners.map(owner => ({
     owner,
     units: totals[owner],
     percentage: total === 0 ? 0 : totals[owner] / total * 100,

@@ -28,6 +28,25 @@ describe('getTroopComposition', () => {
     expect(composition.reduce((sum, item) => sum + item.units, 0)).toBe(188);
   });
 
+  it('includes every enemy faction in the composition', () => {
+    const state = createSimulation([
+      { id: 'p', owner: 'player', units: 10, x: 0, y: 0 },
+      { id: 'west', owner: 'enemy', units: 20, x: 100, y: 0 },
+      { id: 'east', owner: 'enemy-2', units: 30, x: 200, y: 0 },
+    ]);
+
+    const composition = getTroopComposition(state);
+    expect(composition.map(({ owner, units }) => ({ owner, units }))).toEqual([
+      { owner: 'player', units: 10 },
+      { owner: 'neutral', units: 0 },
+      { owner: 'enemy', units: 20 },
+      { owner: 'enemy-2', units: 30 },
+    ]);
+    expect(composition.map(item => item.percentage)).toEqual([
+      expect.closeTo(100 / 6, 10), 0, expect.closeTo(200 / 6, 10), 50,
+    ]);
+  });
+
   it('handles a zero-total state without NaN percentages', () => {
     const empty = createSimulation([]);
     expect(getTroopComposition(empty)).toEqual([
