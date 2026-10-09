@@ -4,7 +4,7 @@
 
 Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support both simple numeric modifiers and territory-attached mechanics such as towers and, later, slow zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
 
-This is an architecture proposal, not implementation or approval of particular effects/numbers. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
+Implementation begins with Industry (+25% player-owned city production); see [effect catalog](EFFECTS.md). Other effects and later slices remain architecture proposals. It supersedes the earlier immediate progression milestone: no economy, purchase UI or unlocks now.
 
 ## Scope
 
@@ -27,7 +27,15 @@ This is an architecture proposal, not implementation or approval of particular e
 
 ## Requirements
 
-### 1. Current configuration: inspected implementation
+### 0. Industry implementation checkpoint
+
+- `src/game/rules.ts` resolves, validates and freezes independent faction-ID keyed growth/speed/cadence rules. Current owner and transfer types still support player/enemy only; extra configuration IDs do not enable multiple-enemy gameplay.
+- `src/game/upgrades/catalog.ts` defines Industry as a production stat multiplier; `compile.ts` snapshots the map and resolves typed selected IDs. Player-only selection is exposed on Home, off by default and memory-only.
+- Play compiles a setup once. The board/hook/session forward its rules, and restart/replay keep it. Legacy `{ unitsPerSecond }` overrides remain supported and normalize to both current factions.
+- Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
+- No tower/slow-zone system or progression is implemented. Feature-event scheduling and forecast optimizations remain later work.
+
+### 1. Baseline before Industry: inspected implementation
 
 | Setting | Current source | Current consumer / limitation |
 |---|---|---|
@@ -39,9 +47,9 @@ This is an architecture proposal, not implementation or approval of particular e
 | Fixed simulation step: 50 ms | `settings.ts`: `SIMULATION_STEP_MS` | Clock, round stepping, travel collision sweeps and AI forecasts. |
 | AI cadence/scoring | `src/game/ai/config.ts`: `DEFAULT_AI` | Passed through FieldCanvas/startBoard/session; separate from physical rules. |
 
-Today global prototype tuning can be changed in `settings.ts` and map starting counts in map data. Editing the module changes all new uses, not a supported per-round settings API. Already-created transfers retain their stored duration/launch timing.
+Before Industry, global prototype tuning could be changed in `settings.ts` and map starting counts in map data. Editing the module changes all new uses, not a supported per-round settings API. Already-created transfers retain their stored duration/launch timing.
 
-Growth already supports a narrow programmatic override:
+The legacy shared-growth override remains supported:
 
 ```ts
 const session = createSession(TERRITORIES, DEFAULT_AI, { unitsPerSecond: 1.25 });
@@ -49,7 +57,7 @@ session.start();
 // Or createSimulation(TERRITORIES, { unitsPerSecond: 1.25 }) in a pure test.
 ```
 
-That override affects both factions. `FieldCanvas`, `useBoardSession` and `startBoard` currently do not forward growth rules, so this is not yet exposed to the actual app. There is no equivalent runtime speed/cadence override. Module constants must not be mutated to implement toggles.
+That legacy override affects both factions. The board now forwards RulesInput; new per-faction overrides use `{ factions: { player: { unitsPerSecond, travelSpeed, batchIntervalMs }, enemy: { ... } } }`. All fields must be supplied for each configured faction. Module constants must not be mutated to implement toggles.
 
 ### 2. Separate baseline rules, selected upgrades and resolved round configuration
 
@@ -62,11 +70,13 @@ type FactionRules = Readonly<{
   batchIntervalMs: number;
 }>;
 
+type FactionId = string;
+
 type SimulationRules = Readonly<{
-  factions: Readonly<Record<Faction, FactionRules>>;
+  factions: Readonly<Record<FactionId, FactionRules>>;
 }>;
 
-type UpgradeSelection = Readonly<Record<Faction, readonly UpgradeId[]>>;
+type UpgradeSelection = Readonly<Record<FactionId, readonly UpgradeId[]>>;
 
 type RoundSetup = Readonly<{
   territories: readonly TerritoryDefinition[];
@@ -163,7 +173,7 @@ Current Transfer uses signed `elapsedMs` for queued launch delay and `elapsedMs 
 ## Assumptions
 
 - Proposed first selectable effects: starting-unit bonus, growth multiplier, movement-speed multiplier and tower. The user has requested examples/architecture, not confirmed this exact set.
-- Suggested default is equivalent selected effects for both factions, with an explicit option for asymmetry. Not yet confirmed.
+- Confirmed: selected upgrades apply only to the human player for now. Opponent configuration remains baseline; there is no mirrored-effects toggle. Faction-ID keyed rules permit independent future opponent configurations, but do not themselves implement multiple-enemy gameplay.
 - Feature structures stay with the captured city; faction modifiers follow the current owner or issuing army as described above. Capture behavior remains subject to approval.
 - Initial spatial effects are radial and group-level; exact-region and per-dot independent slowing are deferred.
 - Existing engine constants and collision geometry remain unchanged by these upgrades.
@@ -180,7 +190,7 @@ Add typed catalog effects, deterministic composition, validation and seed transf
 
 ### 3. Pre-game selection for numeric effects
 
-Add a compact upgrade selection surface before Play, with resolved-effect descriptions and explicit faction-parity policy once approved. Snapshot on Play; keep selection on Home; restart/replay retain the same setup. Verify phone layouts without scrolling, no simulation before Play, modified actual units/speed/growth, fresh starts and keyboard/touch behavior. Depends on slice 2; only confirmed numeric effects appear.
+Add a compact upgrade selection surface before Play, with resolved-effect descriptions, affecting only the player. Snapshot on Play; keep selection on Home; restart/replay retain the same setup. Verify phone layouts without scrolling, no simulation before Play, modified actual units/speed/growth, fresh starts and keyboard/touch behavior. Depends on slice 2; only confirmed numeric effects appear.
 
 ### 4. Territory feature definitions and runtime lifecycle
 
@@ -201,7 +211,7 @@ Add approved group-center radial slowing, ownership effects, overlap policy and 
 ## Open Questions
 
 1. Which effects should ship first, and what values should starting-unit, growth and movement-speed modifiers use?
-2. Should the same effects be enabled for the opponent by default, with an explicit asymmetric option?
+2. Player-only upgrades are confirmed for now; what opponent-specific presets, if any, should be added in a later multi-enemy feature?
 3. Should structures remain on capture and switch allegiance, and should tower capture reset its firing cooldown?
 4. What tower range and shot interval should we use, and does range include a dot when its center or its edge enters the circle?
 5. What precedence should simultaneous tower shots, troop collisions, launches and impacts have?

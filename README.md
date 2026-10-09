@@ -14,9 +14,9 @@ Drag from **anywhere inside a player-owned city region** to another region to or
 
 Opposing dots now destroy each other **one-for-one on contact during travel**; friendly dots pass through. Surviving dots keep their original slots in the group, so losses leave holes rather than rearranging the formation. Only survivors reach the region and deal damage. Collision geometry is shared with rendering in board coordinates, so screen size/pixel density does not change the outcome. Movement is swept between fixed simulation steps, including exact launch/impact boundaries; contacts resolve chronologically, then by stable dot IDs on ties.
 
-Victory/defeat counts both owned territories (even empty ones that can grow) and airborne troops. Queued units count through their source garrison, not as independent survivors. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. The opponent is now active: it expands, attacks vulnerable regions, reinforces threatened allies and moves reserves toward the frontline. It uses the same growth, all-but-one dispatch, batch travel and combat rules as the player. Progression and offline installation remain later milestones. The next proposed feature is selectable pre-game upgrade effects, not an economy or unlock system; see the [upgrade architecture and phased plan](docs/upgrades/REQUIREMENTS.md). See [REQUIREMENTS.md](REQUIREMENTS.md) for the overall roadmap.
+Victory/defeat counts both owned territories (even empty ones that can grow) and airborne troops. Queued units count through their source garrison, not as independent survivors. Finished rounds freeze growth, movement and orders. **Play again** resets the map, units, batches and clock. The opponent is now active: it expands, attacks vulnerable regions, reinforces threatened allies and moves reserves toward the frontline. It uses the same growth, all-but-one dispatch, batch travel and combat rules as the player. Progression and offline installation remain later milestones. Home now offers **Industry**, off by default: your owned cities produce **25% faster** (1.25 units/sec), including new captures; the opponent stays at 1 unit/sec. Restart/Play again retain it, Home lets you change it, and reload resets it. There is no economy or unlock system. See the [seven proposed upgrade effects](docs/upgrades/EFFECTS.md) and [upgrade architecture](docs/upgrades/REQUIREMENTS.md). See [REQUIREMENTS.md](REQUIREMENTS.md) for the overall roadmap.
 
-Growth rate, batch cadence, territory radius, travel speed and simulation step are configurable in `src/game/settings.ts`; starting positions/counts are in `src/board/map.ts` and `src/board/maps.ts`. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading returns to the home screen with Meadow selected. Selection is kept in memory when returning home, not saved to storage.
+Baseline tuning is in `src/game/settings.ts`; geometry, batch size and simulation step remain global. `src/game/rules.ts` snapshots independent faction-ID keyed growth, movement speed and launch cadence. `src/game/upgrades/catalog.ts` defines typed stat modifiers; `compile.ts` resolves selections into per-round rules without changing shared defaults. Growth uses the current city owner; orders use the issuing faction's speed/cadence, including AI duration estimates. Starting positions/counts are in `src/board/map.ts` and `src/board/maps.ts`. Configuration supports extra faction IDs, but multiple-enemy gameplay still needs identity/AI/collision/outcome work. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. Reloading returns to the home screen with Meadow selected. Selection is kept in memory when returning home, not saved to storage.
 
 ## City regions and map generation
 
@@ -34,7 +34,7 @@ Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus a
 
 ## Session lifecycle and mobile controls
 
-`src/game/session.ts` exposes a UI-independent `createSession(map, ai, growthRules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
+`src/game/session.ts` exposes a UI-independent `createSession(map, ai, rules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
 
 The board adapter uses this controller for simulation frames, player dispatch and background suspension. Play mounts a fresh session for the selected map. Home unmounts it and disposes the animation, input and visibility listeners. A compact **pause icon** sits above the field; **Restart** is available only in the pause screen. Pause cancels active selection and freezes growth, launches, travel, collisions and AI; the paused screen offers **Resume**, **Restart** and **Home**. Backgrounding never overrides a manual pause. Resume excludes paused time without catch-up.
 
@@ -93,13 +93,14 @@ Automated checks currently use Chromium/Chrome. Real iPhone Safari and safe-area
 Small modules are grouped by feature.
 
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
-- `src/game/settings.ts`, `growth.ts`: tuning defaults and pure elapsed-time growth rules.
+- `src/game/settings.ts`, `rules.ts`, `growth.ts`: tuning defaults, validated faction rules and pure elapsed-time growth.
+- `src/game/upgrades/`: typed effect catalog and pure round-setup compiler; no progression dependencies.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
 - `src/game/dispatch.ts`, `launch.ts`, `route.ts`, `travel.ts`, `combat.ts`: shared faction orders, reservations, staggered launches, border travel and arrival resolution.
 - `src/game/movement.ts`, `dots.ts`: shared board-space movement, eased formations and stable dot slots.
 - `src/game/sweep.ts`, `contacts.ts`, `collisions.ts`: swept-circle math, individual contact detection and deterministic one-for-one destruction.
 - `src/game/ai/`: separately configurable timing, forecasting and action policy.
-- `src/game/round.ts`: faction survival, outcomes and stepping that stops at round end.
+- `src/game/worldStep.ts`, `round.ts`: shared live/forecast physical update, faction survival, outcomes and live stepping that stops at round end.
 - `src/board/map.ts`, `maps.ts`, `layout.ts`: original field, fixed map catalog and aspect-preserving projection.
 - `src/board/drawBoard.ts`: Canvas rendering of the current simulation snapshot.
 - `src/board/startBoard.ts`: browser animation, resize, visibility and cleanup adapter.
