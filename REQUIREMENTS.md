@@ -100,6 +100,10 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Resolve arrivals against ownership at arrival time, not dispatch time.
 - Resolve completed batches by arrival time; exact ties retain dispatch/insertion order.
 - Each batch resolves when it reaches the target border, while later batches continue travelling.
+- Opposing individual dots destroy each other one-for-one when touching in flight. Friendly dots pass through; queued dots do not collide before launch.
+- Keep stable slots for survivors without recentering the group. Destroyed dots cannot arrive or deal damage; fully destroyed groups disappear.
+- Use shared board-coordinate dot positions/radii for simulation and rendering; screen size and pixel density must not alter collision outcomes.
+- Sweep movement within fixed simulation steps to avoid missed crossings. Resolve contacts by time, then stable transfer/slot IDs on ties, with each dot consumed at most once.
 
 ### FR-04: Round lifecycle
 
@@ -120,7 +124,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Waiting is valid when no sensible order exists; constant suicidal attacks are not the goal.
 - Being ahead or behind must not disable AI decision-making; the position may still change its tactical priorities.
 - Implemented baseline: pure modules separate config, known-order forecasting, candidate scoring/selection and simulation-time scheduling. Default first decision and interval: 1.8 seconds; minimum sent army: six units. No resource or growth bonuses.
-- Forecast current orders and defender growth through the relevant arrivals; avoid duplicate secured captures and abandoning a source under known threat. Concentrate reserves toward the frontline when individual armies are insufficient.
+- Forecast current orders, per-dot collisions and defender growth through the relevant arrivals; avoid duplicate secured captures and abandoning a source under known threat. Concentrate reserves toward the frontline when individual armies are insufficient.
 - The current heuristic does not predict future player orders or guarantee optimal play. Difficulty presets and tactical refinements remain milestone 6.
 
 ### FR-06: Difficulty and tuning
@@ -209,7 +213,7 @@ Each step must leave a small verifiable result. Do not build the full game in on
 
 ## 9. Verification approach
 
-- Unit-test rounding, unit conservation on dispatch, growth, travel, combat, ties, arrival ordering, elimination, and replay reset.
+- Unit-test integer dispatch, reservation-aware conservation, growth, travel, per-dot collisions, stable survivors, combat, ties, arrival ordering, elimination, and replay reset. Verify collision outcomes across rendering rates and bulk updates; compare forecasts to live results.
 - Use deterministic scenarios and seeded randomness where needed for reproducible AI tests.
 - Test both a dominant AI and a nearly defeated AI with a viable action; verify that neither stops considering orders.
 - Compare difficulty presets across repeated scenarios; use results as tuning evidence, not a substitute for player feedback.

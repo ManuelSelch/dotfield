@@ -4,6 +4,7 @@ import { dispatchUnits } from './dispatch';
 import { advanceTravel } from './travel';
 import { advanceRound } from './round';
 import { forecastBattle } from './ai/forecast';
+import { createClock } from './clock';
 
 function battle(playerUnits = 6, enemyUnits = 2) {
   let state = createSimulation([
@@ -43,6 +44,15 @@ describe('collisions integrated with travel and rounds', () => {
     let stepped = initial;
     for (let i = 0; i < 160; i++) stepped = advanceTravel(stepped, 50);
     expect(advanceTravel(initial, 8000)).toEqual(stepped);
+  });
+  it.each([30, 60, 120])('produces the same collision outcome at %i rendering FPS', fps => {
+    const initial = battle();
+    const clock = createClock();
+    let state = initial;
+    for (let frame = 0; frame <= fps * 8; frame++) {
+      state = advanceRound(state, clock.advance(frame * 1000 / fps));
+    }
+    expect(state).toEqual(advanceRound(initial, 8000));
   });
   it('AI forecasting predicts the same per-dot losses as the live simulation', () => {
     const initial = battle();
