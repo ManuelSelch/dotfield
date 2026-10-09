@@ -46,6 +46,29 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
   });
 }
 
+test('configures one enemy AI behavior and upgrade independently from player settings', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
+  const enemySettings = page.locator('details');
+  await enemySettings.locator('summary').click();
+  await expect(page.getByLabel('enemy AI behavior')).toBeVisible();
+  await page.getByLabel('enemy AI behavior').selectOption('aggressive');
+  const enemyUpgrades = page.getByRole('group', { name: 'enemy upgrades' });
+  await enemyUpgrades.getByRole('checkbox', { name: 'Factory' }).check();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  const details = page.getByRole('list', { name: 'Territory details' });
+  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toContainText('Factory');
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
+  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toContainText('Factory');
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
+  await page.locator('details summary').click();
+  await expect(enemyUpgrades.getByRole('checkbox', { name: 'Factory' })).toBeChecked();
+  await expect(page.getByLabel('enemy AI behavior')).toHaveValue('aggressive');
+});
+
 test('home arrow selection supports keyboard and resets on page reload', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Next map' }).focus();

@@ -31,6 +31,17 @@ describe('Industry setup', () => {
     expect(result.rules.factions['enemy-2'].unitsPerSecond).toBe(2);
     expect(base.factions.player.unitsPerSecond).toBe(1);
   });
+  it('resolves independent upgrades and AI behavior for each configured AI faction', () => {
+    const map = [...TERRITORIES, { id: 'north-2', owner: 'enemy-2', units: 36, x: 90, y: 40 }];
+    const result = compileRoundSetup(map, { player: [], enemy: ['industry'], 'enemy-2': ['factory'] }, undefined,
+      { enemy: 'aggressive', 'enemy-2': 'defensive' });
+    expect(result.rules.factions.enemy.unitsPerSecond).toBe(1.25);
+    expect(result.rules.factions['enemy-2'].unitsPerSecond).toBe(1);
+    expect(result.territories.find(city => city.id === 'north-2')?.features?.[0]).toMatchObject({
+      kind: 'factory', beneficiaryId: 'enemy-2', productionMultiplier: 2,
+    });
+    expect(result.ai.enemy!.decisionIntervalMs).toBeLessThan(result.ai['enemy-2']!.decisionIntervalMs);
+  });
   it('rejects unknown upgrade and faction IDs', () => {
     expect(() => compileRoundSetup(TERRITORIES, { player: ['unknown' as UpgradeId] })).toThrow();
     expect(() => compileRoundSetup(TERRITORIES, { unknown: ['industry'] })).toThrow();

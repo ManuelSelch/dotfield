@@ -3,17 +3,18 @@ import { createClock } from './clock';
 import { dispatchUnits } from './dispatch';
 import { advanceRound, evaluateRound } from './round';
 import { createSimulation } from './state';
-import type { RulesInput, Territory } from './types';
+import type { FactionId, RulesInput, Territory } from './types';
+import type { AiConfigurations } from './ai/tick';
 import { createRules } from './rules';
 import { snapshotTerritories } from './features/snapshot';
 
 export type SessionPhase = 'ready' | 'running' | 'paused';
 
 // UI-independent lifecycle. Round outcomes remain separate from user pause/start state.
-export function createSession(territories: readonly Territory[], ai: AiConfig | null = DEFAULT_AI, rules?: RulesInput) {
+export function createSession(territories: readonly Territory[], ai: AiConfig | AiConfigurations | null = DEFAULT_AI, rules?: RulesInput) {
   const opening = snapshotTerritories(territories);
   const resolvedRules = createRules(rules);
-  const policy = ai ? { ...ai } : null;
+  const policy = ai ? ('decisionIntervalMs' in ai ? { ...ai } : Object.fromEntries(Object.entries(ai).map(([id, config]) => [id, config && { ...config }])) as Partial<Record<FactionId, AiConfig>>) : null;
   let state = evaluateRound(createSimulation(opening, resolvedRules));
   let phase: SessionPhase = 'ready';
   let hidden = false;

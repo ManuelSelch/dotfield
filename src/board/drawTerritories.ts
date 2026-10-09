@@ -1,11 +1,11 @@
 import type { SimulationState } from '../game/types';
 import { projectBoard } from './layout';
-import { PALETTE } from './palette';
+import { factionPalette } from './palette';
 
 export function drawTerritories(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
   const territories = state.territories;
   for (const node of projectBoard(territories, width, height)) {
-    const palette = PALETTE[node.owner];
+    const palette = factionPalette(node.owner);
     if (node.owner !== 'neutral') {
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);

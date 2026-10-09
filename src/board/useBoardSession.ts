@@ -3,9 +3,10 @@ import { createSimulation } from '../game/state';
 import type { SessionPhase } from '../game/session';
 import type { RulesInput, Territory } from '../game/types';
 import type { AiConfig } from '../game/ai/config';
+import type { AiConfigurations } from '../game/ai/tick';
 import { startBoard } from './startBoard';
 
-export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | null, autoStart: boolean, rules?: RulesInput) {
+export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | AiConfigurations | null, autoStart: boolean, rules?: RulesInput) {
   const controller = useRef<ReturnType<typeof startBoard> | null>(null);
   const [state, setState] = useState(() => createSimulation(territories, rules));
   const [phase, setPhase] = useState<SessionPhase>(autoStart ? 'running' : 'ready');

@@ -23,6 +23,11 @@ describe('individual opposing dot collisions', () => {
     expect(original.transfers[0].dotSlots).toEqual([0, 1, 2, 3, 4]);
     expect(next.territories).toBe(original.territories);
   });
+  it('annihilates hostile dots between two non-player factions', () => {
+    const first = batch(1, 'enemy', { x: 0, y: 100 }, { x: 100, y: 100 }, 1);
+    const second = batch(2, 'enemy-2', { x: 100, y: 100 }, { x: 0, y: 100 }, 1);
+    expect(resolveTravelCollisions(game(first, second), 100).transfers).toEqual([]);
+  });
   it('lets friendly dots pass through, even when they overlap', () => {
     const state = game(forward(), { ...backward(), owner: 'player' });
     expect(resolveTravelCollisions(state, 100)).toBe(state);

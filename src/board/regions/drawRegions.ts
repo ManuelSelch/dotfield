@@ -2,6 +2,7 @@ import type { Territory } from '../../game/types';
 import type { DragSelection } from '../drag';
 import type { CityRegion } from './geometry';
 import { REGION_BORDER, REGION_FILLS, REGION_SOURCE, REGION_TARGET } from './styles';
+import { factionPalette } from '../palette';
 
 function path(ctx: CanvasRenderingContext2D, region: CityRegion) {
   ctx.beginPath();
@@ -22,8 +23,9 @@ export function drawRegions(ctx: CanvasRenderingContext2D, territories: readonly
   for (const region of regions) {
     const owner = owners.get(region.id);
     if (!owner) continue;
+    const fill = REGION_FILLS[owner] ?? `color-mix(in srgb, ${factionPalette(owner).fill} 18%, white)`;
     ctx.fillStyle = region.id === selection?.sourceId ? REGION_SOURCE
-      : region.id === selection?.targetId ? REGION_TARGET[owner] : REGION_FILLS[owner];
+      : region.id === selection?.targetId ? (REGION_TARGET[owner] ?? fill) : fill;
     path(ctx, region); ctx.fill(); ctx.stroke();
   }
   // Outline highlights last so adjacent region fills cannot obscure selection edges.

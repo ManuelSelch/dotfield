@@ -1,5 +1,6 @@
 import { createSession, type SessionPhase } from '../game/session';
 import type { RulesInput, SimulationState, Territory } from '../game/types';
+import type { AiConfigurations } from '../game/ai/tick';
 import type { DragSelection } from './drag';
 import { bindBoardInput } from './bindBoardInput';
 import { drawBoard } from './drawBoard';
@@ -8,7 +9,7 @@ import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 
 interface BoardOptions { autoStart?: boolean; onPhase?: (phase: SessionPhase) => void; rules?: RulesInput }
 
-export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | null = DEFAULT_AI, options: BoardOptions = {}) {
+export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | AiConfigurations | null = DEFAULT_AI, options: BoardOptions = {}) {
   const session = createSession(territories, ai, options.rules);
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
