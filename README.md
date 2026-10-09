@@ -34,7 +34,7 @@ Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus a
 
 `src/game/session.ts` exposes a UI-independent `createSession(map, ai, growthRules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
 
-This foundation is tested but **not yet wired into the screen**. The existing app still auto-starts and retains its current replay behavior; no new visual controls or confirmation UI were added in this slice.
+The board adapter now uses this controller for simulation frames, player dispatch and background suspension. Existing **Play again** recreates the adapter and a fresh session. The screen still auto-starts; no new Start/Pause/Restart buttons or confirmation UI are exposed yet.
 
 ## Enemy AI architecture and tuning
 
