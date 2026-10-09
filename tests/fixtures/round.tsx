@@ -19,6 +19,7 @@ const setup = compileRoundSetup(territories, { player: [
   ...(params.has('industry') ? ['industry' as const] : []),
   ...(params.has('factory') ? ['factory' as const] : []),
   ...(params.has('watchtower') ? ['watchtower' as const] : []),
+  ...(params.has('slow-zone') ? ['slow-zone' as const] : []),
 ] });
 
 createRoot(document.getElementById('root')!).render(

@@ -1,6 +1,7 @@
 import { dispatchUnits } from '../dispatch';
 import { availableUnits } from '../launch';
-import { orderDurationMs } from '../route';
+import { orderDurationMs, remainingTravelBound } from '../route';
+import { minimumTravelMultiplier } from '../features/slowZone';
 import { getFactionRules } from '../rules';
 import { SIMULATION_STEP_MS } from '../settings';
 import type { SimulationState } from '../types';
@@ -12,6 +13,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
   if (state.roundStatus !== 'playing') return null;
   let best: AiOrder | null = null;
   const forecasts = new Map<number, SimulationState>();
+  const minimumMultiplier = minimumTravelMultiplier(state);
   for (const source of state.territories) {
     const units = availableUnits(state, source.id) - 1;
     if (source.owner !== factionId || units < config.minDispatchUnits
@@ -19,8 +21,8 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
     for (const target of state.territories) {
       if (source.id === target.id) continue;
       const relevantArrivals = state.transfers.filter(t => t.targetId === target.id || t.targetId === source.id)
-        .map(t => t.durationMs - t.elapsedMs);
-      const horizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner)), ...relevantArrivals)
+        .map(t => remainingTravelBound(t, minimumMultiplier));
+      const horizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner), minimumMultiplier), ...relevantArrivals)
         / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
       let baseline = forecasts.get(horizon);
       if (!baseline) { baseline = forecastBattle(state, horizon); forecasts.set(horizon, baseline); }

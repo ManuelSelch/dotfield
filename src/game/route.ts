@@ -1,6 +1,7 @@
 import { BATCH_SIZE, TERRITORY_RADIUS } from './settings';
 import { BASE_FACTION_RULES } from './rules';
-import type { FactionRules, Point } from './types';
+import type { FactionRules, Point, Transfer } from './types';
+import { traveledTime } from './movement';
 
 export function createRoute(source: Point, target: Point, rules: FactionRules = BASE_FACTION_RULES) {
   const dx = target.x - source.x;
@@ -16,7 +17,12 @@ export function createRoute(source: Point, target: Point, rules: FactionRules = 
   };
 }
 
-export function orderDurationMs(source: Point, target: Point, units: number, rules: FactionRules = BASE_FACTION_RULES) {
-  return createRoute(source, target, rules).durationMs
+export function remainingTravelBound(transfer: Transfer, minimumMultiplier = 1): number {
+  return Math.max(0, -transfer.elapsedMs) + Math.max(0, transfer.durationMs - traveledTime(transfer)) / minimumMultiplier;
+}
+
+export function orderDurationMs(source: Point, target: Point, units: number, rules: FactionRules = BASE_FACTION_RULES,
+  minimumMultiplier = 1) {
+  return createRoute(source, target, rules).durationMs / minimumMultiplier
     + Math.max(0, Math.ceil(units / BATCH_SIZE) - 1) * rules.batchIntervalMs;
 }

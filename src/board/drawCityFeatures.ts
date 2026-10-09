@@ -2,7 +2,8 @@ import type { SimulationState } from '../game/types';
 import { BASE_FACTION_RULES, getFactionRules } from '../game/rules';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
-import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon } from './upgradeIcons';
+import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon } from './upgradeIcons';
+import { TERRITORY_RADIUS } from '../game/settings';
 
 export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
   for (const city of projectBoard(state.territories, width, height)) {
@@ -19,8 +20,17 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
     }
     for (const feature of city.features ?? []) {
       if (feature.kind === 'factory') badge(1, city.owner === feature.beneficiaryId, drawFactoryIcon);
+      if (feature.kind === 'slow-zone') {
+        const range = feature.radius * city.radius / TERRITORY_RADIUS;
+        ctx.save(); ctx.globalAlpha = 0.09;
+        ctx.fillStyle = factionPalette(city.owner).fill;
+        ctx.beginPath(); ctx.arc(city.x, city.y, range, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 0.45; ctx.strokeStyle = factionPalette(city.owner).ink;
+        ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.restore();
+        badge(-1, true, drawSlowZoneIcon, 1);
+      }
       if (feature.kind === 'watchtower') {
-        const range = feature.range * city.radius / 21;
+        const range = feature.range * city.radius / TERRITORY_RADIUS;
         ctx.save(); ctx.globalAlpha = city.owner === 'neutral' ? 0.12 : 0.2;
         ctx.fillStyle = factionPalette(city.owner).fill; ctx.strokeStyle = factionPalette(city.owner).fill;
         ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(city.x, city.y, range, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();

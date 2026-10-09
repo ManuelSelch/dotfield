@@ -22,7 +22,7 @@ export function App() {
         </section>
       </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
         aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
-        onPlay={() => setSetup(compileRoundSetup(map.territories, upgrades, undefined, aiBehaviors))} />}
+        onPlay={() => setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors))} />}
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import type { FactionRules } from '../types';
-import type { FactoryFeature, WatchtowerFeature } from '../features/types';
+import type { FactoryFeature, WatchtowerFeature, SlowZoneFeature } from '../features/types';
 
 export interface StatModifier {
   readonly kind: 'multiply-stat';
@@ -10,7 +10,11 @@ export interface StartingFeatureEffect {
   readonly kind: 'attach-starting-feature';
   readonly feature: Omit<FactoryFeature, 'id' | 'beneficiaryId'> | Omit<WatchtowerFeature, 'id'>;
 }
-export type UpgradeEffect = StatModifier | StartingFeatureEffect;
+export interface RandomFeatureEffect {
+  readonly kind: 'attach-random-feature';
+  readonly feature: Omit<SlowZoneFeature, 'id'>;
+}
+export type UpgradeEffect = StatModifier | StartingFeatureEffect | RandomFeatureEffect;
 interface UpgradeDefinition {
   readonly id: string;
   readonly name: string;
@@ -26,6 +30,10 @@ export const UPGRADES = {
   factory: {
     id: 'factory', name: 'Factory', description: '2× starting-city production · You only',
     effects: [{ kind: 'attach-starting-feature', feature: { kind: 'factory', productionMultiplier: 2 } }],
+  },
+  'slow-zone': {
+    id: 'slow-zone', name: 'Slow Zone', description: '50% hostile speed within 90 units · Random city · Neutral slows everyone',
+    effects: [{ kind: 'attach-random-feature', feature: { kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 } }],
   },
   watchtower: {
     id: 'watchtower', name: 'Watchtower', description: 'Shoots up to 4 nearby enemy troops per second · Changes sides if captured',

@@ -44,8 +44,12 @@ export interface Transfer {
   readonly dotSlots: readonly number[];
   readonly from: Point;
   readonly to: Point;
+  // Unslowed route duration; immutable during flight.
   readonly durationMs: number;
+  // Signed launch delay, then actual flight age (not distance progress).
   readonly elapsedMs: number;
+  // Distance expressed in base-speed milliseconds; absent on legacy constant-speed flights.
+  readonly traveledMs?: number;
 }
 
 export type RoundStatus = 'playing' | 'victory' | 'defeat' | 'draw';

@@ -16,6 +16,11 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
           || !Number.isFinite(feature.fireIntervalMs) || feature.fireIntervalMs <= 0) {
           throw new RangeError('Invalid Watchtower definition.');
         }
+      } else if (feature.kind === 'slow-zone') {
+        if (!Number.isFinite(feature.radius) || feature.radius <= 0
+          || !Number.isFinite(feature.speedMultiplier) || feature.speedMultiplier <= 0 || feature.speedMultiplier >= 1) {
+          throw new RangeError('Invalid Slow Zone definition.');
+        }
       } else throw new RangeError('Unknown city feature.');
       ids.add(feature.id); kinds.add(feature.kind);
       return Object.freeze({ ...feature });

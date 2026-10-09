@@ -9,8 +9,8 @@ const host: Territory = { id: 'host', owner: 'player', units: 36, x: 100, y: 100
 const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 300 };
 const context = () => ({ save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), arc: vi.fn(),
   fill: vi.fn(), stroke: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
-  closePath: vi.fn(), translate: vi.fn(), scale: vi.fn(), globalAlpha: 1 });
-const seed = (upgrades: ('factory' | 'industry' | 'watchtower')[] = []) => {
+  closePath: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
+const seed = (upgrades: ('factory' | 'industry' | 'watchtower' | 'slow-zone')[] = []) => {
   const setup = compileRoundSetup([host, enemy], { player: upgrades });
   return createSimulation(setup.territories, setup.rules);
 };
@@ -66,6 +66,19 @@ describe('city upgrade indicators', () => {
     const radii = ctx.arc.mock.calls.map(call => call[2]);
     expect(radii.some(radius => radius > 21)).toBe(true);
     expect(ctx.translate).toHaveBeenCalledOnce(); expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+  it('draws a distinct dashed 90-unit Slow Zone circle and lower-left marker', () => {
+    const ctx = render(seed(['slow-zone']));
+    expect(ctx.arc.mock.calls.some(call => call[2] === 90)).toBe(true);
+    expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
+    expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
+    expect(ctx.translate.mock.calls[0][1]).toBeGreaterThan(host.y);
+  });
+  it('keeps four upgrade markers distinct when all effects share a city', () => {
+    const ctx = render(seed(['factory', 'industry', 'watchtower', 'slow-zone']));
+    expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
+      [true, false], [false, true], [true, true], [false, false],
+    ]);
   });
   it('supports two stacked chevrons for a future level without enabling that level', () => {
     const ctx = context(); drawChevronIcon(ctx as unknown as CanvasRenderingContext2D, 2);

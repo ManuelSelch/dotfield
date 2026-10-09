@@ -4,11 +4,12 @@ import { resolveCombat } from './combat';
 import type { SimulationState } from './types';
 import { advanceWatchtowers } from './features/watchtower';
 import { SIMULATION_STEP_MS } from './settings';
+import { hasSlowZones } from './features/slowZone';
 
 // Shared physical update for live rounds and forecasts; never issues AI orders.
 // Orchestrators retain their existing stepping and round-evaluation semantics.
 export function advanceWorldStep(state: SimulationState, elapsedMs: number): SimulationState {
-  if (state.territories.some(city => city.features?.some(feature => feature.kind === 'watchtower'))
+  if ((hasSlowZones(state) || state.territories.some(city => city.features?.some(feature => feature.kind === 'watchtower')))
     && elapsedMs > SIMULATION_STEP_MS) {
     for (let remaining = elapsedMs; remaining > 0;) {
       const step = Math.min(remaining, SIMULATION_STEP_MS);
