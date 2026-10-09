@@ -11,9 +11,7 @@ test('Mantine components and Tailwind utilities share the intended light theme',
     size: getComputedStyle(el).fontSize,
     color: getComputedStyle(el).color,
   }))).toEqual({ size: '24px', color: 'rgb(37, 60, 51)' });
-  const badge = page.getByText('Growth preview', { exact: true });
-  await expect(badge).toBeVisible();
-  expect(await badge.evaluate((el) => getComputedStyle(el).textTransform)).toBe('none');
+  await expect(page.getByText('Growth preview', { exact: true })).toHaveCount(0);
   expect(await page.getByRole('img', { name: 'Territory board' })
     .evaluate((el) => getComputedStyle(el).borderRadius)).toBe('20px');
 });

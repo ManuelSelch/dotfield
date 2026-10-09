@@ -17,8 +17,25 @@ export interface GrowthRules {
   readonly unitsPerSecond: number;
 }
 
+export interface Point { readonly x: number; readonly y: number }
+
+export interface Transfer {
+  readonly id: number;
+  readonly sourceId: string;
+  readonly targetId: string;
+  readonly owner: Exclude<Owner, 'neutral'>;
+  readonly units: number;
+  readonly from: Point;
+  readonly to: Point;
+  readonly durationMs: number;
+  readonly elapsedMs: number;
+}
+
 export interface SimulationState {
   readonly elapsedMs: number;
   readonly territories: readonly TerritoryState[];
   readonly rules: GrowthRules;
+  readonly transfers: readonly Transfer[];
+  readonly arrivals: readonly Transfer[];
+  readonly nextTransferId: number;
 }

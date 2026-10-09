@@ -11,6 +11,9 @@ export function createSimulation(
 
   return {
     elapsedMs: 0,
+    transfers: [],
+    arrivals: [],
+    nextTransferId: 1,
     rules: { ...rules },
     territories: territories.map((node) => ({ ...node, growthRemainder: 0 })),
   };

@@ -1,27 +1,21 @@
-import { projectBoard } from './layout';
-import type { Owner, Territory } from '../game/types';
-
-const PALETTE: Record<Owner, { fill: string; stroke: string; ink: string }> = {
-  player: { fill: '#267c72', stroke: '#267c72', ink: '#ffffff' },
-  enemy: { fill: '#bd624e', stroke: '#bd624e', ink: '#ffffff' },
-  neutral: { fill: '#fcfcfa', stroke: '#cdd3ca', ink: '#404b46' },
-};
+import type { SimulationState } from '../game/types';
+import type { DragSelection } from './drag';
+import { drawTerritories } from './drawTerritories';
+import { drawDrag } from './drawDrag';
+import { drawTransfers } from './drawTransfers';
 
 export function drawBoard(
-  canvas: HTMLCanvasElement, territories: readonly Territory[],
-  width: number, height: number, pixelRatio: number,
+  canvas: HTMLCanvasElement, state: SimulationState,
+  width: number, height: number, pixelRatio: number, selection: DragSelection | null = null,
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx || width <= 0 || height <= 0) return;
-
   const backingWidth = Math.round(width * pixelRatio);
   const backingHeight = Math.round(height * pixelRatio);
   if (canvas.width !== backingWidth) canvas.width = backingWidth;
   if (canvas.height !== backingHeight) canvas.height = backingHeight;
   ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   ctx.clearRect(0, 0, width, height);
-
-  // Quiet texture; all geometry remains in CSS pixels on Retina screens.
   ctx.fillStyle = '#dde2d8';
   for (let x = 12; x < width; x += 24) {
     for (let y = 12; y < height; y += 24) {
@@ -30,44 +24,7 @@ export function drawBoard(
       ctx.fill();
     }
   }
-
-  for (const node of projectBoard(territories, width, height)) {
-    const palette = PALETTE[node.owner];
-
-    if (node.owner !== 'neutral') {
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
-      ctx.strokeStyle = palette.stroke;
-      ctx.globalAlpha = 0.16;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-    }
-
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-    ctx.fillStyle = palette.fill;
-    ctx.fill();
-    ctx.strokeStyle = palette.stroke;
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    ctx.fillStyle = palette.ink;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `600 ${node.fontSize}px system-ui, sans-serif`;
-    ctx.fillText(String(node.units), node.x, node.y - 2);
-
-    // Different shapes distinguish factions without colour alone.
-    const markerY = node.y + node.radius * 0.56;
-    if (node.owner === 'enemy') {
-      ctx.fillRect(node.x - 2, markerY - 2, 4, 4);
-    } else if (node.owner === 'player') {
-      ctx.beginPath();
-      ctx.arc(node.x, markerY, 2.3, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillRect(node.x - 3, markerY - 0.7, 6, 1.4);
-    }
-  }
+  drawTerritories(ctx, state, width, height);
+  drawDrag(ctx, state.territories, selection, width, height);
+  drawTransfers(ctx, state, width, height);
 }

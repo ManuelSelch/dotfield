@@ -3,6 +3,7 @@ import { drawBoard } from './drawBoard';
 import { startBoard } from './startBoard';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
+vi.mock('./bindDrag', () => ({ bindDrag: () => ({ cancel: vi.fn(), dispose: vi.fn() }) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 function harness() {
@@ -35,7 +36,7 @@ describe('board lifecycle adapter', () => {
     board.frame(1000);
     expect(board.onCounts).toHaveBeenCalledTimes(2);
     expect(drawBoard).toHaveBeenCalledTimes(2);
-    expect(board.onCounts.mock.lastCall![0][0].units).toBe(37);
+    expect(board.onCounts.mock.lastCall![0].territories[0].units).toBe(37);
     board.stop();
   });
 

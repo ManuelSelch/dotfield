@@ -1,49 +1,64 @@
 import { createClock } from '../game/clock';
 import { advanceGrowth } from '../game/growth';
+import { advanceTravel } from '../game/travel';
+import { resolveCombat } from '../game/combat';
+import { dispatchUnits } from '../game/dispatch';
 import { createSimulation } from '../game/state';
-import type { Territory } from '../game/types';
+import type { SimulationState } from '../game/types';
+import type { DragSelection } from './drag';
+import { bindDrag } from './bindDrag';
 import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
 
-// Browser adapter only: all growth and timing rules live in the game modules.
-export function startBoard(canvas: HTMLCanvasElement, onCounts: (nodes: readonly Territory[]) => void) {
+export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void) {
   let state = createSimulation(TERRITORIES);
+  let selection: DragSelection | null = null;
   const clock = createClock();
   let frameId = 0;
-
   function redraw() {
     const bounds = canvas.getBoundingClientRect();
-    drawBoard(canvas, state.territories, bounds.width, bounds.height, window.devicePixelRatio || 1);
+    drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection);
   }
+  const drag = bindDrag(canvas, () => state.territories,
+    (next) => { selection = next; redraw(); },
+    (source, target) => {
+      if (document.hidden) return;
+      const next = dispatchUnits(state, source, target);
+      if (next === state) return;
+      state = next;
+      onState(state);
+      redraw();
+    });
 
   function frame(timestamp: number) {
     if (document.hidden) return;
     const previous = state;
-    // Growth can batch fixed steps exactly; no expensive catch-up tick loop.
-    state = advanceGrowth(state, clock.advance(timestamp));
-    if (state.territories.some((node, index) => node.units !== previous.territories[index].units)) {
-      redraw();
-      onCounts(state.territories);
-    }
+    const elapsed = clock.advance(timestamp);
+    state = advanceTravel(advanceGrowth(state, elapsed), elapsed);
+    // resolve combat after arrivals
+    state = resolveCombat(state);
+    const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
+      || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length;
+    if (changed) onState(state);
+    if (changed || selection || state.transfers.length || previous.transfers.length) redraw();
     frameId = requestAnimationFrame(frame);
   }
-
   function onVisibilityChange() {
     cancelAnimationFrame(frameId);
+    drag.cancel();
     clock.reset();
     if (!document.hidden) frameId = requestAnimationFrame(frame);
   }
-
-  const observer = new ResizeObserver(redraw);
+  const observer = new ResizeObserver(() => { drag.cancel(); redraw(); });
   observer.observe(canvas);
   window.addEventListener('resize', redraw);
   document.addEventListener('visibilitychange', onVisibilityChange);
   redraw();
-  onCounts(state.territories);
+  onState(state);
   if (!document.hidden) frameId = requestAnimationFrame(frame);
-
   return () => {
     cancelAnimationFrame(frameId);
+    drag.dispose();
     observer.disconnect();
     window.removeEventListener('resize', redraw);
     document.removeEventListener('visibilitychange', onVisibilityChange);
