@@ -82,7 +82,9 @@ These proposals are the planning baseline, not authorization to expand scope.
 
 - Drag from a player-owned source circle to a distinct target circle to send units.
 - Dispatch half the source's available whole units, rounded down; a source with fewer than two units sends nothing.
-- Deduct sent units immediately. They travel visibly and resolve on arrival.
+- Reserve ordered units immediately, but deduct them from the source counter only as each group launches. Queued troops remain defenders and cannot be ordered twice.
+- If a source is captured, cancel its unlaunched groups; already airborne units continue. A depleted source launches only available units, keeping at least one.
+- Units travel visibly and resolve on arrival.
 - Dropping outside a valid target cancels without changing counts.
 - Ignore input from non-player sources and while paused or after the round ends.
 - Proposed rule: allow friendly reinforcement as well as attacks.
@@ -101,7 +103,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 ### FR-04: Round lifecycle
 
 - Starting or replaying a round creates a fresh board and clears previous orders.
-- Determine elimination using both owned territories and units still travelling; losing the last circle alone need not end a faction's chance to recover.
+- Determine elimination using both owned territories and airborne units; losing the last circle alone need not end a faction's chance to recover. Queued groups are still part of their source garrison, not independent survivors.
 - End the round when only one faction remains able to fight.
 - Show victory or defeat clearly, with an immediately accessible replay action.
 - Stop simulation and gameplay input after the round ends.

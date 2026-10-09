@@ -8,7 +8,8 @@ export function evaluateRound(state: SimulationState): SimulationState {
   if (state.roundStatus !== 'playing') return state;
   const alive = new Set(state.territories.map(node => node.owner));
   for (const transfer of [...state.transfers, ...state.arrivals]) {
-    if (transfer.units > 0) alive.add(transfer.owner);
+    // Unlaunched groups are counted through their source, not as airborne survivors.
+    if (transfer.units > 0 && transfer.elapsedMs >= 0) alive.add(transfer.owner);
   }
   const player = alive.has('player');
   const enemy = alive.has('enemy');

@@ -11,7 +11,7 @@ describe('half-unit dispatch', () => {
   it.each([[36, 18], [37, 18], [2, 1]])('sends half of %i units, rounded down', (units, sent) => {
     const state = initial(units);
     const next = dispatchUnits(state, 'south', 'centre');
-    expect(next.territories.at(-1)!.units).toBe(units - sent);
+    expect(next.territories.at(-1)!.units).toBe(units - Math.min(5, sent));
     expect(next.transfers.reduce((total, batch) => total + batch.units, 0)).toBe(sent);
     expect(next.transfers[0].owner).toBe('player');
     expect(next.transfers[0].targetId).toBe('centre');
@@ -31,11 +31,11 @@ describe('half-unit dispatch', () => {
     expect(dispatchUnits(state, 'south', 'centre')).toBe(state);
   });
 
-  it('deducts immediately and assigns unique ids to repeated orders', () => {
+  it('deducts each first group and assigns unique ids to repeated orders', () => {
     let state = initial();
     state = dispatchUnits(state, 'south', 'centre');
     state = dispatchUnits(state, 'south', 'north');
-    expect(state.territories.at(-1)!.units).toBe(9);
+    expect(state.territories.at(-1)!.units).toBe(26);
     expect(state.transfers.map((transfer) => transfer.units)).toEqual([5, 5, 5, 3, 5, 4]);
     expect(new Set(state.transfers.map((transfer) => transfer.id)).size).toBe(6);
   });

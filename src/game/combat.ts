@@ -1,4 +1,5 @@
 import type { SimulationState } from './types';
+import { launchBatches } from './launch';
 
 export function resolveCombat(state: SimulationState): SimulationState {
   if (state.roundStatus !== 'playing' || state.arrivals.length === 0) return state;
@@ -14,5 +15,5 @@ export function resolveCombat(state: SimulationState): SimulationState {
       };
     });
   }
-  return { ...state, territories, arrivals: [] };
+  return launchBatches({ ...state, territories, arrivals: [] }, 0);
 }

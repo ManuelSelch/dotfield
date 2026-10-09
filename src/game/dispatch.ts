@@ -1,5 +1,6 @@
 import { BATCH_INTERVAL_MS, BATCH_SIZE, TERRITORY_RADIUS, TRAVEL_SPEED } from './settings';
 import type { SimulationState, Transfer } from './types';
+import { availableUnits } from './launch';
 
 export function dispatchUnits(state: SimulationState, sourceId: string, targetId: string): SimulationState {
   if (state.roundStatus !== 'playing') return state;
@@ -7,7 +8,8 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const target = state.territories.find((node) => node.id === targetId);
   if (!source || !target || source === target || source.owner !== 'player' || source.units < 2) return state;
 
-  const units = Math.floor(source.units / 2);
+  const units = Math.floor(availableUnits(state, sourceId) / 2);
+  if (units === 0) return state;
   const batches: Transfer[] = [];
   const dx = target.x - source.x;
   const dy = target.y - source.y;
@@ -31,7 +33,7 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   }
   return {
     ...state,
-    territories: state.territories.map((node) => node === source ? { ...node, units: node.units - units } : node),
+    territories: state.territories.map((node) => node === source ? { ...node, units: node.units - batches[0].units } : node),
     transfers: [...state.transfers, ...batches],
     nextTransferId: state.nextTransferId + batches.length,
   };

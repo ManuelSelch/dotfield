@@ -20,12 +20,13 @@ test('drag sends half and reduces the target as each real batch arrives', async 
   expect(await image() !== before).toBe(true);
   await page.screenshot({ path: 'test-results/drag-highlight.png' });
   await page.mouse.up();
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 18 units.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
   const transfers = page.getByRole('list', { name: 'Unit transfers' });
   await expect(transfers.getByRole('listitem')).toHaveCount(4);
   await expect(transfers).toContainText('5 units: south → centre · travelling');
   const launched = await image();
   await page.clock.runFor(550);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
   expect(await image() !== launched).toBe(true);
   await page.screenshot({ path: 'test-results/units-travelling.png' });
   const centre = page.getByRole('listitem').filter({ hasText: /^centre:/ });
@@ -41,6 +42,22 @@ test('drag sends half and reduces the target as each real batch arrives', async 
   await expect(centre).toHaveText('centre: Neutral, 2 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await expect(page.getByText('Growth preview', { exact: true })).toHaveCount(0);
+});
+
+test('source units leave one group at a time while normal growth continues', async ({ page }) => {
+  const { source, target } = await fieldPoints(page);
+  await page.mouse.move(source.x, source.y);
+  await page.mouse.down();
+  await page.mouse.move(target.x, target.y);
+  await page.mouse.up();
+  const south = page.getByRole('listitem').filter({ hasText: /^south:/ });
+  await expect(south).toHaveText('south: You, 31 units.');
+  await page.clock.runFor(650);
+  await expect(south).toHaveText('south: You, 26 units.');
+  await page.clock.runFor(400);
+  await expect(south).toHaveText('south: You, 27 units.');
+  await page.clock.runFor(200);
+  await expect(south).toHaveText('south: You, 22 units.');
 });
 
 test('off-circle, self-target and non-player drags spend nothing', async ({ page }) => {
@@ -61,7 +78,7 @@ test('touch drag dispatches once and never scrolls the page', async ({ page, con
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [source] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [target] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 18 units.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
   await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(4);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });

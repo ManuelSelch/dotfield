@@ -25,7 +25,13 @@ describe('round outcomes', () => {
   it('declares a draw if neither faction can recover', () => {
     expect(evaluateRound(createSimulation([])).roundStatus).toBe('draw');
   });
-  it.each([-600, 100])('counts queued or travelling troops after the last region is lost (%i ms)', elapsedMs => {
+  it('does not count unlaunched troops as survivors after their source is lost', () => {
+    const sent = dispatchUnits(createSimulation(map), 'player', 'enemy');
+    const state = { ...sent, territories: sent.territories.filter(n => n.owner !== 'player'),
+      transfers: sent.transfers.filter(t => t.elapsedMs < 0) };
+    expect(evaluateRound(state).roundStatus).toBe('defeat');
+  });
+  it.each([0, 100])('counts airborne troops after the last region is lost (%i ms)', elapsedMs => {
     const sent = dispatchUnits(createSimulation(map), 'player', 'enemy');
     const state = { ...sent, territories: sent.territories.filter(n => n.owner !== 'player'),
       transfers: sent.transfers.map(t => ({ ...t, elapsedMs })) };
