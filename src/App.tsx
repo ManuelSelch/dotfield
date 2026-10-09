@@ -3,7 +3,6 @@ import { MAPS } from './board/maps';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
 import { AppHeader } from './ui/AppHeader';
-import { FieldHeading } from './ui/FieldHeading';
 import { AppFooter } from './ui/AppFooter';
 import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import type { UpgradeId } from './game/upgrades/catalog';
@@ -17,8 +16,7 @@ export function App() {
     <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
       <AppHeader />
       {setup ? <>
-        <section className="flex min-h-0 flex-1 flex-col" aria-labelledby="field-title">
-          <FieldHeading name={map.name} number={MAPS.indexOf(map) + 1} />
+        <section className="flex min-h-0 flex-1 flex-col">
           <FieldCanvas territories={setup.territories} rules={setup.rules} onHome={() => setSetup(null)} />
         </section>
         <AppFooter />

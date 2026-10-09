@@ -16,6 +16,9 @@ for (const viewport of [
     await page.goto('/');
     await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Troop composition' })).toBeVisible();
+    await expect(page.getByText('Room to grow.')).toHaveCount(0);
+    await expect(page.getByText('Meadow', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Drag between regions · leave one behind.')).toBeVisible();
     const canvas = page.getByRole('img', { name: 'Territory board' });
     await expect(canvas).toBeVisible();
