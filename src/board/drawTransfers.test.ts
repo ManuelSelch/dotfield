@@ -16,8 +16,14 @@ function render(progress: number) {
   return { state, arc };
 }
 
-describe('batch convergence', () => {
-  it.each([0, 0.5, 0.8])('keeps normal spacing at progress %s', progress => {
+describe('batch spreading and convergence', () => {
+  it.each([[0, 0], [0.15, 36], [0.3, 72]])('spreads after launch at progress %s to width %s', (progress, width) => {
+    const { arc } = render(progress);
+    expect(arc.mock.calls).toHaveLength(5);
+    expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(width);
+  });
+
+  it.each([0.5, 0.8])('keeps normal spacing at progress %s', progress => {
     const { arc } = render(progress);
     expect(arc.mock.calls).toHaveLength(5);
     expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(72);
