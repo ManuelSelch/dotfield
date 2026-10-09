@@ -1,6 +1,7 @@
 import type { Point, Territory } from '../game/types';
+import { TERRITORY_RADIUS } from '../game/settings';
 
-export const FIELD = { width: 360, height: 480, radius: 29 } as const;
+export const FIELD = { width: 360, height: 480, radius: TERRITORY_RADIUS } as const;
 
 export function fieldTransform(width: number, height: number) {
   const scale = Math.min(width / FIELD.width, height / FIELD.height);

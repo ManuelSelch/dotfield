@@ -14,9 +14,9 @@ export function drawTransfers(ctx: CanvasRenderingContext2D, state: SimulationSt
     ctx.fillStyle = PALETTE[transfer.owner].fill;
     // A compact row across the flight direction; every dot has the same arrival time.
     for (let index = 0; index < transfer.units; index++) {
-      const offset = (index - (transfer.units - 1) / 2) * 7;
+      const offset = (index - (transfer.units - 1) / 2) * 9;
       ctx.beginPath();
-      ctx.arc(point.x - dy / length * offset, point.y + dx / length * offset, 2.8, 0, Math.PI * 2);
+      ctx.arc(point.x - dy / length * offset, point.y + dx / length * offset, 3.6, 0, Math.PI * 2);
       ctx.fill();
     }
   }

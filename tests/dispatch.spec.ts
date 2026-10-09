@@ -29,7 +29,7 @@ test('drag sends half and reduces the target as each real batch arrives', async 
   await page.screenshot({ path: 'test-results/units-travelling.png' });
   const centre = page.getByRole('listitem').filter({ hasText: /^centre:/ });
   await expect(centre).toHaveText('centre: Neutral, 20 units.');
-  await page.clock.runFor(5150); // 5700ms: first batch arrived, three still in flight.
+  await page.clock.runFor(3500); // 4050ms: first batch hit the border, three still in flight.
   await expect(centre).toHaveText('centre: Neutral, 15 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(3);
   await page.screenshot({ path: 'test-results/first-batch-arrived.png' });

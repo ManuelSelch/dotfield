@@ -24,7 +24,8 @@ export function drawBoard(
       ctx.fill();
     }
   }
+  // Territories mask the dot edges at launch/impact, keeping counters unobstructed.
+  drawTransfers(ctx, state, width, height);
   drawTerritories(ctx, state, width, height);
   drawDrag(ctx, state.territories, selection, width, height);
-  drawTransfers(ctx, state, width, height);
 }
