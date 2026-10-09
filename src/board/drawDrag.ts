@@ -22,7 +22,7 @@ export function drawDrag(ctx: CanvasRenderingContext2D, territories: readonly Te
   for (const node of [source, target]) {
     if (!node) continue;
     ctx.beginPath();
-    ctx.arc(node.x, node.y, node.radius + 8, 0, Math.PI * 2);
+    ctx.arc(node.x, node.y, node.radius + 6, 0, Math.PI * 2);
     ctx.stroke();
   }
   ctx.restore();
