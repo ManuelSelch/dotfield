@@ -2,6 +2,7 @@ import type { GrowthRules } from './types';
 
 // Prototype tuning values, not permanent balance decisions.
 export const GROWTH_RULES: GrowthRules = { unitsPerSecond: 1 };
+export const CITY_PRODUCTION_LIMIT = 50; // Reinforcements may exceed this limit.
 export const SIMULATION_STEP_MS = 50;
 export const TERRITORY_RADIUS = 21;
 export const DOT_RADIUS = 4.8; // Board units; rendering scales the same geometry.

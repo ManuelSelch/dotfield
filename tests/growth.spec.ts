@@ -53,6 +53,24 @@ test('backgrounding freezes growth and resuming never catches up hidden time', a
   await expect(player).toHaveText('south: You, 38 units.');
 });
 
+test('city counters stop at 50 and production resumes after sending troops', async ({ page }) => {
+  await page.goto('/tests/fixtures/round.html?passive&industry&factory');
+  const player = page.getByRole('listitem').filter({ hasText: /^south:/ });
+  const enemy = page.getByRole('listitem').filter({ hasText: /^north:/ });
+  await page.clock.runFor(15100);
+  await expect(player).toContainText('south: You, 50 units.');
+  await expect(enemy).toHaveText('north: Opponent, 50 units.');
+  await page.clock.runFor(30000);
+  await expect(player).toContainText('south: You, 50 units.');
+  await expect(enemy).toHaveText('north: Opponent, 50 units.');
+
+  await page.getByRole('button', { name: /^Select south region:/ }).press('Enter');
+  await page.getByRole('button', { name: /^Select centre region:/ }).press('Enter');
+  await expect(player).toContainText('south: You, 45 units.');
+  await page.clock.runFor(450);
+  await expect(player).toContainText('south: You, 46 units.');
+});
+
 test('a fresh page starts from the initial map rather than previous live state', async ({ page }) => {
   await page.clock.runFor(3100);
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 39 units.');
