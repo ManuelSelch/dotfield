@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSession } from './session';
+import { DEFAULT_AI } from './ai/config';
 const map = [
   { id: 'home', owner: 'player' as const, units: 21, x: 0, y: 0 },
   { id: 'away', owner: 'enemy' as const, units: 21, x: 300, y: 0 },
@@ -61,6 +62,18 @@ describe('nonvisual session controls', () => {
     session.setHidden(false); session.frame(50000); session.frame(50100);
     expect(session.state.elapsedMs).toBe(100);
   });
+  it('reserves asynchronous AI decisions once and applies the returned faction order', () => {
+    const session = createSession([...map,
+      { id: 'neutral', owner: 'neutral', units: 1, x: 150, y: 150 },
+    ], null);
+    session.start(); session.frame(0); session.frame(DEFAULT_AI.initialDelayMs);
+    expect(session.reserveAiDecision('enemy', DEFAULT_AI)).toBe(true);
+    expect(session.reserveAiDecision('enemy', DEFAULT_AI)).toBe(false);
+    expect(session.state.aiDecisionDeadlines.enemy).toBe(DEFAULT_AI.initialDelayMs + DEFAULT_AI.decisionIntervalMs);
+    const next = session.dispatchFaction('away', 'neutral', 'enemy');
+    expect(next.transfers.some(t => t.owner === 'enemy')).toBe(true);
+  });
+
   it('freezes AI decisions while paused', () => {
     const session = createSession([...map,
       { id: 'neutral', owner: 'neutral', units: 1, x: 150, y: 150 },

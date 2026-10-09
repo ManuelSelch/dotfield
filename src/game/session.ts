@@ -55,5 +55,20 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
       if (active()) state = dispatchUnits(state, sourceId, targetId);
       return state;
     },
+    reserveAiDecision(factionId: FactionId, config: AiConfig) {
+      if (!active()) return false;
+      const deadline = state.aiDecisionDeadlines[factionId] ?? config.initialDelayMs;
+      if (state.elapsedMs < deadline) return false;
+      const nextDeadline = state.elapsedMs + config.decisionIntervalMs;
+      state = { ...state,
+        aiDecisionDeadlines: { ...state.aiDecisionDeadlines, [factionId]: nextDeadline },
+        ...(factionId === 'enemy' ? { aiNextDecisionMs: nextDeadline } : {}),
+      };
+      return true;
+    },
+    dispatchFaction(sourceId: string, targetId: string, factionId: FactionId) {
+      if (active()) state = dispatchUnits(state, sourceId, targetId, factionId);
+      return state;
+    },
   };
 }

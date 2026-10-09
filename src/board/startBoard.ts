@@ -6,6 +6,7 @@ import { bindBoardInput } from './bindBoardInput';
 import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
+import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
 
 interface BoardOptions {
   autoStart?: boolean;
@@ -17,13 +18,24 @@ interface BoardOptions {
 }
 
 export function startBoard(canvas: HTMLCanvasElement, onState: (state: SimulationState) => void, territories: readonly Territory[] = TERRITORIES, ai: AiConfig | AiConfigurations | null = DEFAULT_AI, options: BoardOptions = {}) {
-  const session = createSession(territories, ai, options.rules, { initialState: options.initialState, initialPhase: options.initialPhase });
+  const aiConfigs: Record<string, AiConfig> = {};
+  if (ai && 'decisionIntervalMs' in ai) aiConfigs.enemy = ai as AiConfig;
+  else if (ai) for (const [factionId, config] of Object.entries(ai)) {
+    if (config) aiConfigs[factionId] = config;
+  }
+  const aiWorker = ai && typeof Worker !== 'undefined'
+    ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
+    : null;
+  const session = createSession(territories, aiWorker ? null : ai, options.rules,
+    { initialState: options.initialState, initialPhase: options.initialPhase });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
   let disposed = false;
   let state = session.state;
   let selection: DragSelection | null = null;
   let frameId = 0;
+  let requestId = 0;
+  const pendingAi = new Map<number, string>();
   function redraw() {
     const bounds = canvas.getBoundingClientRect();
     drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection);
@@ -42,11 +54,24 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       redraw();
     });
 
+  function requestAiDecisions() {
+    if (!aiWorker || !session.active) return;
+    for (const factionId of Object.keys(aiConfigs).sort()) {
+      if ([...pendingAi.values()].includes(factionId)) continue;
+      const config = aiConfigs[factionId];
+      if (!config || !session.reserveAiDecision(factionId, config)) continue;
+      const id = ++requestId;
+      pendingAi.set(id, factionId);
+      aiWorker.postMessage({ requestId: id, state: session.state, factionId, config } satisfies AiWorkerRequest);
+    }
+  }
+
   function frame(timestamp: number) {
     session.setHidden(document.hidden);
     if (disposed || !session.active) return;
     const previous = state;
     state = session.frame(timestamp);
+    requestAiDecisions();
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
       || state.transfers.reduce((sum, t) => sum + t.units, 0) !== previous.transfers.reduce((sum, t) => sum + t.units, 0)
@@ -57,6 +82,19 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (changed || selection || state.transfers.length || previous.transfers.length) redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }
+  if (aiWorker) {
+    aiWorker.onmessage = (event: MessageEvent<AiWorkerResponse>) => {
+      const { requestId: id, factionId, order } = event.data;
+      if (!pendingAi.delete(id) || disposed) return;
+      if (order && session.active) {
+        state = session.dispatchFaction(order.sourceId, order.targetId, factionId);
+        onState(state);
+        redraw();
+      }
+    };
+    aiWorker.onerror = () => { /* The synchronous fallback remains available on the next session. */ };
+  }
+
   function onVisibilityChange() {
     cancelAnimationFrame(frameId);
     drag.cancel();
@@ -83,6 +121,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (disposed) return;
     cancelAnimationFrame(frameId);
     drag.cancel(); session.setHidden(document.hidden); session[action]();
+    pendingAi.clear();
     state = session.state; onState(state); options.onSnapshot?.(state, session.phase); options.onPhase?.(session.phase); redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }
@@ -94,6 +133,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     observer.disconnect();
     window.removeEventListener('resize', redraw);
     document.removeEventListener('visibilitychange', onVisibilityChange);
+    aiWorker?.terminate();
   };
   return Object.assign(dispose, {
     start: () => command('start'), pause: () => command('pause'),
