@@ -161,18 +161,18 @@ Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel →
 
 ### 7. Slow zones need a movement model extension, not only a setting
 
-The focused [Slow Zone requirements and implementation plan](slow-zone/REQUIREMENTS.md) expands this work. Radius, strength, allegiance, group-center membership and overlap behavior remain proposals pending confirmation.
+The focused [Slow Zone requirements and implementation plan](slow-zone/REQUIREMENTS.md) expands this work. Confirmed: radius 90, 50% speed, group-center membership, strongest-only overlap, hostile-only slowing under player/enemy ownership, and slowing both factions while neutral-owned. Capture switches allegiance. Place one zone on a random city rather than automatically on the player's starting city; candidate eligibility and reroll lifecycle remain open.
 
 Current Transfer uses signed `elapsedMs` for queued launch delay and `elapsedMs / durationMs` for both position and formation progress. A per-round speed upgrade can keep this fixed-duration model. A zone that changes speed during flight cannot safely mutate durationMs: that would jump the unit's position and invalidate collision/arrival calculations.
 
 - Separate queued launch time, elapsed flight time and traveled distance/progress when introducing spatial effects. Queued batches are not slowed before launch.
 - Compute base speed from the issuing faction's resolved rules, then local zone multipliers from current ownership/position.
-- Recommended first model: apply slowdown to the group center, moving the whole formation together. Per-dot independent speed would require a different formation/transfer model and is outside the first implementation.
+- Confirmed first model: apply slowdown to the group center, moving the whole formation together. Per-dot independent speed would require a different formation/transfer model and is outside the first implementation.
 - Preserve physical position when a group enters/exits a zone or the zone host changes allegiance. Spreading/convergence follows distance progress, not wall-clock flight age.
 - Split motion at circle entry/exit and use piecewise swept trajectories for dot collisions. A group must not tunnel through a small zone because both sampled endpoints lie outside it.
 - Rendering, tower target positions, collision sweeps and forecasts use the same motion/path helpers. Old assumptions `durationMs - elapsedMs` in contacts, travel, AI horizons and forecast skipping all need migration, not just movement.ts.
 - Arrival estimates use the same path-speed model. With known future captures, forecasts simulate allegiance changes; an initial horizon estimate is only a bound and must not end before relevant orders finish. Use a documented bound or completion-based forecast limit.
-- Keep positive nonzero minimum speed if bounded completion horizons are needed. Overlapping-zone stacking and which factions are affected are open questions.
+- Keep positive nonzero minimum speed for bounded completion horizons. Confirmed strongest-only overlap uses the smallest eligible multiplier, not multiplication; current zones use 0.5. Owned zones slow hostile groups only; neutral zones slow both factions.
 
 ## Assumptions
 
@@ -216,6 +216,6 @@ Add approved group-center radial slowing, ownership effects, overlap policy and 
 
 1. Which effects should ship next, and what values should starting-unit and movement-speed modifiers use?
 2. Player-only upgrades are confirmed for now; what opponent-specific presets, if any, should be added in a later multi-enemy feature?
-3. Should slow zones affect only hostile groups, and is group-center slowing acceptable instead of independent per-dot slowing?
-4. Should overlapping slow zones use only the strongest effect or multiply effects with a minimum-speed bound?
+3. Should random Slow Zone placement choose only initially neutral cities (excluding both starting cities), or any city on the map?
+4. Should Restart and Play again keep the same Slow Zone host, with a new random choice only on Home → Play?
 5. Should upgrade selections survive browser reloads, or remain in memory like the current map selection?
