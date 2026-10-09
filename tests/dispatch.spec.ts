@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { fieldPoints } from './helpers/fieldPoints';
+import { BATCH_INTERVAL_MS } from '../src/game/settings';
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
@@ -33,10 +34,10 @@ test('drag sends half and reduces the target as each real batch arrives', async 
   await expect(centre).toHaveText('centre: Neutral, 15 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(3);
   await page.screenshot({ path: 'test-results/first-batch-arrived.png' });
-  await page.clock.runFor(300);
+  await page.clock.runFor(BATCH_INTERVAL_MS);
   await expect(centre).toHaveText('centre: Neutral, 10 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(2);
-  await page.clock.runFor(700);
+  await page.clock.runFor(2 * BATCH_INTERVAL_MS + 100);
   await expect(centre).toHaveText('centre: Neutral, 2 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await expect(page.getByText('Growth preview', { exact: true })).toHaveCount(0);
