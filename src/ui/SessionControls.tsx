@@ -6,8 +6,8 @@ interface Props {
   onResume: () => void; onRestart: () => void;
 }
 export function PauseButton({ onPause }: { onPause: () => void }) {
-  return <ActionIcon variant="light" radius="xl" size={44} aria-label="Pause" title="Pause" onClick={onPause}>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+  return <ActionIcon variant="light" radius="xl" size={36} aria-label="Pause" title="Pause" onClick={onPause}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
       <rect x="6" y="4" width="4" height="16" rx="1" />
       <rect x="14" y="4" width="4" height="16" rx="1" />
     </svg>
