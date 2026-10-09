@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSimulation } from './state';
-import { resolveTravelCollisions } from './collisions';
+import { mayContact, resolveTravelCollisions } from './collisions';
 import type { Faction, Point, Transfer } from './types';
 
 function batch(id: number, owner: Faction, from: Point, to: Point, units = 1, elapsedMs = 400): Transfer {
@@ -12,6 +12,16 @@ const backward = (units = 5) => batch(2, 'enemy', { x: 100, y: 100 }, { x: 0, y:
 const game = (...transfers: Transfer[]) => ({ ...createSimulation([]), transfers });
 
 describe('individual opposing dot collisions', () => {
+  it('rejects distant paths before dot-level collision checks', () => {
+    expect(mayContact(
+      { minX: 0, minY: 0, maxX: 10, maxY: 10 },
+      { minX: 20, minY: 0, maxX: 30, maxY: 10 },
+    )).toBe(false);
+    expect(mayContact(
+      { minX: 0, minY: 0, maxX: 10, maxY: 10 },
+      { minX: 10, minY: 10, maxX: 20, maxY: 20 },
+    )).toBe(true);
+  });
   it('destroys matching dots in two head-on groups', () => {
     expect(resolveTravelCollisions(game(forward(), backward()), 100).transfers).toEqual([]);
   });
