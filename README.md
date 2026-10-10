@@ -18,6 +18,12 @@ Victory/defeat counts both owned territories (even empty ones that can grow) and
 
 Baseline tuning is in `src/game/settings.ts`; geometry, batch size and simulation step remain global. `src/game/rules.ts` snapshots independent faction-ID keyed growth, movement speed and launch cadence. `src/game/upgrades/catalog.ts` defines typed stat modifiers; `compile.ts` resolves selections into per-round rules without changing shared defaults. Growth uses the current city owner; orders use the issuing faction's speed/cadence, including AI duration estimates. Starting positions/counts are in `src/board/map.ts` and `src/board/maps.ts`. Configuration supports extra faction IDs, but multiple-enemy gameplay still needs identity/AI/collision/outcome work. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. While a round is active, the current board, airborne groups, pause state, rules and AI settings are saved locally and restored after a browser/mobile app reload. No offline growth is granted while the app is closed. Choosing Home, starting a new round, or clearing site data removes the saved round. Corrupt or unavailable storage safely falls back to a new Home screen.
 
+## Responsive battlefield layout
+
+The game screen fits a centered **3:4 battlefield** to both available width and height. Its header, troop composition and pause control align with the board; widescreen margins stay outside the Canvas and its interactive regions. Phones retain safe-area padding and the page remains scroll-locked. Resizing updates rendering and input geometry without replacing the active session or changing simulation distances. Home keeps its existing compact stacked layout; its desktop redesign and click-to-click input remain later slices in the [desktop plan](docs/desktop/REQUIREMENTS.md).
+
+The approved design is preserved in `mockups/desktop-battlefield/`. `tests/desktop-layout.spec.ts` checks phone, tablet, desktop and short-window proportions, full-region dispatch, overlay placement, and live/paused resize state retention.
+
 ## City regions and map generation
 
 Each circle is a city center. Voronoi regions are generated automatically from the city positions, clipped to the complete visible Canvas—including its aspect-ratio margins. Subtle faction fills, thin borders between cities and full-region source/target highlights match the approved mockup in `mockups/city-regions/`.

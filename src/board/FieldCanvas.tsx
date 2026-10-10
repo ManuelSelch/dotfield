@@ -25,7 +25,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
         {phase === 'running' && <PauseButton onPause={session.pause} />}
       </div>
-      <div className="relative min-h-0 flex-1">
+      <div className="field-viewport relative min-h-0 flex-1">
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby="territory-details upgrade-icon-help">
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>

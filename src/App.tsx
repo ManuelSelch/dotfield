@@ -34,19 +34,21 @@ export function App() {
   return (
     <>
       <OfflineNotice />
-      <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
-        <AppHeader />
-        {setup ? <>
-          <section className="flex min-h-0 flex-1 flex-col">
-            <FieldCanvas territories={setup.territories} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
-          </section>
-        </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
-          aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
-          onPlay={() => {
-            clearSavedGame();
-            setSaved(null);
-            setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors));
-          }} />}
+      <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
+        <div className="app-viewport">
+          <div className={`app-shell${setup ? ' app-shell--playing' : ''}`}>
+            <AppHeader />
+            {setup ? <section className="flex min-h-0 flex-1 flex-col">
+              <FieldCanvas territories={setup.territories} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
+            </section> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
+              aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
+              onPlay={() => {
+                clearSavedGame();
+                setSaved(null);
+                setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors));
+              }} />}
+          </div>
+        </div>
       </main>
     </>
   );
