@@ -1,22 +1,74 @@
-.home-screen { min-height: 0; flex: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) 44px; gap: 12px; }
-.home-body { min-height: 0; display: grid; grid-template-rows: minmax(110px, 1fr) minmax(0, auto); gap: 12px; }
-.home-map-panel { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) 8px; gap: 12px; }
-.home-map-selector { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 0; }
-.home-map-selector > button { flex: none; }
-.home-map-space { min-height: 0; min-width: 0; height: 100%; flex: 1; container-type: size; display: grid; place-items: center; }
-.home-map-frame { box-sizing: content-box; height: min(calc(100cqh - 4px), calc((100cqw - 4px) * 4 / 3), calc(276px * 4 / 3)); aspect-ratio: 3 / 4; overflow: hidden; border-radius: 20px; border: 2px solid #267c72; background: var(--color-field); }
-.home-setup { min-height: 0; max-height: min(44svh, 254px); display: grid; grid-template-rows: minmax(0, 1fr); }
-.home-settings { overflow-y: auto; min-height: 0; padding-right: 3px; scrollbar-width: thin; overscroll-behavior: contain; }
-.home-play { width: 100%; justify-self: center; }
-
-/* Match the approved desktop preview; short windows retain the compact layout.
-   Scope shell widening to Home so battlefield sizing remains independent. */
-@media (min-width: 900px) and (min-height: 600px) {
-  .app-shell.app-shell--home { max-width: 1088px; }
-  .home-screen { gap: 16px; }
-  .home-body { grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); grid-template-rows: minmax(0, 1fr); gap: 40px; }
-  .home-map-frame { height: min(calc(100cqh - 4px), calc((100cqw - 4px) * 4 / 3)); }
-  .home-setup { width: 100%; height: 100%; max-height: none; }
-  .home-settings { align-self: center; max-height: 100%; }
-  .home-play { width: 360px; max-width: 100%; }
+.app-shell.app-shell--home { max-width: 968px; }
+.home-screen { min-height: 0; flex: 1; position: relative; }
+.home-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; padding: 0 4px 20px; }
+.home-intro { text-align: center; margin: 24px 0 34px; }
+.home-intro h2 { font-size: 30px; font-weight: 550; letter-spacing: -1px; margin: 0 0 8px; line-height: 1.2; }
+.home-intro p { font-size: 14px; color: #6b776e; margin: 0; }
+.home-body { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 360px); justify-content: center; align-items: start; gap: 72px; }
+.home-settings { min-width: 0; padding-top: 8px; }
+.home-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.7px; color: #6b776e; }
+.home-setting { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 16px; gap: 10px; }
+.home-label, .home-setting label { font-size: 16px; font-weight: 600; }
+.home-setting p, .home-feature p { margin: 5px 0 0; font-size: 12px; color: #6b776e; }
+.home-stepper { display: flex; align-items: center; gap: 4px; }
+.home-stepper button { border: 1px solid #dce2d8; color: #267c72; background: transparent; border-radius: 50%; width: 44px; height: 44px; font: inherit; font-size: 22px; cursor: pointer; }
+.home-stepper button:disabled { opacity: .35; cursor: default; }
+.home-stepper output { width: 38px; text-align: center; font-size: 22px; font-weight: 550; }
+.home-city-range { width: 100%; accent-color: #267c72; cursor: pointer; margin: 0; }
+.home-range-labels { display: flex; justify-content: space-between; margin-top: 7px; color: #6b776e; font-size: 10px; }
+.home-enemy-setting { margin: 25px 0 12px; }
+.home-segments { display: flex; padding: 3px; gap: 3px; border: 1px solid #dce2d8; border-radius: 12px; background: #edf0e9; }
+.home-segments button { flex: 1; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 9px; font: inherit; font-size: 13px; background: transparent; color: #6b776e; cursor: pointer; }
+.home-segments button[aria-pressed="true"] { color: #267c72; background: #fff; box-shadow: 0 1px 4px #253c3310; font-weight: 650; }
+.home-note { font-size: 11px; color: #6b776e; margin: 11px 0; }
+.home-features-label { border-top: 1px solid #dce2d8; padding-top: 23px; margin: 29px 0 21px; }
+.home-feature { margin-bottom: 22px; }
+.home-feature .home-segments { margin-top: 12px; }
+.home-advanced-settings { border-top: 1px solid #dce2d8; margin-top: 25px; }
+.home-settings-section { border-bottom: 1px solid #dce2d8; }
+.home-settings-section summary { display: flex; align-items: center; min-height: 54px; gap: 10px; padding: 12px 0; font-size: 14px; font-weight: 600; list-style: none; cursor: pointer; }
+.home-settings-section summary::-webkit-details-marker { display: none; }
+.home-settings-section summary::after { content: '+'; font-size: 18px; color: #267c72; margin-left: 2px; }
+.home-settings-section[open] summary::after { content: '−'; }
+.home-summary-count { margin-left: auto; font-size: 10px; font-weight: 400; color: #6b776e; text-align: right; }
+.home-upgrade-list { padding-bottom: 12px; }
+.home-upgrade-list .mantine-Checkbox-label { font-size: 13px; }
+.home-upgrade-list .mantine-Checkbox-description { font-size: 11px; line-height: 1.5; }
+.home-enemy-option { border-top: 1px solid #dce2d8; padding-top: 16px; }
+.home-enemy-option h3 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 0 0 12px; }
+.home-faction-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.home-behavior-option { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; }
+.home-behavior-option select { font: inherit; font-size: 16px; color: #267c72; border: 1px solid #dce2d8; border-radius: 9px; background: #fff; padding: 8px; max-width: 65%; }
+.home-play-slot { margin-top: 30px; }
+.home-play-arrow { margin-left: 14px; }
+.home-preview { min-width: 0; }
+.home-preview-heading { margin-bottom: 14px; min-height: 28px; display: flex; align-items: center; }
+.home-map-frame { width: 100%; border: 1px solid #c9d4c7; border-radius: 22px; overflow: hidden; background: #eef1e9; padding: 7px; }
+.home-map-frame svg { height: auto; aspect-ratio: 3 / 4; }
+.home-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+.home-badges span { border: 1px solid #dce2d8; border-radius: 99px; padding: 5px 9px; font-size: 10px; color: #6b776e; }
+.home-screen button:focus-visible, .home-screen input:focus-visible, .home-screen select:focus-visible, .home-screen summary:focus-visible { outline: 3px solid #86bfb2; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .app-shell.app-shell--home { max-width: 436px; }
+  .home-scroll { padding-bottom: 110px; }
+  .home-intro { margin: 8px 0 24px; }
+  .home-intro h2 { font-size: 25px; }
+  .home-body { display: flex; flex-direction: column; gap: 30px; }
+  .home-settings, .home-preview { width: 100%; padding-top: 0; }
+  .home-setting { margin: 16px 0 12px; }
+  .home-enemy-setting { margin: 20px 0 10px; }
+  .home-features-label { margin: 20px 0 16px; padding-top: 18px; }
+  .home-feature { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .home-feature > div:first-child { min-width: 0; }
+  .home-feature .home-label { font-size: 14px; }
+  .home-feature p { font-size: 11px; line-height: 1.4; }
+  .home-feature .home-segments { margin: 0; min-width: 110px; flex: none; }
+  .home-feature .home-segments button { min-width: 48px; }
+  .home-advanced-settings { margin-top: 20px; }
+  .home-settings-section summary { min-height: 50px; font-size: 13px; }
+  .home-play-slot { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; margin: 0; border-top: 1px solid #dce2d8; background: #f6f7f3; padding: 12px max(20px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+  .home-play { display: block; max-width: 436px; margin: auto; }
+  .home-preview { border-top: 1px solid #dce2d8; padding-top: 20px; }
+  .home-map-frame { max-width: 300px; margin: auto; }
+  .home-badges { max-width: 300px; margin-left: auto; margin-right: auto; }
 }

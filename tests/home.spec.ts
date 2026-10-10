@@ -1,117 +1,132 @@
 import { expect, test } from '@playwright/test';
+import { SAVED_GAME_KEY } from '../src/game/persistence';
+import { MATCH_PREFERENCES_KEY, defaultMatchPreferences } from '../src/game/matchPreferences';
+import { generateMap } from '../src/board/generateMap';
+import { compileRoundSetup } from '../src/game/upgrades/compile';
+import { createSimulation } from '../src/game/state';
 
-const mapCounts = [13, 11, 9, 21, 23, 10, 8];
-for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
-  test(`home uses visual arrow selection and supports every map at ${viewport.width}px`, async ({ page }) => {
+async function saved(page: import('@playwright/test').Page) {
+  return page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY);
+}
+for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }, { width: 1280, height: 900 }]) {
+  test(`generated setup, real upgrades and fixed mobile Play at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Choose your field.' })).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Previous map' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Next map' })).toBeVisible();
-    await expect(page.getByText(/Meadow|Forks|Ridge/)).toHaveCount(0);
-    await page.clock.runFor(60000);
-    for (let index = 0; index < mapCounts.length; index++) {
-      if (index > 0) await page.getByRole('button', { name: 'Next map' }).click();
-      const preview = page.getByRole('img', { name: `Map ${index + 1} preview` });
-      await expect(preview).toBeVisible();
-      await expect(preview.locator('circle[cx]')).toHaveCount(mapCounts[index]);
-      for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', '17');
-      await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
-      expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
-      await page.getByRole('button', { name: 'Play', exact: true }).click();
-      await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-      const details = page.getByRole('list', { name: 'Territory details' });
-      await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
-      await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
-      await page.getByRole('button', { name: /^Select south region: You/ }).focus();
-      const targetId = index < 5 ? 'centre' : index === 5 ? 'west-south' : 'west-north';
-      await page.keyboard.press('Enter'); await page.getByRole('button', { name: new RegExp(`^Select ${targetId} region:`) }).focus();
-      await page.keyboard.press('Enter');
-      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText(`south → ${targetId}`);
-      await page.clock.runFor(1100);
-      await page.getByRole('button', { name: 'Pause', exact: true }).click();
-      await page.getByRole('button', { name: 'Restart', exact: true }).click();
-      await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
-      await page.clock.runFor(2000);
-      await expect(page.getByRole('list', { name: 'Unit transfers' }))
-        .toContainText(index === 5 ? 'north-east → east-north' : index === 4 ? 'enemy-west →' : 'north →');
-      await page.getByRole('button', { name: 'Pause', exact: true }).click();
-      await page.getByRole('button', { name: 'Home', exact: true }).click();
-      await expect(page.getByRole('img', { name: `Map ${index + 1} preview` })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
-      await expect(page.getByRole('list', { name: 'Unit transfers' })).toHaveCount(0);
-      await page.clock.runFor(10000);
+    await expect(page.getByRole('heading', { name: 'A fresh field. Every time.' })).toBeVisible();
+    const play = page.getByRole('button', { name: 'Play new map', exact: true });
+    const preview = page.getByRole('img', { name: 'Generated map preview' });
+    await expect(preview.locator('circle[cx]')).toHaveCount(12);
+    await expect(page.getByRole('button', { name: /Next map|Previous map|Hide preview|Random/ })).toHaveCount(0);
+    await expect(play).toBeInViewport();
+    await expect.poll(() => play.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
+    await page.screenshot({ path: `test-results/generated-setup-${viewport.width}.png` });
+    await page.getByRole('button', { name: 'More cities' }).click();
+    await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
+    await page.getByRole('group', { name: 'River and bridges' }).getByRole('button', { name: 'Off', exact: true }).click();
+    await page.getByRole('group', { name: 'Map industry' }).getByRole('button', { name: 'Off', exact: true }).click();
+    await page.getByText('Your upgrades', { exact: true }).click();
+    await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
+    await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Factory', exact: false }).check();
+    await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('2 enabled');
+    await page.getByText('Enemy settings', { exact: true }).click();
+    await page.getByLabel('Enemy 4 behavior').selectOption('defensive');
+    await page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' }).check();
+    await expect(play).toBeInViewport();
+    if (viewport.width < 761) {
+      expect(await play.evaluate(el => getComputedStyle(el.parentElement!).position)).toBe('fixed');
+      await page.getByRole('button', { name: 'Reroll' }).scrollIntoViewIfNeeded();
+      await expect(play).toBeInViewport();
+      const rerollBox = (await page.getByRole('button', { name: 'Reroll' }).boundingBox())!;
+      const playBox = (await play.boundingBox())!;
+      expect(rerollBox.y + rerollBox.height).toBeLessThanOrEqual(playBox.y);
     }
+    const before = await preview.locator('circle[cx]').first().getAttribute('cx');
+    await page.getByRole('button', { name: 'Reroll' }).click();
+    expect(await preview.locator('circle[cx]').first().getAttribute('cx')).not.toBe(before);
+    const previewCoordinates = await preview.locator('circle[cx]').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
+    await play.click();
+    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+    const initial = await saved(page);
+    expect(initial.territories).toHaveLength(13);
+    expect(initial.state.river).toBeUndefined();
+    expect(Object.keys(initial.ai)).toHaveLength(4);
+    expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
+    expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features[0].kind).toBe('factory');
+    expect(initial.territories.find((c: { owner: string }) => c.owner === 'enemy-4').features[0].kind).toBe('watchtower');
+    expect(initial.territories.map((c: { x: number; y: number }) => [c.x, c.y])).not.toEqual(previewCoordinates);
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await page.getByRole('button', { name: 'Restart', exact: true }).click();
+    expect((await saved(page)).territories).toEqual(initial.territories);
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await page.getByRole('button', { name: 'New map', exact: true }).click();
+    const next = await saved(page);
+    expect(next.generated.seed).not.toBe(initial.generated.seed);
+    expect(next.territories).not.toEqual(initial.territories);
+    expect(next.generated.preferences).toEqual(initial.generated.preferences);
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await page.reload();
+    await expect(page.getByRole('heading', { name: 'Paused', exact: true })).toBeVisible();
+    expect((await saved(page)).territories).toEqual(next.territories);
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
+    await expect(play).toBeFocused();
+    await page.reload();
+    await expect(preview.locator('circle[cx]')).toHaveCount(13);
+    await page.getByText('Your upgrades', { exact: true }).click();
+    await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
     expect(errors).toEqual([]);
   });
 }
 
-test('configures one enemy AI behavior and upgrade independently from player settings', async ({ page }) => {
+test('inactive enemy settings are retained but not compiled into smaller matches', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
-  const enemySettings = page.locator('details');
-  await enemySettings.locator('summary').click();
-  await expect(page.getByLabel('enemy AI behavior')).toBeVisible();
-  await page.getByLabel('enemy AI behavior').selectOption('aggressive');
-  const enemyUpgrades = page.getByRole('group', { name: 'enemy upgrades' });
-  await enemyUpgrades.getByRole('checkbox', { name: 'Factory' }).check();
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  const details = page.getByRole('list', { name: 'Territory details' });
-  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toContainText('Factory');
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'Restart', exact: true }).click();
-  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toContainText('Factory');
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
-  await page.locator('details summary').click();
-  await expect(enemyUpgrades.getByRole('checkbox', { name: 'Factory' })).toBeChecked();
-  await expect(page.getByLabel('enemy AI behavior')).toHaveValue('aggressive');
+  const count = page.getByRole('group', { name: 'Number of enemy factions' });
+  await count.getByRole('button', { name: '4', exact: true }).click();
+  await page.getByText('Enemy settings', { exact: true }).click();
+  await page.getByLabel('Enemy 4 behavior').selectOption('aggressive');
+  await page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
+  await count.getByRole('button', { name: '1', exact: true }).click();
+  await expect(page.getByLabel('Enemy 4 behavior')).toHaveCount(0);
+  await count.getByRole('button', { name: '4', exact: true }).click();
+  await expect(page.getByLabel('Enemy 4 behavior')).toHaveValue('aggressive');
+  await expect(page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
+  await count.getByRole('button', { name: '1', exact: true }).click();
+  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+  expect(Object.keys((await saved(page)).ai)).toEqual(['enemy']);
 });
 
-test('two-enemy map exposes and retains separate AI behaviors and upgrades', async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 480 });
+test('terminal New map preserves settings and upgrades, including a minimal four-enemy river field', async ({ page }) => {
+  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true },
+    upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
+  const map = generateMap(preferences.map, 17);
+  const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river);
+  const initial = createSimulation(setup.territories, setup.rules, setup.river);
+  const game = { territories: setup.territories, ai: setup.ai, phase: 'running', generated: { seed: 17, preferences },
+    state: { ...initial, roundStatus: 'victory', territories: initial.territories.map(city => ({ ...city, owner: 'player' })) } };
+  await page.addInitScript(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
   await page.goto('/');
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next map' }).click();
-  await expect(page.getByRole('img', { name: 'Map 5 preview' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
-  await page.locator('details summary').click();
-  const enemy = page.getByRole('group', { name: 'enemy upgrades' });
-  const enemy2 = page.getByRole('group', { name: 'enemy-2 upgrades' });
-  await expect(page.getByLabel('enemy AI behavior')).toBeVisible();
-  await expect(page.getByLabel('enemy-2 AI behavior')).toBeVisible();
-  await page.getByLabel('enemy AI behavior').selectOption('aggressive');
-  await page.getByLabel('enemy-2 AI behavior').selectOption('defensive');
-  await enemy.getByRole('checkbox', { name: 'Industry' }).check();
-  await enemy2.getByRole('checkbox', { name: 'Factory' }).check();
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  const cities = page.getByRole('list', { name: 'Territory details' });
-  await expect(cities.getByRole('listitem').filter({ hasText: /^enemy-west: / })).toBeVisible();
-  await expect(cities.getByRole('listitem').filter({ hasText: /^enemy-east:/ })).toContainText('Factory');
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await page.locator('details summary').click();
-  await expect(page.getByLabel('enemy AI behavior')).toHaveValue('aggressive');
-  await expect(page.getByLabel('enemy-2 AI behavior')).toHaveValue('defensive');
-  await expect(enemy.getByRole('checkbox', { name: 'Industry' })).toBeChecked();
-  await expect(enemy2.getByRole('checkbox', { name: 'Factory' })).toBeChecked();
+  await expect(page.getByRole('heading', { name: 'Victory', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'New map', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Victory', exact: true })).toHaveCount(0);
+  const next = await saved(page);
+  expect(next.generated.preferences).toEqual(preferences);
+  expect(next.generated.seed).not.toBe(17);
+  expect(next.territories).toHaveLength(6);
+  expect(next.state.river.bridges).toHaveLength(2);
+  expect(Object.keys(next.ai)).toHaveLength(4);
+  expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
+  expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');
 });
 
-test('home arrow selection supports keyboard and resets on page reload', async ({ page }) => {
+test('bad preferences fall back safely and city controls work with the keyboard', async ({ page }) => {
+  await page.addInitScript(key => localStorage.setItem(key, '{broken'), MATCH_PREFERENCES_KEY);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Next map' }).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('img', { name: 'Map 2 preview' })).toBeVisible();
-  await page.getByRole('button', { name: 'Play', exact: true }).focus(); await page.keyboard.press('Enter');
-  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(11);
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Map 2 preview' })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole('img', { name: 'Map 1 preview' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);
+  const range = page.getByRole('slider', { name: 'Total cities' });
+  await range.focus(); await page.keyboard.press('ArrowRight');
+  await expect(range).toHaveValue('13');
+  await page.getByRole('button', { name: 'Fewer cities' }).click();
+  await expect(range).toHaveValue('12');
 });

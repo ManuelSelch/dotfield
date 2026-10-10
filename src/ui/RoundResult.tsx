@@ -7,7 +7,7 @@ const MESSAGES = {
   draw: { title: 'Draw', detail: 'Neither side remains.' },
 };
 
-export function RoundResult({ status, onReplay, onHome }: { status: RoundStatus; onReplay: () => void; onHome?: () => void }) {
+export function RoundResult({ status, onReplay, onHome, onNewMap }: { status: RoundStatus; onReplay: () => void; onHome?: () => void; onNewMap?: () => void }) {
   if (status === 'playing') return null;
   const message = MESSAGES[status];
   return (
@@ -18,6 +18,7 @@ export function RoundResult({ status, onReplay, onHome }: { status: RoundStatus;
           <Text size="sm" c="dimmed" mt="xs">{message.detail}</Text>
         </div>
         <Button autoFocus fullWidth mt="lg" radius="xl" mih={44} onClick={onReplay}>Play again</Button>
+        {onNewMap && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onNewMap}>New map</Button>}
         {onHome && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onHome}>Home</Button>}
       </Paper>
     </div>

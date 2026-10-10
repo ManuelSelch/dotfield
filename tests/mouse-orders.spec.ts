@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { fieldPoints } from './helpers/fieldPoints';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 1440, height: 900 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
 });
 const transfers = (page: Page) => page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem');
 const image = (page: Page) => page.getByRole('img', { name: 'Territory board' })
@@ -81,7 +81,7 @@ test('pause, resize, interruption and restart clear selection without dispatch',
   await click(page, points.source);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
   await click(page, (await fieldPoints(page)).target); await expect(transfers(page)).toHaveCount(0);
 });
 

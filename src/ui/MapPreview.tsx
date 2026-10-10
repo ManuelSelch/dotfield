@@ -5,14 +5,13 @@ import { factionPalette } from '../board/palette';
 import { bridgeDecks } from '../game/river';
 import { TERRITORY_RADIUS } from '../game/settings';
 
-export function MapPreview({ map, index }: { map: FieldMap; index: number }) {
+export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
   const regions = useMemo(() => createCityRegions(map.territories, 360, 480, map.river), [map]);
-  return <svg viewBox="0 0 360 480" role="img" aria-label={`Map ${index + 1} preview`}
+  return <svg viewBox="0 0 360 480" role="img" aria-label={index === undefined ? 'Generated map preview' : `Map ${index + 1} preview`}
     className="block h-full w-full rounded-[20px] bg-field" preserveAspectRatio="xMidYMid meet">
     {regions.map(region => {
       const city = map.territories.find(city => city.id === region.id)!;
       const fill = city.owner === 'neutral' ? '#edf0e7' : `color-mix(in srgb, ${factionPalette(city.owner).fill} 18%, white)`;
-      const palette = factionPalette(city.owner);
       return <polygon key={region.id} points={region.points.map(point => `${point.x},${point.y}`).join(' ')}
         fill={fill} stroke="#d2dbce" strokeWidth="1" />;
     })}

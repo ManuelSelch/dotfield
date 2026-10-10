@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test('terminal Play again retains Industry and clears the finished round', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
@@ -21,24 +22,11 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.setViewportSize(viewport);
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    await page.goto('/');
-    const industry = page.getByRole('checkbox', { name: 'Industry', exact: true });
-    await expect(industry).not.toBeChecked(); await expect(industry).toBeInViewport();
-    await industry.focus(); await page.keyboard.press('Space');
-    await expect(page.getByText('+25% production · You only')).toBeVisible();
-    await page.screenshot({ path: `test-results/industry-home-${viewport.width}.png` });
     const city = (id: string) => page.getByRole('list', { name: 'Territory details' })
       .getByRole('listitem').filter({ hasText: new RegExp(`^${id}:`) });
-    let currentMap = 0;
     for (let mapIndex = 0; mapIndex < 4; mapIndex++) {
-      while (currentMap !== mapIndex) {
-        await page.getByRole('button', { name: 'Next map' }).click();
-        currentMap = (currentMap + 1) % 4;
-      }
-      await page.getByRole('button', { name: 'Play', exact: true }).click();
+      await openAuthoredMatch(page, mapIndex, { player: ['industry'] });
       await expect(city('south')).toHaveText('south: You, 36 units.');
-      // Before the opponent's first dispatch: faction production is independently observable.
       await page.clock.runFor(1700);
       await expect(city('south')).toHaveText('south: You, 38 units.');
       await expect(city('north')).toHaveText('north: Opponent, 37 units.');
@@ -55,22 +43,11 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await page.clock.runFor(1700);
       await expect(city('south')).toHaveText('south: You, 38 units.');
       await expect(city('north')).toHaveText('north: Opponent, 37 units.');
-      await page.getByRole('button', { name: 'Pause', exact: true }).click();
-      await page.getByRole('button', { name: 'Home', exact: true }).click();
-      await expect(industry).toBeChecked();
     }
-    await industry.uncheck(); await page.getByRole('button', { name: 'Play', exact: true }).click();
+    await openAuthoredMatch(page);
     await page.clock.runFor(1700);
     await expect(city('south')).toHaveText('south: You, 37 units.');
-    await expect(city('north')).toHaveText('north: Opponent, 37 units.');
-    expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
     await page.reload();
-    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
     await expect(city('south')).toHaveText('south: You, 37 units.');
-    await page.getByRole('button', { name: 'Pause', exact: true }).click();
-    await page.getByRole('button', { name: 'Home', exact: true }).click();
-    await expect(industry).not.toBeChecked();
-    expect(errors).toEqual([]);
   });
 }

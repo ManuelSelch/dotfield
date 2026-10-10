@@ -1,4 +1,5 @@
 import { createRiver, canRiverOrder } from './river';
+import { isGeneratedMatch, type GeneratedMatch } from './matchPreferences';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -6,6 +7,7 @@ import type { SimulationState, Territory } from './types';
 export const SAVED_GAME_KEY = 'dotfield.saved-game.v1';
 
 export interface SavedGame {
+  readonly generated?: GeneratedMatch;
   readonly state: SimulationState;
   readonly territories: readonly Territory[];
   readonly ai: AiConfigurations | null;
@@ -27,12 +29,13 @@ function isSavedGame(value: unknown): value is SavedGame {
     && (state.roundStatus === 'playing' || state.roundStatus === 'victory' || state.roundStatus === 'defeat' || state.roundStatus === 'draw');
 }
 
-export function readSavedGame(storage: Pick<Storage, 'getItem'> = window.localStorage): SavedGame | null {
+export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | null {
   try {
-    const raw = storage.getItem(SAVED_GAME_KEY);
+    const raw = (storage ?? window.localStorage).getItem(SAVED_GAME_KEY);
     if (!raw) return null;
     const value: unknown = JSON.parse(raw);
     if (!isSavedGame(value)) return null;
+    if (!isGeneratedMatch(value.generated)) delete (value as { generated?: unknown }).generated;
     if (value.state.river !== undefined) {
       const river = createRiver(value.state.river, value.territories);
       createRiver(river, value.state.territories);
@@ -50,10 +53,10 @@ export function readSavedGame(storage: Pick<Storage, 'getItem'> = window.localSt
   }
 }
 
-export function writeSavedGame(game: SavedGame, storage: Pick<Storage, 'setItem'> = window.localStorage): void {
-  try { storage.setItem(SAVED_GAME_KEY, JSON.stringify(game)); } catch { /* Storage may be unavailable or full. */ }
+export function writeSavedGame(game: SavedGame, storage?: Pick<Storage, 'setItem'>): void {
+  try { (storage ?? window.localStorage).setItem(SAVED_GAME_KEY, JSON.stringify(game)); } catch { /* Storage may be unavailable or full. */ }
 }
 
-export function clearSavedGame(storage: Pick<Storage, 'removeItem'> = window.localStorage): void {
-  try { storage.removeItem(SAVED_GAME_KEY); } catch { /* Storage may be unavailable. */ }
+export function clearSavedGame(storage?: Pick<Storage, 'removeItem'>): void {
+  try { (storage ?? window.localStorage).removeItem(SAVED_GAME_KEY); } catch { /* Storage may be unavailable. */ }
 }

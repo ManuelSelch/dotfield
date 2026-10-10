@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('Mantine components and Tailwind utilities share the intended light theme', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
   const title = page.getByRole('heading', { name: 'dotfield', exact: true });
   await expect(title).toHaveClass(/mantine-Title-root/);
   await expect(page.locator('main')).toHaveClass(/flex-col/);

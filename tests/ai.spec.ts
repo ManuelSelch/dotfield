@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 390, height: 844 } });
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto('/'); // Real app, with default opponent enabled.
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
 });
 
 test('the opponent dispatches real groups and captures a neutral region', async ({ page }) => {
@@ -63,7 +63,7 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   expect(errors).toEqual([]);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Map 1 preview' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
+  await expect(page.getByRole('img', { name: 'Generated map preview' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toBeFocused();
   await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);
 });

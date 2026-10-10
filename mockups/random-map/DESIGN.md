@@ -4,7 +4,7 @@
 Replace named-map browsing with match preferences and a fresh generated layout. Isolated HTML/CSS/JS prototype; no production changes.
 
 ## Revision
-4 — in review. No implementation approval yet.
+4 — approved for implementation.
 
 ## Layout and interactions
 - Preserve Dotfield's warm light field, teal player, muted faction colours, and rounded controls.
@@ -33,4 +33,4 @@ Replace named-map browsing with match preferences and a fresh generated layout. 
 - Is generating a fresh layout on Play preferable to playing the inspected preview?
 
 ## Approval
-Pending user review of revision 4. User requested upgrade sections and fixed mobile Play; this is approval to iterate the mockup, not approval for production implementation.
+User explicitly approved revision 4: “looks good. implement it”. Preserve the approved layout and interactions; replace illustrative generation and upgrade state with validated game integration.

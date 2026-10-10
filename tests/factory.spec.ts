@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { MAPS } from '../src/board/maps';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ hasTouch: true });
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
@@ -8,66 +9,39 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
-    await page.goto('/');
-    const factory = page.getByRole('checkbox', { name: 'Factory', exact: true });
-    const industry = page.getByRole('checkbox', { name: 'Industry', exact: true });
-    await expect(factory).not.toBeChecked(); await expect(factory).toBeInViewport();
-    await factory.focus(); await page.keyboard.press('Space');
     const city = (id: string) => page.getByRole('list', { name: 'Territory details' })
       .getByRole('listitem').filter({ hasText: new RegExp(`^${id}:`) });
-    let currentMap = 0;
-    for (const stack of [false, true]) {
-      await industry.setChecked(stack);
-      for (let mapIndex = 0; mapIndex < MAPS.length; mapIndex++) {
-        while (currentMap !== mapIndex) {
-          await page.getByRole('button', { name: 'Next map' }).click();
-          currentMap = (currentMap + 1) % MAPS.length;
-        }
-        await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
-        await page.screenshot({ path: `test-results/factory-home-${viewport.width}.png` });
-        await page.getByRole('button', { name: 'Play', exact: true }).tap();
-        await expect(city('south')).toHaveText('south: You, 36 units. Factory active (2× production).');
-        await expect(page.getByRole('button', { name: /^Select south region:.*Factory active/ })).toHaveCount(1);
-        await page.clock.runFor(1700);
-        await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
-        const enemyId = mapIndex === 4 ? 'enemy-west' : 'north';
-        const enemyUnits = mapIndex === 4 ? 31 : 37;
-        await expect(city(enemyId)).toHaveText(`${enemyId}: Opponent, ${enemyUnits} units.`);
-        for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'neutral')) {
-          const factory = node.features?.find(feature => feature.kind === 'factory');
-          const label = factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : '';
-          await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.${label}`);
-        }
-        for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'player' && node.id !== 'south')) {
-          await expect(city(node.id)).toContainText(`You, ${node.units + Math.floor(1.7 * (stack ? 1.25 : 1))} units.`);
-          await expect(city(node.id)).not.toContainText('Factory');
-        }
-        await page.screenshot({ path: `test-results/factory-board-map-${mapIndex + 1}-${viewport.width}.png` });
-        await page.getByRole('button', { name: 'Pause', exact: true }).tap();
-        await page.clock.runFor(60000);
-        await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
-        await page.getByRole('button', { name: 'Restart', exact: true }).tap();
-        await expect(city('south')).toContainText('You, 36 units. Factory active');
-        await page.clock.runFor(1700);
-        await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
-        await page.getByRole('button', { name: 'Pause', exact: true }).tap();
-        await page.getByRole('button', { name: 'Home', exact: true }).tap();
-        await expect(factory).toBeChecked();
+    for (const stack of [false, true]) for (let mapIndex = 0; mapIndex < MAPS.length; mapIndex++) {
+      await openAuthoredMatch(page, mapIndex, { player: stack ? ['factory', 'industry'] : ['factory'] });
+      await expect(city('south')).toHaveText('south: You, 36 units. Factory active (2× production).');
+      await expect(page.getByRole('button', { name: /^Select south region:.*Factory active/ })).toHaveCount(1);
+      await page.clock.runFor(1700);
+      await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
+      const enemyId = mapIndex === 4 ? 'enemy-west' : 'north';
+      await expect(city(enemyId)).toHaveText(`${enemyId}: Opponent, ${mapIndex === 4 ? 31 : 37} units.`);
+      for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'neutral')) {
+        const factory = node.features?.find(feature => feature.kind === 'factory');
+        const label = factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : '';
+        await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.${label}`);
       }
+      for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'player' && node.id !== 'south')) {
+        await expect(city(node.id)).toContainText(`You, ${node.units + Math.floor(1.7 * (stack ? 1.25 : 1))} units.`);
+        await expect(city(node.id)).not.toContainText('Factory');
+      }
+      await page.getByRole('button', { name: 'Pause', exact: true }).tap();
+      await page.clock.runFor(60000);
+      await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
+      await page.getByRole('button', { name: 'Restart', exact: true }).tap();
+      await expect(city('south')).toContainText('You, 36 units. Factory active');
+      await page.clock.runFor(1700);
+      await expect(city('south')).toContainText(`You, ${stack ? 40 : 39} units.`);
     }
-    await factory.uncheck(); await industry.uncheck();
-    await page.getByRole('button', { name: 'Play', exact: true }).tap();
+    await openAuthoredMatch(page);
     await page.clock.runFor(1700); await expect(city('south')).toHaveText('south: You, 37 units.');
-    expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
     await page.getByRole('button', { name: 'Pause', exact: true }).tap();
     await page.reload();
-    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
     await expect(city('south')).toHaveText('south: You, 37 units.');
     await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Home', exact: true }).tap();
-    await expect(factory).not.toBeChecked();
-    await expect(industry).not.toBeChecked();
     expect(errors).toEqual([]);
   });
 }

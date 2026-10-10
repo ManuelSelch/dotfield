@@ -26,21 +26,22 @@ for (const width of [320, 430]) {
   });
 }
 
-test('home previews the authored Factory and restores its river round after reload', async ({ page }) => {
+test('home previews generated Factories and restores its exact river round after reload', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/');
-  for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'Next map' }).click();
-  const preview = page.getByRole('img', { name: 'Map 7 preview' });
+  const preview = page.getByRole('img', { name: 'Generated map preview' });
   await expect(preview).toBeVisible();
-  await expect(preview.locator('[aria-label="Factory"]')).toHaveCount(1);
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(8);
+  await expect(preview.locator('[aria-label="Factory"]')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(12);
+  const starting = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!).territories);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.reload();
   await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Territory details' })).toContainText('Factory inactive (2× production)');
   await expect(page.getByRole('status')).toContainText('River crossings require paired bridge-city orders');
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
-  await expect(page.getByRole('list', { name: 'Territory details' })).toContainText('west-north: Neutral, 14 units. Factory inactive');
+  const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!).territories);
+  expect(restored).toEqual(starting);
 });

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -13,8 +14,7 @@ async function setHidden(page: Page, hidden: boolean) {
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
 });
 
 test('whole-unit counts and Canvas grow together; neutrals remain unchanged', async ({ page }) => {
@@ -78,6 +78,7 @@ test('Home abandons the saved round and Play starts fresh armies', async ({ page
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).toBeNull();
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
+  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  const game = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
+  expect(game.territories.find((city: { owner: string }) => city.owner === 'player').units).toBe(36);
 });

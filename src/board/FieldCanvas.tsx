@@ -13,9 +13,9 @@ import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; onNewMap?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
-export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, river, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, onNewMap, rules, river, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river);
   const { state, phase } = session;
@@ -35,8 +35,8 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}
         </p>}
         {state.roundStatus === 'playing' && <SessionControls phase={phase}
-          onResume={session.resume} onRestart={session.restart} onHome={onHome} />}
-        <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
+          onResume={session.resume} onRestart={session.restart} onHome={onHome} onNewMap={onNewMap} />}
+        <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} onNewMap={onNewMap} />
       </div>
       <TerritoryDetails territories={state.territories} />
       <TransferDetails state={state} />

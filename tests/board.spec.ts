@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 for (const viewport of [
   { width: 320, height: 568 },
@@ -13,8 +14,7 @@ for (const viewport of [
     page.on('console', (message) => {
       if (message.type() === 'error') errors.push(message.text());
     });
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Play', exact: true }).click();
+    await openAuthoredMatch(page);
     await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
     const composition = page.getByRole('region', { name: 'Troop composition' });
     await expect(composition).toBeVisible();
@@ -61,8 +61,7 @@ for (const viewport of [
 test('resizes the backing canvas for high-density displays and viewport changes', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
   const page = await context.newPage();
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
   const canvas = page.getByRole('img', { name: 'Territory board' });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
     await page.setViewportSize(viewport);

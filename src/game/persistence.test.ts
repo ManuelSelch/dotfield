@@ -4,6 +4,8 @@ import { clearSavedGame, readSavedGame, writeSavedGame, SAVED_GAME_KEY } from '.
 import { TERRITORIES } from '../board/map';
 import { createSession } from './session';
 import { getTerritoryGrowthRate } from './features/growthRate';
+import { generateMap } from '../board/generateMap';
+import { defaultMatchPreferences } from './matchPreferences';
 
 function storage() {
   const values = new Map<string, string>();
@@ -37,6 +39,24 @@ describe('round persistence', () => {
     session.restart();
     expect(session.state.territories[0].owner).toBe('player');
     expect(getTerritoryGrowthRate(session.state, session.state.territories[0])).toBe(2);
+  });
+
+  it('retains generated seeds, match preferences and exact layout through restore and restart', () => {
+    const target = storage();
+    const preferences = defaultMatchPreferences();
+    const map = generateMap(preferences.map, 123);
+    const state = createSimulation(map.territories, undefined, map.river);
+    writeSavedGame({ state, territories: map.territories, ai: {}, phase: 'paused', generated: { seed: map.seed, preferences } }, target);
+    const saved = readSavedGame(target)!;
+    expect(saved.generated).toEqual({ seed: 123, preferences });
+    const session = createSession(saved.territories, saved.ai, saved.state.rules, { initialState: saved.state, initialPhase: saved.phase, river: saved.state.river });
+    session.restart();
+    expect(session.state.territories).toEqual(state.territories);
+    expect(session.state.river).toEqual(map.river);
+    const raw = JSON.parse(target.getItem(SAVED_GAME_KEY)!);
+    raw.generated.preferences.map.cities = 99;
+    target.setItem(SAVED_GAME_KEY, JSON.stringify(raw));
+    expect(readSavedGame(target)?.generated).toBeUndefined();
   });
 
   it('storage failures are nonfatal for reads, writes and clearing', () => {

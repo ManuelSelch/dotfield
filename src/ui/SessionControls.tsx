@@ -2,7 +2,7 @@ import { ActionIcon, Button, FocusTrap, Paper, Text, Title } from '@mantine/core
 import type { SessionPhase } from '../game/session';
 
 interface Props {
-  phase: SessionPhase; onHome?: () => void;
+  phase: SessionPhase; onHome?: () => void; onNewMap?: () => void;
   onResume: () => void; onRestart: () => void;
 }
 export function PauseButton({ onPause }: { onPause: () => void }) {
@@ -14,7 +14,7 @@ export function PauseButton({ onPause }: { onPause: () => void }) {
   </ActionIcon>;
 }
 
-export function SessionControls({ phase, onResume, onRestart, onHome }: Props) {
+export function SessionControls({ phase, onResume, onRestart, onHome, onNewMap }: Props) {
   return <>
     {phase === 'paused' && <FocusTrap>
       <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[20px] bg-field/85 p-4" role="region" aria-labelledby="session-title">
@@ -23,6 +23,7 @@ export function SessionControls({ phase, onResume, onRestart, onHome }: Props) {
           <Text size="sm" c="dimmed" mt="xs">Your field will wait.</Text>
           <Button data-autofocus fullWidth mt="lg" radius="xl" mih={44} onClick={onResume}>Resume</Button>
           <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onRestart}>Restart</Button>
+          {onNewMap && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onNewMap}>New map</Button>}
           {onHome && <Button fullWidth variant="subtle" radius="xl" mt="xs" mih={44} onClick={onHome}>Home</Button>}
         </Paper>
       </div>

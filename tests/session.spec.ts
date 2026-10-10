@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { fieldPoints } from './helpers/fieldPoints';
+import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 320, height: 568 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await openAuthoredMatch(page);
 });
 
 test('starts immediately; pause freezes the board and survives backgrounding', async ({ page }) => {
