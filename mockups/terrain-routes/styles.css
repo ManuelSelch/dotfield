@@ -25,10 +25,9 @@ button, a { font: inherit; -webkit-tap-highlight-color: transparent; }
 .city.player circle.core { fill: #267c72; stroke: #267c72; }.city.enemy circle.core { fill: #bd624e; stroke: #bd624e; }
 .city text { font-size: 17px; font-weight: 600; fill: #404b46; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .city.player text, .city.enemy text { fill: white; }
-.river { fill: #d2e2e5; stroke: #a9c6cc; stroke-width: 1; }
-.water-line { stroke: #b4ced2; stroke-width: 1; fill: none; }
-.bridge { fill: #f7f4e9; stroke: #a79e86; stroke-width: 1.2; }
-.bridge-rail { stroke: #a79e86; stroke-width: 1.6; }
+.river { fill: #dce7e5; stroke: #b2c8c4; stroke-width: 1; stroke-linejoin: miter; }
+.bridge { fill: #f3f2e8; stroke: #a9ae98; stroke-width: 1; stroke-linejoin: miter; }
+.bridge-rail { stroke: #9da58f; stroke-width: 1.4; }
 .mountain { fill: #d5d8cd; stroke: #a8afa0; stroke-width: 1; }
 .mountain-glyph { fill: none; stroke: #9ca692; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .guide { fill: none; stroke: #267c72; stroke-width: 2.5; stroke-dasharray: 5 5; stroke-linejoin: round; marker-end: url(#arrow); }

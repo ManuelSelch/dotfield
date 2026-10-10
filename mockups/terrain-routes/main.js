@@ -17,8 +17,70 @@ const cities = [
   { x: 290, y: 360, owner: 'neutral', count: 8 },
   { x: 180, y: 430, owner: 'player', count: 45 },
 ];
-const obstacle = state === 'mountain' ? { x: 140, y: 200, right: 220, bottom: 280 }
-  : { x: 0, y: 225, right: 360, bottom: 255 };
+const obstacle = { x: 140, y: 200, right: 220, bottom: 280 };
+// Parallel angular banks use the same flat polygon language as city regions.
+const upperBank = [{ x: 0, y: 229 }, { x: 58, y: 229 }, { x: 118, y: 222 },
+  { x: 180, y: 228 }, { x: 242, y: 218 }, { x: 302, y: 231 }, { x: 360, y: 228 }];
+const lowerBank = upperBank.map(p => ({ x: p.x, y: p.y + 30 }));
+const riverPolygon = [...upperBank, ...lowerBank.toReversed()];
+const bridges = [80, 280].map(x => ({ from: { x, y: bankY(x) }, to: { x, y: bankY(x) + 30 } }));
+function bankY(x) {
+  for (let i = 1; i < upperBank.length; i++) {
+    if (x <= upperBank[i].x) {
+      const a = upperBank[i - 1], b = upperBank[i];
+      return a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
+    }
+  }
+  return upperBank.at(-1).y;
+}
+function inRiver(p) { return p.y > bankY(p.x) + 1e-7 && p.y < bankY(p.x) + 30 - 1e-7; }
+// Split a segment at polygon-edge contacts, then test each open interval.
+function crossesRiver(a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const cuts = [0, 1];
+  for (let i = 0; i < riverPolygon.length; i++) {
+    const p = riverPolygon[i], q = riverPolygon[(i + 1) % riverPolygon.length];
+    const ex = q.x - p.x, ey = q.y - p.y;
+    const denominator = dx * ey - dy * ex;
+    if (Math.abs(denominator) < 1e-9) continue;
+    const ox = p.x - a.x, oy = p.y - a.y;
+    const t = (ox * ey - oy * ex) / denominator;
+    const u = (ox * dy - oy * dx) / denominator;
+    if (t > 0 && t < 1 && u >= 0 && u <= 1) cuts.push(t);
+  }
+  cuts.sort((a, b) => a - b);
+  return cuts.slice(1).some((t, i) => {
+    const middle = (cuts[i] + t) / 2;
+    return inRiver({ x: a.x + dx * middle, y: a.y + dy * middle });
+  });
+}
+function riverRoute(a, b) {
+  const nodes = [a, b, ...upperBank.slice(1, -1), ...lowerBank.slice(1, -1),
+    ...bridges.flatMap(bridge => [bridge.from, bridge.to])];
+  const edges = nodes.map(() => []);
+  const link = (i, j) => { edges[i].push(j); edges[j].push(i); };
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    if (!crossesRiver(nodes[i], nodes[j])) link(i, j);
+  }
+  if (state !== 'blocked') for (const bridge of bridges) link(nodes.indexOf(bridge.from), nodes.indexOf(bridge.to));
+  const lengths = nodes.map(() => Infinity), previous = [], visited = new Set();
+  lengths[0] = 0;
+  while (visited.size < nodes.length) {
+    const current = nodes.map((_, i) => i).filter(i => !visited.has(i))
+      .sort((i, j) => lengths[i] - lengths[j])[0];
+    if (!Number.isFinite(lengths[current])) return null;
+    if (current === 1) break;
+    visited.add(current);
+    for (const next of edges[current]) {
+      const candidate = lengths[current] + length(nodes[current], nodes[next]);
+      if (candidate < lengths[next] - 1e-7) { lengths[next] = candidate; previous[next] = current; }
+    }
+  }
+  const result = [b];
+  let current = 1;
+  while (current !== 0) { current = previous[current]; result.unshift(nodes[current]); }
+  return result;
+}
 let source = null;
 let target = null;
 let drag = false;
@@ -67,15 +129,8 @@ function hits(a, b) {
   return exit > enter;
 }
 function route(a, b) {
+  if (state !== 'mountain') return riverRoute(a, b);
   if (!hits(a, b)) return [a, b];
-  if (state === 'blocked') return null;
-  if (state === 'river') {
-    const paths = [80, 280].map(x => {
-      const top = { x, y: 225 }, bottom = { x, y: 255 };
-      return a.y > b.y ? [a, bottom, top, b] : [a, top, bottom, b];
-    });
-    return paths.sort((a, b) => total(a) - total(b))[0];
-  }
   const corners = [{ x: 140, y: 200 }, { x: 140, y: 280 }, { x: 220, y: 200 }, { x: 220, y: 280 }];
   const candidates = corners.flatMap(p => [[a, p, b], ...corners.filter(q => q !== p).map(q => [a, p, q, b])])
     .filter(path => path.slice(1).every((p, i) => !hits(path[i], p)));
@@ -97,17 +152,26 @@ function trim(path) {
   return [at(path, 21), ...path.slice(1, -1), at([...path].reverse(), 21)];
 }
 const regionLayer = document.querySelector('#regions');
+if (state !== 'mountain') {
+  const mask = node('mask', { id: 'land', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 360, height: 480 }, svg.querySelector('defs'));
+  node('rect', { x: 0, y: 0, width: 360, height: 480, fill: 'white' }, mask);
+  node('polygon', { points: coords(riverPolygon), fill: 'black' }, mask);
+  regionLayer.setAttribute('mask', 'url(#land)');
+}
 for (const city of cities) city.cell = node('polygon', { points: coords(cell(city)), class: `cell ${city.owner}` }, regionLayer);
 const terrainLayer = document.querySelector('#terrain');
-node('rect', { x: obstacle.x, y: obstacle.y, width: obstacle.right - obstacle.x, height: obstacle.bottom - obstacle.y,
-  class: state === 'mountain' ? 'mountain' : 'river' }, terrainLayer);
 if (state === 'mountain') {
+  node('rect', { x: obstacle.x, y: obstacle.y, width: obstacle.right - obstacle.x, height: obstacle.bottom - obstacle.y, class: 'mountain' }, terrainLayer);
   node('path', { d: 'M151 251l16-31 14 25 12-18 15 24M161 231l6 3 5-3M187 237l6 3 5-3', class: 'mountain-glyph' }, terrainLayer);
 } else {
-  node('path', { d: 'M8 237h35m13 7h44m16-7h45m16 7h44m16-7h44m16 7h55', class: 'water-line' }, terrainLayer);
-  if (state === 'river') for (const x of [80, 280]) {
-    node('rect', { x: x - 11, y: 221, width: 22, height: 38, rx: 2, class: 'bridge' }, terrainLayer);
-    node('path', { d: `M${x - 9} 222v36M${x + 9} 222v36`, class: 'bridge-rail' }, terrainLayer);
+  node('polygon', { points: coords(riverPolygon), class: 'river' }, terrainLayer);
+  if (state === 'river') for (const bridge of bridges) {
+    const x = bridge.from.x;
+    const leftTop = bankY(x - 10) - 4, rightTop = bankY(x + 10) - 4;
+    const deck = [{ x: x - 10, y: leftTop }, { x: x + 10, y: rightTop },
+      { x: x + 10, y: rightTop + 38 }, { x: x - 10, y: leftTop + 38 }];
+    node('polygon', { points: coords(deck), class: 'bridge' }, terrainLayer);
+    node('path', { d: `M${x - 8} ${bankY(x - 8) - 3}v36M${x + 8} ${bankY(x + 8) - 3}v36`, class: 'bridge-rail' }, terrainLayer);
   }
 }
 const cityLayer = document.querySelector('#cities');
@@ -147,6 +211,8 @@ function nearest(event) {
   if (!matrix) return null;
   const p = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
   if (p.x < 0 || p.x > 360 || p.y < 0 || p.y > 480) return null;
+  if (state !== 'mountain' && inRiver(p)
+    && !(state === 'river' && bridges.some(bridge => Math.abs(p.x - bridge.from.x) <= 10))) return null;
   return [...cities].sort((a, b) => length(a, p) - length(b, p))[0];
 }
 svg.addEventListener('pointerdown', event => {
