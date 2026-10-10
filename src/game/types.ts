@@ -1,3 +1,4 @@
+import type { River } from './river';
 import type { TerritoryFeature } from './features/types';
 
 export type FactionId = string;
@@ -55,6 +56,7 @@ export interface Transfer {
 export type RoundStatus = 'playing' | 'victory' | 'defeat' | 'draw';
 
 export interface SimulationState {
+  readonly river?: River;
   readonly roundStatus: RoundStatus;
   readonly aiNextDecisionMs: number | null;
   readonly aiDecisionDeadlines: Readonly<Record<FactionId, number>>;

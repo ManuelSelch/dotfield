@@ -18,12 +18,13 @@ const makeState = (industry = false) => {
 };
 
 describe('Factory city feature', () => {
-  it.each(MAPS)('attaches only to the starting player city on $name, never mutating the map', map => {
+  it.each(MAPS)('attaches only to the starting player city on $id, never mutating the map', map => {
     const setup = compileRoundSetup(map.territories, { player: ['factory', 'factory'] });
     const state = advanceGrowth(createSimulation(setup.territories, setup.rules), 4000);
     const enemyStart = map.territories.find(city => city.owner === 'enemy')!;
     expect(units(state)).toBe(44); expect(units(state, enemyStart.id)).toBe(enemyStart.units + 4);
-    expect(units(state, 'centre')).toBe(20);
+    for (const city of map.territories.filter(c => c.owner === 'neutral')) expect(units(state, city.id)).toBe(city.units);
+    for (const city of map.territories.filter(c => c.owner === 'player' && c.id !== 'south')) expect(units(state, city.id)).toBe(city.units + 4);
     expect(setup.territories.find(n => n.id === 'south')!.features).toHaveLength(1);
     expect(map.territories.every(n => n.features === undefined)).toBe(true);
     expect(setup.rules.factions.player.unitsPerSecond).toBe(1);

@@ -1,3 +1,4 @@
+import { createRiver, canRiverOrder } from './river';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -31,7 +32,19 @@ export function readSavedGame(storage: Pick<Storage, 'getItem'> = window.localSt
     const raw = storage.getItem(SAVED_GAME_KEY);
     if (!raw) return null;
     const value: unknown = JSON.parse(raw);
-    return isSavedGame(value) ? value : null;
+    if (!isSavedGame(value)) return null;
+    if (value.state.river !== undefined) {
+      const river = createRiver(value.state.river, value.territories);
+      createRiver(river, value.state.territories);
+      // Corrupt saves must not resume an illegal cross-bank flight/queue.
+      for (const transfer of value.state.transfers) {
+        const source = value.state.territories.find(c => c.id === transfer.sourceId);
+        const target = value.state.territories.find(c => c.id === transfer.targetId);
+        if (!source || !target || !canRiverOrder(source, target, river)) return null;
+      }
+      return { ...value, state: { ...value.state, river } };
+    }
+    return value;
   } catch {
     return null;
   }

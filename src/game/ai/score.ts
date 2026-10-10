@@ -1,3 +1,4 @@
+import { riverDistance } from '../river';
 import type { SimulationState, TerritoryState } from '../types';
 import type { AiConfig } from './config';
 
@@ -6,7 +7,7 @@ export interface AiOrder { readonly sourceId: string; readonly targetId: string;
 
 function distanceToHostile(state: SimulationState, node: TerritoryState, factionId: string) {
   return Math.min(...state.territories.filter(t => t.owner !== factionId && t.owner !== 'neutral')
-    .map(t => Math.hypot(t.x - node.x, t.y - node.y)));
+    .map(t => riverDistance(node, t, state.territories, state.river)));
 }
 
 export function scoreOrder(state: SimulationState, source: TerritoryState, target: TerritoryState,

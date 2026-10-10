@@ -4,9 +4,11 @@ import { UPGRADES, type UpgradeId, type UpgradeEffect } from './catalog';
 import { snapshotTerritories } from '../features/snapshot';
 import { resolveAiBehavior, type AiBehavior } from '../ai/behaviors';
 import type { AiConfig } from '../ai/config';
+import { createRiver, type River } from '../river';
 
 export type UpgradeSelection = Readonly<Partial<Record<FactionId, readonly UpgradeId[]>>>;
 export interface RoundSetup {
+  readonly river?: River;
   readonly territories: readonly Territory[];
   readonly rules: SimulationRules;
   readonly ai: Readonly<Partial<Record<FactionId, AiConfig>>>;
@@ -16,7 +18,7 @@ export interface RoundSetup {
 export function compileRoundSetup(territories: readonly Territory[], selection: UpgradeSelection,
   baseline?: SimulationRules,
   placementOrBehaviors: number | Readonly<Partial<Record<FactionId, AiBehavior>>> = 0,
-  behaviorInput: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}): RoundSetup {
+  behaviorInput: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}, river?: River): RoundSetup {
   const placementChoice = typeof placementOrBehaviors === 'number' ? placementOrBehaviors : 0;
   const behaviors = typeof placementOrBehaviors === 'number' ? behaviorInput : placementOrBehaviors;
   if (!Number.isFinite(placementChoice) || placementChoice < 0 || placementChoice >= 1) throw new RangeError('Placement choice must be in [0, 1).');
@@ -53,6 +55,7 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
     return [id, rules];
   }));
   return Object.freeze({
+    ...(river ? { river: createRiver(river, seed) } : {}),
     territories: snapshotTerritories(seed),
     rules: createRules({ factions }),
     ai: Object.freeze(Object.fromEntries(factionIds.filter(id => id !== 'player')

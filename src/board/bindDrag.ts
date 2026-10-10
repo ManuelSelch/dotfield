@@ -2,6 +2,7 @@ import type { Point, Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { hitTest } from './hitTest';
 import { screenPoint } from './layout';
+import type { River } from '../game/river';
 
 const MOUSE_DRAG_THRESHOLD = 5; // CSS pixels, independent of board scaling/DPR.
 
@@ -9,6 +10,7 @@ export function bindDrag(
   canvas: HTMLCanvasElement, getTerritories: () => readonly Territory[],
   onSelection: (selection: DragSelection | null) => void,
   onDispatch: (source: string, target: string) => void,
+  getRiver: () => River | undefined = () => undefined,
 ) {
   let clicked: DragSelection | null = null;
   let active: { pointerId: number; mouse: boolean; sourceId: string | null;
@@ -19,7 +21,7 @@ export function bindDrag(
   function location(event: PointerEvent) {
     const bounds = canvas.getBoundingClientRect();
     const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-    return { point, id: hitTest(getTerritories(), bounds.width, bounds.height, point) };
+    return { point, id: hitTest(getTerritories(), bounds.width, bounds.height, point, getRiver()) };
   }
   function cancel() {
     const selected = !!active || !!clicked;

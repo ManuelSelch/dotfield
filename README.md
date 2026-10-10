@@ -26,6 +26,10 @@ The game screen fits a centered **3:4 battlefield** to both available width and 
 
 The approved design is preserved in `mockups/desktop-battlefield/`. `tests/desktop-layout.spec.ts` checks phone, tablet, desktop and short-window proportions, full-region dispatch, overlay placement, and live/paused resize state retention.
 
+## Terrain routing foundation
+
+[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design: a river map with compact paired crossings, bank-clipped regions, manual staging, AI staging, preview legality, persistence and accessible hints. Existing maps and gameplay remain unchanged. Gatehouse, Factory, Artillery and Portal are later slices. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
+
 ## City regions and map generation
 
 Each circle is a city center. Voronoi regions are generated automatically from the city positions, clipped to the complete visible Canvas—including its aspect-ratio margins. Subtle faction fills, thin borders between cities and full-region source/target highlights match the approved mockup in `mockups/city-regions/`.
