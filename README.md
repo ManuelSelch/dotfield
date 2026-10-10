@@ -83,7 +83,7 @@ npm run build    # TypeScript check and production build
 npm run preview  # serve the production build locally
 ```
 
-The production build is a PWA. Open it once over HTTPS, then install Dotfield from the browser's **Add to Home Screen** action. The service worker caches the application shell and hashed assets, so an installed app can start without the server. The current round is stored locally and restored after reload; no server connection is required for gameplay. The first visit and later application updates still require a connection.
+The production build is a PWA. Open it once over HTTPS, then install Dotfield from the browser's **Add to Home Screen** action. The service worker caches the application shell and hashed assets, so an installed app can start without the server. The current round is stored locally and restored after reload; no server connection is required for gameplay. The first visit and later application updates still require a connection. A persistent badge at the top right shows Online, Offline, Updating or Update ready. Online reflects the browser's network signal, not verified server reachability. New app files download in the background without reloading an active round. When an update is ready, return Home and choose **Update now** to reload explicitly; updates never upload game progress. Failed updates leave gameplay available and retry when reconnecting or focusing the app. Run `npm run test:pwa` to verify offline launch and the explicit-update lifecycle against the production build.
 
 ## Browser checks
 
