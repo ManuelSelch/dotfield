@@ -18,6 +18,13 @@ export function drawSlowZoneIcon(ctx: CanvasRenderingContext2D) {
   ctx.lineTo(3.5, 4); ctx.lineTo(-3.5, -4); ctx.stroke();
 }
 
+export function drawArtilleryIcon(ctx: CanvasRenderingContext2D) {
+  ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(-4.2, 1.4); ctx.lineTo(2.8, -2.8); ctx.lineTo(4.2, -1.4); ctx.lineTo(-2.8, 2.8);
+  ctx.moveTo(-4.2, 2.8); ctx.lineTo(2.8, 2.8);
+  ctx.moveTo(-1.4, 2.8); ctx.lineTo(-1.4, 4.2); ctx.moveTo(2.8, 2.8); ctx.lineTo(2.8, 4.2); ctx.stroke();
+}
+
 export function drawChevronIcon(ctx: CanvasRenderingContext2D, level: 1 | 2 = 1) {
   ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.beginPath();

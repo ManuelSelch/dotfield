@@ -1,4 +1,5 @@
 import { riverDistance } from '../river';
+import { artilleryTarget } from '../features/artillery';
 import { getTerritoryGrowthRate } from '../features/growthRate';
 import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
@@ -27,6 +28,11 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     // Forecast success and source safety still gate the order; no resource bonus.
     const extraProduction = getTerritoryGrowthRate(proposed, after) - getFactionRules(state, factionId).unitsPerSecond;
     score += Math.max(0, extraProduction) * 10;
+    for (const feature of after.features ?? []) {
+      if (feature.kind === 'artillery' && artilleryTarget(proposed, after, feature)) {
+        score += 10000 / feature.fireIntervalMs;
+      }
+    }
   } else {
     kind = 'reinforce';
     const threatened = state.transfers.some(t => t.targetId === target.id && t.owner !== factionId);

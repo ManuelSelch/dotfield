@@ -1,4 +1,5 @@
 import type { River } from './river';
+import type { Terrain } from './terrain/types';
 import type { TerritoryFeature } from './features/types';
 
 export type FactionId = string;
@@ -63,7 +64,18 @@ export interface CaptureShieldState {
   readonly blockedFrom?: number;
 }
 
+export interface ArtilleryShot {
+  readonly sourceId: string;
+  readonly targetId: string;
+  readonly owner: FactionId;
+  readonly firedAtMs: number;
+}
+
 export interface SimulationState {
+  readonly terrain?: Terrain;
+  // Optional for legacy saves created before Artillery existed.
+  readonly artilleryTimers?: Readonly<Record<string, { readonly owner: Owner; readonly elapsedMs: number }>>;
+  readonly artilleryShots?: readonly ArtilleryShot[];
   readonly river?: River;
   readonly roundStatus: RoundStatus;
   readonly aiNextDecisionMs: number | null;

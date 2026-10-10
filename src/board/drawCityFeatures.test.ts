@@ -67,6 +67,14 @@ describe('city upgrade indicators', () => {
       [114, 86, 5], [86, 86, 5],
     ]);
   });
+  it('draws a compact cannon outside the counter, distinct from the Factory badge', () => {
+    const city = { ...host, features: [{ id: 'gun', kind: 'artillery' as const, range: 90, fireIntervalMs: 2000 }] };
+    const ctx = render(createSimulation([city, enemy]));
+    expect(ctx.arc.mock.calls[0].slice(0, 3)).toEqual([114, 86, 5]);
+    expect(ctx.lineTo.mock.calls.length).toBeGreaterThan(3);
+    const stacked = render(createSimulation([{ ...city, features: [...city.features, { id: 'plant', kind: 'factory', productionMultiplier: 2 }] }, enemy]));
+    expect(new Set(stacked.translate.mock.calls.map(call => call.join(','))).size).toBe(2);
+  });
   it('adds no indicators when no upgrades are active', () => {
     expect(render().arc).not.toHaveBeenCalled();
   });

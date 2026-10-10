@@ -2,12 +2,15 @@ import type { Territory } from '../game/types';
 import { TERRITORIES } from './map';
 import { RIVER_MAP } from './riverMap';
 import { FACTORY_MAP } from './factoryMap';
+import { ARTILLERY_MAP } from './artilleryMap';
+import type { Terrain } from '../game/terrain/types';
 import type { River } from '../game/river';
 
 export interface FieldMap {
   readonly id: string;
   readonly territories: readonly Territory[];
   readonly river?: River;
+  readonly terrain?: Terrain;
 }
 
 export const MAPS: readonly FieldMap[] = [
@@ -86,4 +89,5 @@ export const MAPS: readonly FieldMap[] = [
   ] },
   RIVER_MAP,
   FACTORY_MAP,
+  ARTILLERY_MAP,
 ];

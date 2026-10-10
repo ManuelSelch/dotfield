@@ -1,4 +1,7 @@
 import { createRiver, canRiverOrder } from './river';
+import { createTerrain } from './terrain/terrain';
+import { snapshotTerritories } from './features/snapshot';
+import { canDirectTerrainOrder } from './terrain/directOrder';
 import { isGeneratedMatch, type GeneratedMatch } from './matchPreferences';
 import { createRules } from './rules';
 import { restoreCaptureShields } from './features/captureShield';
@@ -24,10 +27,8 @@ function isSavedGame(value: unknown): value is SavedGame {
   if (!isObject(value) || !isObject(value.state) || !Array.isArray(value.territories)) return false;
   const state = value.state;
   return (value.phase === 'running' || value.phase === 'paused')
-    && Array.isArray(state.territories)
-    && Array.isArray(state.transfers)
-    && isObject(state.rules)
-    && typeof state.elapsedMs === 'number'
+    && Array.isArray(state.territories) && Array.isArray(state.transfers)
+    && isObject(state.rules) && typeof state.elapsedMs === 'number'
     && (state.roundStatus === 'playing' || state.roundStatus === 'victory' || state.roundStatus === 'defeat' || state.roundStatus === 'draw');
 }
 
@@ -38,20 +39,47 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
     const parsed: unknown = JSON.parse(raw);
     if (!isSavedGame(parsed)) return null;
     if (!isGeneratedMatch(parsed.generated)) delete (parsed as { generated?: unknown }).generated;
-    const state = { ...parsed.state, rules: createRules(parsed.state.rules) };
-    const value: SavedGame = { ...parsed, state: { ...state, captureShields: restoreCaptureShields(state) } };
-    if (value.state.river !== undefined) {
-      const river = createRiver(value.state.river, value.territories);
-      createRiver(river, value.state.territories);
-      // Corrupt saves must not resume an illegal cross-bank flight/queue.
-      for (const transfer of value.state.transfers) {
-        const source = value.state.territories.find(c => c.id === transfer.sourceId);
-        const target = value.state.territories.find(c => c.id === transfer.targetId);
-        if (!source || !target || !canRiverOrder(source, target, river)) return null;
+    snapshotTerritories(parsed.territories);
+    snapshotTerritories(parsed.state.territories);
+    const rules = createRules(parsed.state.rules);
+    let terrain = parsed.state.terrain === undefined ? undefined : createTerrain(parsed.state.terrain);
+    let river = parsed.state.river === undefined ? undefined : createRiver(parsed.state.river, parsed.territories);
+    if (river) createRiver(river, parsed.state.territories);
+
+    if (parsed.state.artilleryTimers !== undefined) {
+      if (!isObject(parsed.state.artilleryTimers)) return null;
+      for (const [id, timer] of Object.entries(parsed.state.artilleryTimers)) {
+        const feature = parsed.state.territories.flatMap(c => c.features ?? []).find(f => f.id === id && f.kind === 'artillery');
+        if (!feature || feature.kind !== 'artillery' || !isObject(timer)
+          || typeof timer.owner !== 'string' || (timer.owner !== 'neutral' && !Object.hasOwn(rules.factions, timer.owner))
+          || typeof timer.elapsedMs !== 'number' || !Number.isFinite(timer.elapsedMs)
+          || timer.elapsedMs < 0 || timer.elapsedMs >= feature.fireIntervalMs) return null;
       }
-      return { ...value, state: { ...value.state, river } };
     }
-    return value;
+    if (parsed.state.artilleryShots !== undefined) {
+      if (!Array.isArray(parsed.state.artilleryShots)) return null;
+      for (const shot of parsed.state.artilleryShots) {
+        if (!isObject(shot) || typeof shot.firedAtMs !== 'number' || !Number.isFinite(shot.firedAtMs)
+          || shot.firedAtMs < 0 || shot.firedAtMs > parsed.state.elapsedMs
+          || typeof shot.owner !== 'string' || !Object.hasOwn(rules.factions, shot.owner)
+          || !parsed.state.territories.some(c => c.id === shot.sourceId && c.features?.some(f => f.kind === 'artillery'))
+          || !parsed.state.territories.some(c => c.id === shot.targetId)) return null;
+      }
+    }
+    if (terrain) for (const transfer of parsed.state.transfers) {
+      const source = parsed.state.territories.find(c => c.id === transfer.sourceId);
+      const target = parsed.state.territories.find(c => c.id === transfer.targetId);
+      if (!source || !target || !canDirectTerrainOrder(source, target, terrain, rules.factions[transfer.owner])) return null;
+    }
+    if (river) for (const transfer of parsed.state.transfers) {
+      const source = parsed.state.territories.find(c => c.id === transfer.sourceId);
+      const target = parsed.state.territories.find(c => c.id === transfer.targetId);
+      if (!source || !target || !canRiverOrder(source, target, river)) return null;
+    }
+    const normalized: SimulationState = { ...parsed.state, rules,
+      ...(terrain ? { terrain } : {}), ...(river ? { river } : {}),
+      captureShields: restoreCaptureShields({ ...parsed.state, rules }) };
+    return { ...parsed, state: normalized };
   } catch {
     return null;
   }

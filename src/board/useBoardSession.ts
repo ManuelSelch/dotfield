@@ -7,19 +7,20 @@ import type { AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 import { startBoard } from './startBoard';
 import type { River } from '../game/river';
+import type { Terrain } from '../game/terrain/types';
 
-export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | AiConfigurations | null, autoStart: boolean, rules?: RulesInput, initialState?: SimulationState, initialPhase?: Exclude<SessionPhase, 'ready'>, onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void, river?: River) {
+export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | AiConfigurations | null, autoStart: boolean, rules?: RulesInput, initialState?: SimulationState, initialPhase?: Exclude<SessionPhase, 'ready'>, onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void, river?: River, terrain?: Terrain) {
   const controller = useRef<ReturnType<typeof startBoard> | null>(null);
   const [feedback, setFeedback] = useState('');
-  const [state, setState] = useState(() => initialState ?? createSimulation(territories, rules, river));
+  const [state, setState] = useState(() => initialState ?? createSimulation(territories, rules, river, terrain));
   const [phase, setPhase] = useState<SessionPhase>(initialPhase ?? (autoStart ? 'running' : 'ready'));
   // Bind input before the freshly mounted field can receive its first key/tap.
   useLayoutEffect(() => {
     if (!canvas.current) return;
-    const board = startBoard(canvas.current, setState, territories, ai, { autoStart, onPhase: setPhase, onFeedback: setFeedback, onSnapshot, rules, river, initialState, initialPhase });
+    const board = startBoard(canvas.current, setState, territories, ai, { autoStart, onPhase: setPhase, onFeedback: setFeedback, onSnapshot, rules, river, terrain, initialState, initialPhase });
     controller.current = board;
     return () => { controller.current = null; board(); };
-  }, [canvas, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river]);
+  }, [canvas, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain]);
   function restart() {
     controller.current?.restart(); controller.current?.start(); canvas.current?.focus();
   }

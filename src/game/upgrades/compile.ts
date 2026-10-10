@@ -5,9 +5,12 @@ import { snapshotTerritories } from '../features/snapshot';
 import { resolveAiBehavior, type AiBehavior } from '../ai/behaviors';
 import type { AiConfig } from '../ai/config';
 import { createRiver, type River } from '../river';
+import { createTerrain } from '../terrain/terrain';
+import type { Terrain } from '../terrain/types';
 
 export type UpgradeSelection = Readonly<Partial<Record<FactionId, readonly UpgradeId[]>>>;
 export interface RoundSetup {
+  readonly terrain?: Terrain;
   readonly river?: River;
   readonly territories: readonly Territory[];
   readonly rules: SimulationRules;
@@ -18,7 +21,7 @@ export interface RoundSetup {
 export function compileRoundSetup(territories: readonly Territory[], selection: UpgradeSelection,
   baseline?: SimulationRules,
   placementOrBehaviors: number | Readonly<Partial<Record<FactionId, AiBehavior>>> = 0,
-  behaviorInput: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}, river?: River): RoundSetup {
+  behaviorInput: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}, river?: River, terrain?: Terrain): RoundSetup {
   const placementChoice = typeof placementOrBehaviors === 'number' ? placementOrBehaviors : 0;
   const behaviors = typeof placementOrBehaviors === 'number' ? behaviorInput : placementOrBehaviors;
   if (!Number.isFinite(placementChoice) || placementChoice < 0 || placementChoice >= 1) throw new RangeError('Placement choice must be in [0, 1).');
@@ -56,6 +59,7 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
     return [id, rules];
   }));
   return Object.freeze({
+    ...(terrain ? { terrain: createTerrain(terrain) } : {}),
     ...(river ? { river: createRiver(river, seed) } : {}),
     territories: snapshotTerritories(seed),
     rules: createRules({ factions }),

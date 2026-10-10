@@ -4,6 +4,8 @@ import type { CityRegion } from './geometry';
 import { REGION_BORDER, REGION_FILLS, REGION_SOURCE, REGION_TARGET } from './styles';
 import { factionPalette } from '../palette';
 import { canRiverOrder, type River } from '../../game/river';
+import { canDirectTerrainOrder } from '../../game/terrain/directOrder';
+import type { Terrain } from '../../game/terrain/types';
 
 function path(ctx: CanvasRenderingContext2D, region: CityRegion) {
   ctx.beginPath();
@@ -15,11 +17,11 @@ function path(ctx: CanvasRenderingContext2D, region: CityRegion) {
 }
 
 export function drawRegions(ctx: CanvasRenderingContext2D, territories: readonly Territory[],
-  regions: readonly CityRegion[], selection: DragSelection | null, river?: River) {
+  regions: readonly CityRegion[], selection: DragSelection | null, river?: River, terrain?: Terrain) {
   const owners = new Map(territories.map(n => [n.id, n.owner]));
   const source = territories.find(c => c.id === selection?.sourceId);
   const target = territories.find(c => c.id === selection?.targetId);
-  const blockedId = source && target && !canRiverOrder(source, target, river) ? target.id : null;
+  const blockedId = source && target && source.id !== target.id && (!canRiverOrder(source, target, river) || !canDirectTerrainOrder(source, target, terrain)) ? target.id : null;
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.strokeStyle = REGION_BORDER;

@@ -4,9 +4,11 @@ import { FieldCanvas } from '../../src/board/FieldCanvas';
 import { TERRITORIES } from '../../src/board/map';
 import { RIVER_MAP } from '../../src/board/riverMap';
 import { FACTORY_MAP } from '../../src/board/factoryMap';
+import { ARTILLERY_MAP } from '../../src/board/artilleryMap';
+import type { FieldMap } from '../../src/board/maps';
 import { compileRoundSetup } from '../../src/game/upgrades/compile';
 import { createSimulation } from '../../src/game/state';
-import { writeSavedGame } from '../../src/game/persistence';
+import { readSavedGame, writeSavedGame } from '../../src/game/persistence';
 import { resolveCombat } from '../../src/game/combat';
 import { dispatchUnits } from '../../src/game/dispatch';
 import { BASE_FACTION_RULES, createRules } from '../../src/game/rules';
@@ -16,18 +18,23 @@ import '../../src/styles.css';
 
 const params = new URLSearchParams(location.search);
 const defeated = params.has('defeat');
-const riverMap = params.has('foundry') ? FACTORY_MAP : params.has('bridges') ? RIVER_MAP : undefined;
 const shieldBattle = params.has('shield-battle');
+const riverMap: FieldMap | undefined = params.has('siege') ? ARTILLERY_MAP : params.has('foundry') ? FACTORY_MAP : params.has('bridges') ? RIVER_MAP : undefined;
+const gunOwner = params.get('gun-owner');
 const territories = shieldBattle ? [
   { id: 'home', owner: 'player', units: 36, x: 50, y: 320 },
   { id: 'target', owner: 'neutral', units: 2, x: 160, y: 100 },
   { id: 'enemy', owner: 'enemy', units: 21, x: 270, y: 100 },
-] : riverMap ? riverMap.territories : params.has('passive') ? TERRITORIES : TERRITORIES.map(node => ({ ...node,
+] : riverMap ? riverMap.territories.map(city => city.id === 'artillery' && (gunOwner === 'player' || gunOwner === 'enemy')
+  ? { ...city, owner: gunOwner } : city) : params.has('passive') ? TERRITORIES : TERRITORIES.map(node => ({ ...node,
   owner: node.id === 'south' ? (defeated ? 'enemy' : 'player') as 'enemy' | 'player'
     : node.id === 'centre' ? 'enemy' as const : 'neutral' as const,
   units: node.id === 'south' ? 20 : node.id === 'centre' ? 1 : node.units,
 }));
 
+const restored = params.has('siege') ? readSavedGame() : null;
+const baseline = params.has('no-growth') ? { factions: Object.fromEntries(['player', 'enemy'].map(id => [id,
+  { unitsPerSecond: 0, travelSpeed: 35, batchIntervalMs: 600 }])) } : undefined;
 const setup = compileRoundSetup(territories, { player: [
   ...(shieldBattle || params.has('capture-shield') ? ['capture-shield' as const] : []),
   ...(params.has('industry') ? ['industry' as const] : []),
@@ -36,7 +43,7 @@ const setup = compileRoundSetup(territories, { player: [
   ...(params.has('slow-zone') ? ['slow-zone' as const] : []),
 ] }, shieldBattle ? createRules({ factions: {
   player: { ...BASE_FACTION_RULES, unitsPerSecond: 0 }, enemy: { ...BASE_FACTION_RULES, unitsPerSecond: 0 },
-} }) : undefined, 0, {}, riverMap?.river);
+} }) : baseline, 0, {}, riverMap?.river, riverMap?.terrain);
 
 // Seed a completed capture through real combat, then fly four real five-dot hostile batches.
 const initialState = shieldBattle ? dispatchUnits(resolveCombat({
@@ -51,8 +58,8 @@ createRoot(document.getElementById('root')!).render(
     <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
       <AppHeader />
       <section className="flex min-h-0 flex-1 flex-col">
-        <FieldCanvas territories={setup.territories} rules={setup.rules} river={setup.river} ai={null} autoStart initialState={initialState} initialPhase="running"
-          onSnapshot={shieldBattle ? (state, phase) => {
+        <FieldCanvas territories={setup.territories} rules={setup.rules} river={setup.river} terrain={setup.terrain} ai={null} autoStart initialState={restored?.state ?? initialState} initialPhase={restored?.phase ?? 'running'}
+          onSnapshot={shieldBattle || params.has('siege') ? (state, phase) => {
             if (phase !== 'ready') writeSavedGame({ state, phase, territories: setup.territories, ai: null });
           } : undefined} />
       </section>

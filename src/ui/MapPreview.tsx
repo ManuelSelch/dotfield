@@ -24,11 +24,26 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
         <path d={`M${deck.x + 2} ${deck.y + 1}v${deck.height - 2}M${deck.x + deck.width - 2} ${deck.y + 1}v${deck.height - 2}`} stroke="#a4ac96" strokeWidth="1.3" />
       </g>)}
     </g>}
+    {map.terrain?.barriers.filter(b => b.kind === 'mountain').map(barrier => {
+      const b = barrier.bounds, x = (b.minX + b.maxX) / 2, y = (b.minY + b.maxY) / 2;
+      return <g key={barrier.id} aria-label="Mountain blocks direct orders and shots">
+        <rect x={b.minX} y={b.minY} width={b.maxX - b.minX} height={b.maxY - b.minY} fill="#d5d8cd" stroke="#a8afa0" />
+        <path d={`M${x - 7} ${y + 8}L${x} ${y - 9}L${x + 7} ${y + 8}`} fill="none" stroke="#9ca692" />
+      </g>;
+    })}
+    {map.territories.flatMap(city => (city.features ?? []).filter(f => f.kind === 'artillery').map(feature =>
+      <circle key={feature.id} aria-label="Artillery range" cx={city.x} cy={city.y} r={feature.range}
+        fill="none" stroke={factionPalette(city.owner).stroke} strokeOpacity="0.4" strokeDasharray="3 5" />))}
     {map.territories.map(city => {
       const palette = factionPalette(city.owner);
       return <g key={city.id}>
         <circle cx={city.x} cy={city.y} r={TERRITORY_RADIUS} fill={palette.fill} stroke={palette.stroke} />
         <text x={city.x} y={city.y} textAnchor="middle" dominantBaseline="central" fill={palette.ink} fontSize={TERRITORY_RADIUS} fontFamily="system-ui">{city.units}</text>
+        {city.features?.some(feature => feature.kind === 'artillery') && <g aria-label="Artillery"
+          transform={`translate(${city.x + badgeOffset} ${city.y - badgeOffset})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
+          <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />
+          <path transform={`scale(${badgeRadius / 5})`} d="M-3 1l5-3 1 1-5 3M-3 2h5M-1 2v1M2 2v1" fill="none" stroke={palette.ink} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </g>}
         {city.features?.some(feature => feature.kind === 'factory') && <g aria-label="Factory"
           transform={`translate(${city.x + badgeOffset} ${city.y - badgeOffset})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
           <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />

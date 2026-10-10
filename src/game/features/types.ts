@@ -23,4 +23,11 @@ export interface SlowZoneFeature {
   readonly speedMultiplier: number;
 }
 
-export type TerritoryFeature = FactoryFeature | WatchtowerFeature | SlowZoneFeature;
+export interface ArtilleryFeature {
+  readonly id: string;
+  readonly kind: 'artillery';
+  readonly range: number;
+  readonly fireIntervalMs: number;
+}
+
+export type TerritoryFeature = FactoryFeature | WatchtowerFeature | SlowZoneFeature | ArtilleryFeature;

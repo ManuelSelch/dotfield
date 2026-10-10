@@ -32,7 +32,7 @@ Approved designs are preserved in `mockups/desktop-battlefield/` and `mockups/ra
 
 ## Terrain routing foundation
 
-[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design: a river map with compact paired crossings, bank-clipped regions, manual staging, AI staging, preview legality, persistence and accessible hints. [Slice 4](docs/special-cities/SLICE-4.md) adds an authored contested-Factory river scenario and current-owner production bonuses for all Factories. Authored map layouts remain unchanged as regression fixtures; Home now generates fresh fields. Gatehouse is skipped for now; Artillery and Portal remain later slices. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
+[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design with manual staging, AI staging, preview legality, persistence and accessible hints. [Slice 4](docs/special-cities/SLICE-4.md) adds contested-Factory scenarios and current-owner production bonuses. [Slice 5](docs/special-cities/SLICE-5.md) adds capturable Artillery: the nearest hostile garrison within 90 units loses one defender every two seconds; mountains block shots/direct orders and explicit staging remains necessary. Artillery and Siege are available as authored gameplay scenarios and regression fixtures; Home continues to generate fresh fields. Gatehouse is skipped; Portal is next. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
 
 ## City regions and map generation
 
@@ -113,7 +113,7 @@ Small modules are grouped by feature.
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
 - `src/game/settings.ts`, `rules.ts`, `growth.ts`: tuning defaults, validated faction rules and pure elapsed-time growth.
 - `src/game/upgrades/`: typed stat/starting-feature effect catalog and pure round-setup compiler; no progression dependencies.
-- `src/game/features/`: typed Factory definitions, immutable nested snapshots and per-territory production calculation.
+- `src/game/features/`: typed city features, immutable snapshots, local production and deterministic Watchtower/Artillery firing.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
 - `src/game/dispatch.ts`, `launch.ts`, `route.ts`, `travel.ts`, `combat.ts`: shared faction orders, reservations, staggered launches, border travel and arrival resolution.
 - `src/game/movement.ts`, `dots.ts`: shared board-space movement, eased formations and stable dot slots.
@@ -123,7 +123,7 @@ Small modules are grouped by feature.
 - `src/board/generateMap.ts`: seeded generation, validated map settings, separated starts and paired crossings.
 - `src/board/map.ts`, `maps.ts`, `layout.ts`: authored regression fields and aspect-preserving projection.
 - `src/game/matchPreferences.ts`: validated, versioned match preferences and generation metadata.
-- `src/board/drawBoard.ts`, `drawCityFeatures.ts`, `upgradeIcons.ts`: Canvas snapshot rendering and vector Factory/production indicators.
+- `src/board/drawBoard.ts`, `drawCityFeatures.ts`, `drawArtillery.ts`, `upgradeIcons.ts`: Canvas rendering, compact city badges and Artillery coverage/shot feedback.
 - `src/board/startBoard.ts`: browser animation, resize, visibility, persistence snapshots and cleanup adapter
 - `src/game/persistence.ts`: versioned local round save/restore with safe storage failure handling.
 - `src/board/FieldCanvas.tsx`, `TerritoryDetails.tsx`: Canvas wrapper and accessible counts.

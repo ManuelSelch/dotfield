@@ -1,19 +1,22 @@
 import type { Territory } from '../game/types';
+import type { Terrain } from '../game/terrain/types';
+import { canDirectTerrainOrder } from '../game/terrain/directOrder';
 import type { DragSelection } from './drag';
 import { projectBoard, screenPoint } from './layout';
 import { createRoute } from '../game/route';
 import { canRiverOrder, pairedCityId, type River } from '../game/river';
 
-export function drawDrag(ctx: CanvasRenderingContext2D, territories: readonly Territory[], selection: DragSelection | null, width: number, height: number, river?: River) {
+export function drawDrag(ctx: CanvasRenderingContext2D, territories: readonly Territory[], selection: DragSelection | null, width: number, height: number, river?: River, terrain?: Terrain) {
   if (!selection) return;
   const nodes = projectBoard(territories, width, height);
   const source = nodes.find((node) => node.id === selection.sourceId);
   if (!source) return;
   const target = nodes.find((node) => node.id === selection.targetId);
-  const invalid = target && !canRiverOrder(source, target, river);
   const logicalSource = territories.find(node => node.id === selection.sourceId)!;
   const logicalTarget = territories.find(node => node.id === selection.targetId);
-  const route = river && logicalTarget ? createRoute(logicalSource, logicalTarget) : null;
+  const invalid = logicalTarget && (!canRiverOrder(logicalSource, logicalTarget, river)
+    || !canDirectTerrainOrder(logicalSource, logicalTarget, terrain));
+  const route = (river || terrain) && logicalTarget ? createRoute(logicalSource, logicalTarget) : null;
   const from = route ? screenPoint(route.from, width, height) : source;
   const to = route ? screenPoint(route.to, width, height) : target ?? selection.point;
   ctx.save();

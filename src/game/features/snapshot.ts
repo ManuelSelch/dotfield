@@ -11,10 +11,10 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
         if ((feature.beneficiaryId !== undefined && !feature.beneficiaryId) || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
           throw new RangeError('Invalid Factory definition.');
         }
-      } else if (feature.kind === 'watchtower') {
+      } else if (feature.kind === 'watchtower' || feature.kind === 'artillery') {
         if (!Number.isFinite(feature.range) || feature.range <= 0
           || !Number.isFinite(feature.fireIntervalMs) || feature.fireIntervalMs <= 0) {
-          throw new RangeError('Invalid Watchtower definition.');
+          throw new RangeError('Invalid firing feature definition.');
         }
       } else if (feature.kind === 'slow-zone') {
         if (!Number.isFinite(feature.radius) || feature.radius <= 0

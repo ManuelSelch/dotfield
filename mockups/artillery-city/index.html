@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dotfield · Artillery review</title><link rel="stylesheet" href="./styles.css"></head>
+<body><main class="app"><header><h1><span></span>Dotfield <small>Artillery</small></h1><button id="pause" class="pause" aria-label="Pause preview">Ⅱ</button></header>
+<nav class="scenarios" aria-label="Artillery ownership"><a href="?state=player" data-state="player">Yours</a><a href="?state=enemy" data-state="enemy">Opponent</a><a href="?state=neutral" data-state="neutral">Neutral</a></nav>
+<div class="board"><svg id="field" viewBox="0 0 360 480" aria-label="Artillery demonstration battlefield"><g id="regions"></g><g id="terrain"></g><g id="coverage"></g><g id="cities"></g><g id="shots"></g></svg></div>
+<p id="hint" role="status">Preparing preview</p><div class="controls"><button id="fire">Fire once</button><button id="capture">Transfer control</button><button id="reset">Reset</button></div>
+<footer>Design preview · simulated shots · no production code</footer></main><script type="module" src="./main.js"></script></body></html>

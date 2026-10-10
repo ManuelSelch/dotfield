@@ -2,14 +2,14 @@ import type { SimulationState } from '../game/types';
 import { BASE_FACTION_RULES, getFactionRules } from '../game/rules';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
-import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon } from './upgradeIcons';
+import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon, drawArtilleryIcon } from './upgradeIcons';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
   for (const city of projectBoard(state.territories, width, height)) {
     const radius = Math.max(5, city.radius * 0.34);
     const offset = Math.max(city.radius * 0.9, city.fontSize / 2 + radius + 2);
-    function badge(side: -1 | 1, active: boolean, draw: (ctx: CanvasRenderingContext2D) => void, vertical: -1 | 1 = -1) {
+    function badge(side: -1 | 0 | 1, active: boolean, draw: (ctx: CanvasRenderingContext2D) => void, vertical: -1 | 1 = -1) {
       const x = Math.max(radius + 1, Math.min(width - radius - 1, city.x + side * offset));
       const y = Math.max(radius + 1, Math.min(height - radius - 1, city.y + vertical * offset));
       ctx.save(); ctx.globalAlpha = active ? 1 : 0.45;
@@ -20,6 +20,8 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
     }
     for (const feature of city.features ?? []) {
       if (feature.kind === 'factory') badge(1, city.owner !== 'neutral', drawFactoryIcon);
+      if (feature.kind === 'artillery') badge(city.features?.some(f => f.kind === 'factory') ? 0 : 1,
+        city.owner !== 'neutral', drawArtilleryIcon);
       if (feature.kind === 'slow-zone') {
         const range = feature.radius * city.radius / TERRITORY_RADIUS;
         ctx.save(); ctx.globalAlpha = 0.09;

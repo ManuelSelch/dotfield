@@ -16,7 +16,7 @@ export function App({ updates }: { updates: AppUpdates }) {
   const [preferences, setPreferences] = useState(() => saved?.generated?.preferences ?? readMatchPreferences());
   const [previewSeed, setPreviewSeed] = useState(newMapSeed);
   const [setup, setSetup] = useState<ActiveSetup | null>(() => saved ? {
-    territories: saved.territories, river: saved.state.river,
+    territories: saved.territories, river: saved.state.river, terrain: saved.state.terrain,
     rules: saved.state.rules, ai: saved.ai ?? {}, generated: saved.generated,
   } : null);
   const lastSeed = useRef(saved?.generated?.seed ?? previewSeed);
@@ -38,7 +38,7 @@ export function App({ updates }: { updates: AppUpdates }) {
     const active = ['player', ...enemyIds(value.map.enemies)];
     const upgrades = Object.fromEntries(Object.entries(value.upgrades).filter(([id]) => active.includes(id)));
     const behaviors = Object.fromEntries(Object.entries(value.aiBehaviors).filter(([id]) => active.includes(id)));
-    const compiled = compileRoundSetup(map.territories, upgrades, undefined, seededRandom(map.seed)(), behaviors, map.river);
+    const compiled = compileRoundSetup(map.territories, upgrades, undefined, seededRandom(map.seed)(), behaviors, map.river, map.terrain);
     clearSavedGame(); setSaved(null);
     setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
   }
@@ -48,7 +48,7 @@ export function App({ updates }: { updates: AppUpdates }) {
         <div className={`app-shell${setup ? ' app-shell--playing' : ' app-shell--home'}`}>
           <AppHeader><ConnectionBadge updates={updates} playing={!!setup} /></AppHeader>
           {setup ? <section className="flex min-h-0 flex-1 flex-col">
-            <FieldCanvas key={setup.generated?.seed ?? 'restored'} territories={setup.territories} river={setup.river} rules={setup.rules} ai={setup.ai}
+            <FieldCanvas key={setup.generated?.seed ?? 'restored'} territories={setup.territories} river={setup.river} terrain={setup.terrain} rules={setup.rules} ai={setup.ai}
               initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame}
               onNewMap={() => play(setup.generated?.preferences ?? preferences)} />
           </section> : <HomeScreen map={preview} preferences={preferences} onChange={changePreferences}

@@ -8,6 +8,8 @@ import { drawTransfers } from './drawTransfers';
 import { createRegionCache } from './regions/cache';
 import { drawRegions } from './regions/drawRegions';
 import { drawRiver } from './drawRiver';
+import { drawMountains } from './drawMountains';
+import { drawArtilleryCoverage, drawArtilleryShots } from './drawArtillery';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
 const MAX_BUSY_PIXEL_RATIO = 2;
@@ -34,7 +36,7 @@ export function drawBoard(
   ctx.clearRect(0, 0, width, height);
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
-  drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection, state.river);
+  drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection, state.river, state.terrain);
   ctx.fillStyle = '#c4cec2';
   ctx.globalAlpha = 0.5;
   for (let x = 12; x < width; x += 24) {
@@ -46,11 +48,14 @@ export function drawBoard(
   }
   ctx.globalAlpha = 1;
   drawRiver(ctx, state.territories, state.river, width, height);
+  drawMountains(ctx, state.terrain, width, height);
+  drawArtilleryCoverage(ctx, state, width, height);
   // Territories mask the dot edges at launch/impact, keeping counters unobstructed.
   drawTransfers(ctx, state, width, height);
   drawTerritories(ctx, state, width, height);
   drawCaptureShields(ctx, state, width, height,
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawCityFeatures(ctx, state, width, height);
-  drawDrag(ctx, state.territories, selection, width, height, state.river);
+  drawArtilleryShots(ctx, state, width, height, typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  drawDrag(ctx, state.territories, selection, width, height, state.river, state.terrain);
 }

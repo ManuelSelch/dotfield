@@ -6,12 +6,12 @@ import { createCityRegions } from './regions/geometry';
 import { hitTest } from './hitTest';
 
 describe('fixed map presets', () => {
-  it('keeps the original field and provides seven distinct stable presets', () => {
-    expect(MAPS).toHaveLength(7);
+  it('keeps the original field and provides eight distinct stable presets', () => {
+    expect(MAPS).toHaveLength(8);
     expect(MAPS[0].territories).toBe(TERRITORIES);
     expect(MAPS[3].territories).toHaveLength(21);
-    expect(new Set(MAPS.map(map => map.id)).size).toBe(7);
-    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(7);
+    expect(new Set(MAPS.map(map => map.id)).size).toBe(8);
+    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(8);
   });
   // The approved bridge field has authored, asymmetric staging positions;
   // preserve the original five maps' balance contract independently.

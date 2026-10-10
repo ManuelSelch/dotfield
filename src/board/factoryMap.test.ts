@@ -12,7 +12,7 @@ const map = () => MAPS.find(map => map.id === 'foundry')!;
 
 describe('contested Factory river scenario', () => {
   it('appends a separate map with two open crossings and one neutral Factory', () => {
-    expect(MAPS.map(map => map.id)).toEqual(['meadow', 'forks', 'ridge', 'dense', 'crossfire', 'bridges', 'foundry']);
+    expect(MAPS.map(map => map.id)).toEqual(['meadow', 'forks', 'ridge', 'dense', 'crossfire', 'bridges', 'foundry', 'siege']);
     const field = map();
     expect(field.territories).toHaveLength(8);
     expect(field.river?.bridges).toHaveLength(2);
