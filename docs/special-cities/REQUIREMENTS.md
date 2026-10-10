@@ -101,32 +101,38 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 - Portal links require no resource or unlock beyond owning both endpoints. Existing group size and launch cadence are retained for explicit transport; the confirmed 2-second transit applies independently to each launched batch.
 - A city receives at most one Factory multiplier even if its authored Factory and a selected spawn Factory upgrade coincide; no duplicate bonus or badge.
 - The first implementation should use fixed authored terrain and limited scenarios, not a general map editor.
-- Current implementation has direct straight-line routes and Factory, Watchtower and Slow Zone features, but no terrain, Gatehouse, Artillery or Portal feature. Route bends require simulation changes, not just a visual overlay.
+- Current gameplay uses direct straight routes with river-bank restrictions, paired bridge crossings and Factory/Watchtower/Slow Zone features. Slice-1 terrain route-query APIs exist, but bent-path mountain physics, Gatehouse, Artillery and Portal gameplay are not implemented; route bends require simulation changes, not just a visual overlay.
 
 ## Implementation Plan
 
 ### 1. Terrain and legal routes
 
+Status: implemented pure route-query foundation; mountain/bent-path gameplay is not integrated.
 Description: Define authored barriers/crossings and deterministic legal-route queries, including unreachable targets and compatibility with terrain-free maps. Verify bridge-only river traversal, mountain detours, path lengths, stable ties and invalid-order queue preservation with unit tests. No Gatehouse ownership restrictions yet.
 
 ### 2. Bridge-city movement and presentation
 
+Status: implemented and merged; input now also supports mouse-only click orders using river-aware hit testing. Touch/pen remain drag-only.
 Description: Following slice 1 and approved mockup revision 3, add a selectable two-open-bridge river map, validated immutable bank/pair metadata, straight same-bank orders and explicit paired-city crossings. Keep shared existing straight movement, dots, collisions, Slow Zones and Watchtowers; validate formation clearance instead of adding path bends. Integrate AI staging, persistence/restart, independently bank-clipped regions, compact bridges, preview legality and accessible input feedback. Verify queue preservation, real staggered movement, collisions/forecast parity, save/restore and phone-sized drag/keyboard tests. No Gatehouse or Factory changes; mountain detours remain deferred.
 
 ### 3. Gatehouse control — skipped for now
 
+Status: explicitly deferred by the user; not a prerequisite for completed Factory work.
 Description: Following slice 2, attach cities to crossings and make routing faction-aware, applying the confirmed finish-launched/cancel-blocked-queue policy. Keep Gatehouses attackable from both approaches; expose access in previews and accessibility. Verify neutral locks, capture/recapture, multiple factions, queue handling and AI legal orders.
 
 ### 4. River map and contested Factory
 
+Status: implemented and merged; current-owner production and seventh-map opening geometry are covered automatically. Human balance/viable-opening playtests remain manual.
 Description: Following slice 2 (slice 3 skipped), change all Factories, including existing starting-city upgrades, to benefit their current owner. Use one Factory name/icon, prevent duplicate attachment bonuses and account for old saved Factory definitions. Add a separate river scenario with two open crossings and one neutral Factory, preserving existing maps. Verify capture bonuses, Industry/cap interactions, AI production value, replay/save behaviour and comparable initial attack costs. Human playtesting remains required for balance and viable openings.
 
 ### 5. Artillery city
 
+Status: pending; next unskipped gameplay slice.
 Description: Following slice 4, implement nearest-hostile-garrison targeting at range 90, one defender per 2,000 ms, excluding neutral targets and mountain-blocked shots. Include shared world stepping, feature timers, shot feedback, persistence and AI forecasts; verify the stated timing/geometry defaults. Add a focused siege scenario, preferably a mountain pass. Verify no artillery-only capture, pause behaviour, ownership changes, target rules and counterplay.
 
 ### 6. Portal pair
 
+Status: pending; independent of Artillery after slice 4.
 Description: Following slice 4, add paired endpoints and explicit A → B transport with a 2-second transit per launched batch to live simulation, forecasts, previews and saves. Cancel unlaunched batches when either endpoint is lost, while allowing entered troops to finish. Add a dedicated flanking scenario; verify no automatic forwarding or route shortcutting, no skipped-space collisions, no duplication/loops, mixed-owner inactivity and committed arrivals at captured endpoints. AI must explicitly order Portal transfers. Artillery is not a prerequisite.
 
 ## Open Questions

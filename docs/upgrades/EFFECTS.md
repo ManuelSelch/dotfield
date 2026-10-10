@@ -1,6 +1,6 @@
 # Upgrade effects
 
-Pre-game effects, without currency, purchases, levels or unlocks. The player and each AI faction can select effects independently; all selections are in memory and reset on reload. Later progression can supply the same active-effect IDs instead of manual selection.
+Pre-game effects, without currency, purchases, levels or unlocks. Player and AI effects are selected independently; Slow Zone selection is player-only. Home choices are memory-only and reset on reload, while a saved active round restores its compiled rules/features. Later progression can supply the same active-effect IDs instead of manual selection.
 
 | Upgrade | Simple effect | What it changes | Status |
 |---|---|---|---|
@@ -32,6 +32,7 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 
 ## Slow Zone scope
 
+- Player-selectable only; enemies can own/control its randomly chosen host without selecting the effect.
 - Off by default; selecting it attaches one zone to a uniformly selected city from the current map. The selection is resolved once when starting a round; Restart and Play again retain the same host, while a new Home → Play may choose another city.
 - Its fixed 90-unit radius is drawn as a distinct dashed owner-tinted circle with an hourglass marker. The circle uses logical field coordinates and does not change touch regions or combat geometry.
 - A zone owned by a faction slows only hostile airborne groups. Capturing the host switches allegiance immediately. A neutral-owned zone slows both player and enemy airborne groups.
@@ -56,4 +57,4 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
 - Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
-See [architecture and implementation plan](REQUIREMENTS.md). All effects other than Industry, Factory and Watchtower remain proposals, not implemented features.
+See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, Watchtower and Slow Zone are implemented. Reinforcements, Quick march, Rapid deployment and Capture shield remain proposals, not implemented features.
