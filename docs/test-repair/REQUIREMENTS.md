@@ -1,58 +1,56 @@
-# Dotfield Test Repair — Requirements
+# Dotfield Playwright Suite Repair — Requirements
 
 ## Goal
-Maintain a green, meaningful suite without reverting supported round restoration or weakening assertions. The original eight browser failures were diagnosed and repaired; the remaining work is broader deterministic persistence coverage, not a known failing save path.
 
-Status: slices 1–2 are complete. Periodic saving was subsequently removed by explicit user decision (`551d636`); the event-only contract below supersedes the original 500ms throttle/fallback proposal. Slice 3 remains pending. Full-suite verification has passed repeatedly, including merged checkpoint `d2d9702` (402 unit tests, 79 Chrome browser tests, build and whitespace checks); rerun acceptance after expanding coverage.
+Make the full Playwright suite reliable and meaningful for the checked-out worktree. Diagnose the latest partial run rather than weakening assertions or assuming the canvas-layer change caused failures.
+
+Latest evidence: the full run reported 57 passed and 30 failed at six workers. Five failures observed 14 cities where tests expected 12; the other 25 failed to connect to `http://127.0.0.1:5180`. The current source declares `DEFAULT_MAP_SETTINGS.cities` as 12. A focused serial rerun of the three generated-setup viewport cases passed, so the count discrepancy is not currently reproducible in isolation. Unit tests, build, and focused board/collision browser tests passed for the troop-layer change.
 
 ## Scope
+
 ### In Scope
-- Correct reset/reload expectations in Factory, Industry and growth browser tests.
-- Unambiguous Slow Zone selectors scoped to the player upgrade group.
-- Latest-state lifecycle saves, event-only save policy and round restoration.
-- Deterministic running/paused reload, transfer/rule/feature retention, no offline growth and Home abandonment checks.
-- Full regression verification and current evidence after changes are committed.
+- Reproduce the five city-count mismatches and the 25 browser-server connection failures.
+- Record which app/worktree owns the Playwright server, its lifecycle, and the actual rendered city elements/preferences during failures.
+- Make server startup/reuse safe across concurrent tests and multiple worktrees.
+- Keep assertions aligned to actual city data and the documented 12-city default; do not count decorative SVG circles as cities.
+- Run the unfiltered browser suite and relevant unit/build checks after repair.
 
 ### Out of Scope
-- New gameplay, visuals, save-format migrations, cloud storage or broad validation redesign.
-- Disabling round restoration, forced Home on reload or clearing saves to hide defects.
-- Reintroducing periodic saves or per-frame/per-dispatch storage writes without a separate product decision.
-- Test skips, weakened assertions, arbitrary sleeps or excluding failing cases from acceptance.
+- Changing gameplay, generated-map defaults, or the already-committed troop render order to hide test failures.
+- Weakening assertions, skipping tests, arbitrary sleeps, or accepting connection-refused failures.
+- Changing round persistence or its event-only save contract to hide failures. Retain the separate pending persistence matrix: running/paused reloads, transfers and rules/features, background flush, no offline catch-up, Home abandonment/no resurrection, and source-state freshness. Do not reintroduce periodic saves.
 
 ## Requirements
-- **R1 — Restoration contract:** Reload of a valid active-round save restores its compiled map, rules, features, AI configuration and running/paused phase. Home abandons and clears it. Home setup choices remain memory-only; restored round rules are not persisted Home selections.
-- **R2 — Upgrade checks:** Preserve effect, faction isolation, pause, restart and Home-retention assertions. Reload checks inspect the restored board, then explicitly return Home to check default unchecked setup options.
-- **R3 — Fresh-round checks:** Test reset through Home→Play rather than treating reload as a fresh start. Abandoning a grown round clears its save and starts the selected map with its opening armies.
-- **R4 — Scoped selectors:** Check Slow Zone descriptions/options within the player group, retaining enemy controls and coverage assertions at both phone sizes.
-- **R5 — Deterministic freshness:** Stop the browser clock and inspect saved payloads alongside rendered counts/transfers. Prove that ordinary growth/dispatch remains unsaved until an event boundary; actual reload must flush the latest applied state without a test-only forced save.
-- **R6 — Event-only saves:** Start/restore, visibility changes, page exit, session commands and round completion save immediately. Ordinary frames and dispatches do not save. Saving never advances simulation time. Synchronous storage failures remain nonfatal.
-- **R7 — No save resurrection:** Home clears the round; disposal removes lifecycle listeners and cannot recreate a discarded save. Repeated lifecycle events must not revive it.
-- **R8 — Expanded persistence coverage:** Assert semantic restored counts, phase, active/queued transfers, rules/features and no offline catch-up. Cover running and paused reloads, background flush and Home abandonment. Do not rely on animation pixels, object identity, arbitrary waits or debug hooks.
-- **R9 — Unit protection:** Cover explicit save requests, ordinary-frame/dispatch exclusion, repeated lifecycle events, cleanup, source-state freshness and Home clear/no-resurrection. Retain session freeze/rebaselining and storage-error checks.
-- **R10 — Acceptance:** Run unit tests, production build, whitespace checks and the unfiltered Chrome browser suite. Include desktop layout/input checks and repeat targeted persistence tests for determinism. Commit verified changes and record accurate checkpoint counts and manual-device limitations.
+- **R1 — Reproducible diagnosis:** Re-run the affected tests individually and under serial and normal worker counts. Capture the actual city data, relevant SVG/list contents, persisted preferences, base URL, and Playwright server process/worktree for any mismatch.
+- **R2 — City-count correctness:** The default generated setup remains 12 cities unless a separate product decision changes it. Assertions count semantic city nodes/details, not decorative circles, bridge geometry, or feature indicators. Fix the app only if the actual semantic city count is wrong; otherwise fix the test's setup/selector.
+- **R3 — Server ownership:** Playwright must not unknowingly reuse a Vite server from another checkout or depend on a server that disappears during the run. The test server must use the intended checkout and configured port; startup conflicts must fail clearly rather than produce later page-level connection refusals.
+- **R4 — Concurrency safety:** The suite must not share mutable browser state between tests in a way that changes city preferences or shuts down the server. Validate both serial and configured parallel execution.
+- **R5 — Preserve test intent:** Keep all affected behavior assertions, including generated setup, Factory/Industry, Home/new-map, persistence, region controls, round/session, Slow Zone, styling, viewport, and Watchtower scenarios. Repair causes, not coverage.
+- **R6 — Acceptance:** Run all unit tests, production build, whitespace checks, and the complete unfiltered Playwright suite. Report pass/fail counts and any remaining limitations accurately.
 
 ## Assumptions
-- Reload restoration and ephemeral Home settings are the source of truth; obsolete pre-persistence assertions must change, not the product contract.
-- Event-only saves intentionally accept crash exposure: a crash/force-kill that delivers no lifecycle event can lose all progress since the last event save. Browser lifecycle events cannot guarantee recovery.
-- `visibilitychange` is the main background signal; `pagehide` handles page exit. Real-iPhone Safari delivery and installed-app behavior still need manual testing.
-- Historical checkpoints and test totals are evidence of those revisions, not guarantees about a later revision.
+
+- The intended fresh Home default is 12 cities, consistent with `DEFAULT_MAP_SETTINGS` and the affected test expectations.
+- The three generated-map preview cases (`tests/home.spec.ts`) passed when rerun serially. The two post-Play list-count cases have not yet been isolated serially. Concurrency, server provenance, storage state, or selector scope may be involved; none is confirmed.
+- The 25 `ERR_CONNECTION_REFUSED` failures all targeted `127.0.0.1:5180`; their causal relationship to server reuse, process exit, or parallel load remains unverified.
+- The earlier persistence-test repair slices remain complete; their separate expanded regression matrix remains pending under the event-only persistence contract.
+- Historical test totals are revision-specific evidence, not permanent suite-size guarantees.
 
 ## Implementation Plan
-### 1. Repair obsolete reset and selector assertions
-Status: complete (`9f98b8e`, with later map-integration updates).
-Description: Correct Factory/Industry reload expectations, growth Home→Play reset checks and player-scoped Slow Zone queries without changing supported product behavior. Preserve effect, pause, restart and Home-retention protection.
 
-### 2. Reproduce and fix lifecycle save freshness
-Status: complete (`3125897`); event-only persistence followed in `551d636`.
-Description: Stabilize the stopped-clock reproduction and flush the latest applied state at lifecycle/session boundaries. Forced writes preserve unsaved dispatches without advancing time. Unit tests cover save events, ordinary-save exclusion, cleanup and no catch-up; no periodic fallback remains.
+### 1. Reproduce and instrument the failures
+Description: Run the five count-mismatch cases and representative connection-refused cases individually, with one worker, and at normal worker count. Record city IDs/counts, preview DOM, local preferences, base URL, server PID/cwd, and when the server exits. Completion requires a reproducible root cause or evidence that the original failures were transient, plus captured serial/parallel outcomes.
 
-### 3. Expand persistence regression coverage
-Status: pending; basic running reload, upgrade restoration and contested-Factory/river reload checks already exist, but the dedicated matrix is not complete.
-Description: Add deterministic running/paused round cases, retained effects/rules, transfers, background flush, no offline growth and Home abandonment without resurrection. Reuse public UI and serialization APIs rather than production debug hooks. Repeat targeted cases to check determinism. No new save features or format migration.
+### 2. Isolate Playwright server lifecycle
+Description: Based on slice 1 evidence, ensure the suite starts or reuses only the Vite server for this checkout. If local reuse remains supported, verify ownership; otherwise use an isolated/configurable port and fail fast on conflicts. Verify the server remains reachable through the run and is cleaned up afterward.
 
-### 4. Verify the full suite and refresh evidence
-Status: checkpoint verification complete; final acceptance must be repeated after slice 3.
-Description: Run every unit/browser test, build and whitespace checks without exclusions, confirm desktop and touch/keyboard regressions, commit the repair changes and refresh clean-tree evidence. Report real-device Safari limitations explicitly; never close pending coverage merely because existing tests are green.
+### 3. Make generated-city assertions semantic and deterministic
+Description: Correct the source of the 12-versus-14 discrepancy without changing the intended default or weakening coverage. Use stable semantic city selectors and isolated preference state; retain generated setup and post-Play count assertions across phone and desktop viewports.
+
+### 4. Verify full-suite stability
+Description: Run unit tests, production build, whitespace checks, and the unfiltered Playwright suite first serially and then at the supported parallel worker count. Repeat affected tests to demonstrate determinism; commit only the verified repair and record accurate results.
 
 ## Open Questions
-None.
+
+1. Did the 14 results represent extra semantic cities, decorative elements included by broad selectors, stale preferences, or a page served from another worktree?
+2. Did the Vite server exit, get reused from another process, or become unreachable under parallel load?
