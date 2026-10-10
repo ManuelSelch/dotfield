@@ -1,5 +1,7 @@
 # Dotfield Slow Zone — Requirements
 
+Current status: implemented as a global On the field match setting, not a faction upgrade. When enabled, seeded map generation attaches one 90-unit zone to a random city; saved preferences and compiled round features preserve the choice and host.
+
 ## Goal
 
 Add a Slow Zone similar to Watchtower: a visible circle around its host city in which traveling units move more slowly. Preserve consistent movement, collisions, tower targeting and AI forecasts.
@@ -18,7 +20,7 @@ Status: the movement foundation, zone mechanics, forecast integration and player
 
 ### Out of Scope
 
-- Currency, unlocks, levels, persisted Home selections or automatic Slow Zone upgrades for opponents. Existing active-round saves retain compiled zone definitions/progress.
+- Currency, unlocks, levels or hot-changing a field setting during a round. Existing active-round saves retain compiled zone definitions/progress.
 - Changes to base movement speed, launch cadence, troop growth, damage or AI difficulty.
 - Pathfinding, rerouting around zones or special AI scoring for their strategic value.
 - Independent per-dot slowing or formation deformation in the proposed first version.
@@ -29,7 +31,7 @@ Status: the movement foundation, zone mechanics, forecast integration and player
 - The host city has a visible 90-field-unit-radius coverage circle, larger than Watchtower's 72-unit circle. Its center and radius correspond to the simulation's circle; scaling the screen does not change which positions are affected.
 - Eligible airborne groups move at 50% of their issuing faction's base speed inside the circle and recover normal speed outside it. Circle membership uses the group center; the entire formation slows together, even if individual outer dots lie outside the circle. Queued groups and stationary garrisons are not affected.
 - A player- or enemy-owned zone slows only groups hostile to its current host owner. Capturing the host switches allegiance immediately. A neutral-owned zone slows all airborne groups in its circle; it is not inactive.
-- Selecting Slow Zone attaches one zone to a randomly chosen city, not automatically to the player's starting city. Resolve placement once during setup compilation, not during rendering or forecasting. The implemented eligible pool is every city, including player/enemy starts and neutral cities. No extra zone is added on capture; other upgrades retain their current placement.
+- Turning Slow Zone On adds one zone to a seeded-random generated city, not automatically to the player's starting city. Resolve placement once during map generation, not during rendering or forecasting. The eligible pool is every city, including player/enemy starts and neutral cities. No extra zone is added on capture; host ownership controls allegiance.
 - Entering, leaving or changing the allegiance of a zone must not teleport units, reset flight progress or alter stable survivor slots. Slowdown does not itself destroy units.
 - A movement update must detect a path crossing a zone even when both update endpoints are outside it. Split movement at circle boundaries and use the resulting piecewise trajectories in collision sweeps.
 - Launch delay, active flight time and traveled progress must be distinguishable. Do not implement spatial slowdown by changing an airborne transfer's duration while retaining elapsed-time-based position.
@@ -39,15 +41,15 @@ Status: the movement foundation, zone mechanics, forecast integration and player
 - AI forecasts use the same spatial movement and ownership rules as live simulation. Replace constant-duration completion assumptions in forecast stepping and AI horizons so slowed orders are not evaluated before they can finish. Conservative completion bounds must account for the approved slowdown/overlap policy.
 - Slow-zone-aware world stepping must remain bounded even without opposing transfers or Watchtowers. Forecast quiet skipping must not bypass spatial or ownership changes; retain it only where equivalence is demonstrated.
 - Feature definitions are validated and snapshotted through the existing feature/compiler/session boundaries: finite positive radius, finite speed multiplier strictly between zero and one, unique feature IDs and no mutation of source maps.
-- Selection is off by default and exposed only to the player, matching existing upgrades; this does not restrict randomly placed zone ownership or its neutral/captured behavior. Play captures one setup; Restart and Play again retain it without duplicate features, while returning Home allows changes. Reload on Home clears setup selection; reload during a saved active round restores the compiled zone/host.
-- Simulation, forecasts and restart consume the already-resolved host city, never draw fresh random choices. Tests can supply a reproducible placement seed or equivalent deterministic choice input.
+- The global field setting is off by default and applies equally regardless of which faction owns the random host. Play captures one generated host; Restart and Play again retain it without duplicate features, while returning Home allows changes. Match preferences persist across reload; active-round saves retain the compiled zone/host.
+- Simulation, forecasts and restart consume the already-resolved host city, never draw fresh random choices. The seeded map generator makes host placement reproducible.
 - Pause, hidden suspension and terminal states freeze motion; restarting removes old travel progress and rebuilds the selected feature from the seed.
 - Coverage styling and a distinct marker must distinguish Slow Zone from Watchtower when both are installed, without obscuring counters or changing region hit targets. Accessible city descriptions state radius, slowdown and active ownership behavior.
 - Existing no-zone gameplay must retain constant-speed positions, formation geometry, launch timing, collision results and arrival behavior. Verify baseline regressions rather than assuming a movement refactor is neutral.
 
 ## Assumptions
 
-- Placement is uniformly random across every city in the selected map, including both starting cities. A fresh Home → Play setup chooses again; Restart and Play again preserve the already compiled host because that is the simpler lifecycle.
+- Placement is uniformly random across every generated city, including faction starts. A different map seed may choose another host; Restart and Play again preserve the exact generated opening.
 - The UI supplies the random choice when compiling the setup; tests supply a reproducible choice. Physics, rendering and forecasting never reroll placement.
 
 ## Implementation Plan
@@ -70,7 +72,7 @@ Description: After slice 2, migrate forecast event skipping and AI completion ho
 ### 4. Selection and circle presentation
 
 Status: implemented; player-only selection and once-per-setup placement are retained.
-Description: After slices 2–3 and confirmation of random placement eligibility/lifecycle, add the catalog entry through the existing setup compiler and Home options. Resolve one random host using an explicit reproducible choice input at the setup boundary, keeping the compiler deterministic for identical inputs. Draw a distinct 90-unit coverage circle/marker using domain radius and owner state, expose accessible descriptions including neutral slowing of both factions, and preserve the selected setup through Home/Restart/Play again. Verify all maps, candidate eligibility, reproducible placement, no rerandomization during forecasts, duplicate-selection handling, source-map immutability, player-only selection and combinations with Factory/Industry/Watchtower. Check touch and keyboard access and no-scroll layouts at 320px and 430px phone widths.
+Status: implemented through seeded generated-map field settings and typed territory features. The generated Home preview shows the host and coverage; round persistence retains the compiled feature. Verified selection, ownership, neutral behavior, and responsive controls.
 
 ### 5. End-to-end verification and documentation
 

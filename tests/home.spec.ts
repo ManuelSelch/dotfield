@@ -30,12 +30,22 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     for (const counter of await preview.locator('text').all()) await expect(counter).toHaveAttribute('font-size', String(TERRITORY_RADIUS));
     await expect(page.getByRole('button', { name: /Next map|Previous map|Hide preview|Random/ })).toHaveCount(0);
     const artillery = page.getByRole('group', { name: 'Artillery' });
+    const watchtower = page.getByRole('group', { name: 'Watchtower' });
+    const slowZone = page.getByRole('group', { name: 'Slow Zone' });
     await expect(artillery.getByRole('button', { name: 'Off', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(watchtower.getByRole('button', { name: 'Off', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(slowZone.getByRole('button', { name: 'Off', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveCount(0);
     await artillery.getByRole('button', { name: 'On', exact: true }).click();
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
     await expect(preview.locator('[aria-label="Artillery"]')).toHaveCount(1);
     await artillery.getByRole('button', { name: 'Off', exact: true }).click();
+    await watchtower.getByRole('button', { name: 'On', exact: true }).click();
+    await expect(preview.locator('[aria-label="Watchtower coverage"]')).toHaveCount(3);
+    await slowZone.getByRole('button', { name: 'On', exact: true }).click();
+    await expect(preview.locator('[aria-label="Slow Zone coverage"]')).toHaveCount(1);
+    await watchtower.getByRole('button', { name: 'Off', exact: true }).click();
+    await slowZone.getByRole('button', { name: 'Off', exact: true }).click();
     await expect(play).toBeInViewport();
     const initialRerollBox = (await page.getByRole('button', { name: 'Reroll' }).boundingBox())!;
     const initialPlayBox = (await play.boundingBox())!;
@@ -51,13 +61,20 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await artillery.getByRole('button', { name: 'On', exact: true }).click();
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
     await page.getByText('Your upgrades', { exact: true }).click();
-    await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
+    const playerUpgrades = page.getByRole('group', { name: 'Your upgrades' });
+    await expect(playerUpgrades.getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);
+    await expect(playerUpgrades.getByRole('checkbox', { name: 'Slow Zone' })).toHaveCount(0);
+    await playerUpgrades.getByRole('checkbox', { name: 'Industry' }).check();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Factory', exact: false }).check();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Capture shield', exact: true }).check();
     await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('3 enabled');
     await page.getByText('Enemy settings', { exact: true }).click();
     await page.getByLabel('Enemy 4 behavior').selectOption('defensive');
-    await page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' }).check();
+    await expect(page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);
+    await watchtower.getByRole('button', { name: 'On', exact: true }).click();
+    await slowZone.getByRole('button', { name: 'On', exact: true }).click();
+    expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).map, MATCH_PREFERENCES_KEY)).toMatchObject({ watchtower: true, slowZone: true });
+    await play.scrollIntoViewIfNeeded();
     await expect(play).toBeInViewport();
     if (viewport.width < 761) {
       expect(await play.evaluate(el => getComputedStyle(el.parentElement!).position)).toBe('fixed');
@@ -79,8 +96,9 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
     expect(initial.state.rules.factions.player.captureShieldBatches).toBe(3);
-    expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features[0].kind).toBe('factory');
-    expect(initial.territories.find((c: { owner: string }) => c.owner === 'enemy-4').features[0].kind).toBe('watchtower');
+    expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'watchtower'))).toHaveLength(5);
+    expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'slow-zone'))).toHaveLength(1);
+    expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features.some((feature: { kind: string }) => feature.kind === 'factory')).toBe(true);
     expect(initial.territories.map((c: { x: number; y: number }) => [c.x, c.y])).not.toEqual(previewCoordinates);
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
@@ -125,10 +143,10 @@ test('inactive enemy settings are retained but not compiled into smaller matches
 });
 
 test('terminal New map preserves settings and upgrades, including a minimal four-enemy river field', async ({ page }) => {
-  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true, artillery: false },
+  const preferences = { ...defaultMatchPreferences(), map: { ...defaultMatchPreferences().map, cities: 6, enemies: 4, river: true, industry: true, artillery: false },
     upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
   const map = generateMap(preferences.map, 17);
-  const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river);
+  const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, {}, map.river);
   const initial = createSimulation(setup.territories, setup.rules, setup.river);
   const game = { territories: setup.territories, ai: setup.ai, phase: 'running', generated: { seed: 17, preferences },
     state: { ...initial, roundStatus: 'victory', territories: initial.territories.map(city => ({ ...city, owner: 'player' })) } };

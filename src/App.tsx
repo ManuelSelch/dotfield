@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { generateMap, enemyIds, newMapSeed, seededRandom } from './board/generateMap';
+import { generateMap, enemyIds, newMapSeed } from './board/generateMap';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
 import { ConnectionBadge } from './ui/ConnectionBadge';
@@ -38,7 +38,7 @@ export function App({ updates }: { updates: AppUpdates }) {
     const active = ['player', ...enemyIds(value.map.enemies)];
     const upgrades = Object.fromEntries(Object.entries(value.upgrades).filter(([id]) => active.includes(id)));
     const behaviors = Object.fromEntries(Object.entries(value.aiBehaviors).filter(([id]) => active.includes(id)));
-    const compiled = compileRoundSetup(map.territories, upgrades, undefined, seededRandom(map.seed)(), behaviors, map.river, map.terrain);
+    const compiled = compileRoundSetup(map.territories, upgrades, undefined, behaviors, map.river, map.terrain);
     clearSavedGame(); setSaved(null);
     setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
   }

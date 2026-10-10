@@ -31,9 +31,15 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
         <path d={`M${x - 7} ${y + 8}L${x} ${y - 9}L${x + 7} ${y + 8}`} fill="none" stroke="#9ca692" />
       </g>;
     })}
-    {map.territories.flatMap(city => (city.features ?? []).filter(f => f.kind === 'artillery').map(feature =>
-      <circle key={feature.id} aria-label="Artillery range" cx={city.x} cy={city.y} r={feature.range}
-        fill="none" stroke={factionPalette(city.owner).stroke} strokeOpacity="0.4" strokeDasharray="3 5" />))}
+    {map.territories.flatMap(city => (city.features ?? []).flatMap(feature => {
+      if (feature.kind === 'artillery' || feature.kind === 'watchtower' || feature.kind === 'slow-zone') {
+        const radius = feature.kind === 'slow-zone' ? feature.radius : feature.range;
+        const label = feature.kind === 'slow-zone' ? 'Slow Zone coverage' : feature.kind === 'watchtower' ? 'Watchtower coverage' : 'Artillery range';
+        return <circle key={feature.id} aria-label={label} cx={city.x} cy={city.y} r={radius}
+          fill="none" stroke={factionPalette(city.owner).stroke} strokeOpacity="0.4" strokeDasharray="3 5" />;
+      }
+      return [];
+    }))}
     {map.territories.map(city => {
       const palette = factionPalette(city.owner);
       return <g key={city.id}>
@@ -48,6 +54,16 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
           transform={`translate(${city.x + badgeOffset} ${city.y - badgeOffset})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
           <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />
           <path transform={`scale(${badgeRadius / 7})`} d="M-4.5 4V-.5L-1.5-2.5V-.5L1.5-2.5V-.5H2.5V-4.5H4.5V4Z" fill={palette.ink} />
+        </g>}
+        {city.features?.some(feature => feature.kind === 'watchtower') && <g aria-label="Watchtower"
+          transform={`translate(${city.x + badgeOffset} ${city.y + badgeOffset})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
+          <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />
+          <path transform={`scale(${badgeRadius / 7})`} d="M-4.5 4L-3-1H3L4.5 4ZM0-1V-6M-2-4.5H2" fill="none" stroke={palette.ink} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </g>}
+        {city.features?.some(feature => feature.kind === 'slow-zone') && <g aria-label="Slow Zone"
+          transform={`translate(${city.x - badgeOffset} ${city.y + badgeOffset})`}>
+          <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />
+          <path transform={`scale(${badgeRadius / 7})`} d="M-3.5-4H3.5L-3.5 4H3.5" fill="none" stroke={palette.ink} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         </g>}
       </g>;
     })}
