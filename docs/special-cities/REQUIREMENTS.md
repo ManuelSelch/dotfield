@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: slices 1, 2, 4 and 5 are implemented, and generated matches now combine a fixed central mountain ridge with optional river bridges. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing authored layouts remain unchanged. Slice 5 implements approved Artillery revision 1, ownership-aware cadence, mountain shot/order blocking and a separate Siege map. Portal (slice 6) is next.
+Status: slices 1, 2, 4 and 5 are implemented, and generated matches can combine an optional central mountain ridge with optional river bridges. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing authored layouts remain unchanged. Slice 5 implements approved Artillery revision 1, ownership-aware cadence, mountain shot/order blocking and a separate Siege map. Portal (slice 6) is next.
 
 ## Scope
 
@@ -37,7 +37,7 @@ Status: slices 1, 2, 4 and 5 are implemented, and generated matches now combine 
 - R2. Terrain and crossings are authored in logical field coordinates. Phone dimensions, Voronoi regions and pixel density must not change route legality or travel outcomes.
 - R3. River maps use straight same-bank travel and cross-bank travel only between the two endpoint cities of a bridge. Preview that straight route; mark other cross-bank orders invalid. Troops arriving at an endpoint stay there until a new explicit order. Preserve staggered five-unit batches, cadence and border geometry.
 - R4. An unreachable target is clearly indicated. Releasing an invalid order must not remove the source's existing launch queue or deduct troops.
-- R5. The bridge increment adds a separate two-crossing river map matching the approved mockup; existing authored maps remain unchanged. Its two open paired crossings provide alternative staging approaches. Generated fields now add a fixed central mountain ridge with optional river crossings. The later Gatehouse scenario remains a separate increment.
+- R5. The bridge increment adds a separate two-crossing river map matching the approved mockup; existing authored maps remain unchanged. Its two open paired crossings provide alternative staging approaches. Generated fields can enable a fixed central mountain ridge independently of optional river crossings. The later Gatehouse scenario remains a separate increment.
 - R6. Path bends, crossings and any portal transit must use one authoritative movement model for rendering, per-dot collisions, Slow Zones, Watchtower targeting and AI forecasts. Collisions must not sweep through an obstacle or across a teleport gap.
 - R7. Existing cities along a route must not be silently captured or receive troops unless they are an explicit destination. Hostile Gatehouses are an explicit access restriction, described below.
 - R8. Existing maps without terrain retain their current direct routes, border launch/impact geometry and dispatch rules.

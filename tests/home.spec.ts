@@ -23,8 +23,15 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(page.getByText(/^You \+ \d+ enemies? · \d+ neutral cities$/)).toHaveCount(0);
     const play = page.getByRole('button', { name: 'Play', exact: true });
     const preview = page.getByRole('img', { name: 'Generated map preview' });
+    const mountains = page.getByRole('group', { name: 'Mountains' });
+    await expect(mountains.getByRole('button', { name: 'On', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
     await expect(page.getByText('Mountain range', { exact: true })).toBeVisible();
+    await mountains.getByRole('button', { name: 'Off', exact: true }).click();
+    await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(0);
+    await expect(page.getByText('No mountains', { exact: true })).toBeVisible();
+    await mountains.getByRole('button', { name: 'On', exact: true }).click();
+    await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
     await expect(page.getByText(/WEST PASS|EAST PASS/)).toHaveCount(0);
     await expect(preview.locator('circle[cx]')).toHaveCount(14);
     await expect(preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]')).toHaveCount(2);
@@ -129,7 +136,7 @@ test('inactive enemy settings are retained but not compiled into smaller matches
 });
 
 test('terminal New map preserves settings and upgrades, including a minimal four-enemy river field', async ({ page }) => {
-  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true, artillery: false },
+  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, mountains: false, industry: true, artillery: false },
     upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
   const map = generateMap(preferences.map, 17);
   const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river, map.terrain);
@@ -146,10 +153,23 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   expect(next.generated.seed).not.toBe(17);
   expect(next.territories).toHaveLength(6);
   expect(next.state.river.bridges).toHaveLength(2);
-  expect(next.state.terrain.barriers[0].id).toBe('mountain-range');
+  expect(next.state.terrain).toBeUndefined();
   expect(Object.keys(next.ai)).toHaveLength(4);
   expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
   expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');
+});
+
+test('mountains Off generates and saves a field without the central ridge', async ({ page }) => {
+  await page.goto('/');
+  const mountains = page.getByRole('group', { name: 'Mountains' });
+  await mountains.getByRole('button', { name: 'Off', exact: true }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  const game = await saved(page);
+  expect(game.generated.preferences.map.mountains).toBe(false);
+  expect(game.state.terrain).toBeUndefined();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'New map', exact: true }).click();
+  expect((await saved(page)).state.terrain).toBeUndefined();
 });
 
 test('bad preferences fall back safely and city controls work with the keyboard', async ({ page }) => {

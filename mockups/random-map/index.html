@@ -9,14 +9,15 @@
 <div class="layout">
 <section class="settings" aria-label="Match settings">
 <div class="section-label">YOUR MATCH</div>
-<div class="setting"><div><label for="cities">Cities</label></div><div class="stepper"><button id="cities-down" aria-label="Fewer cities">−</button><output id="city-value" for="cities">12</output><button id="cities-up" aria-label="More cities">+</button></div></div>
-<input id="cities" type="range" min="6" max="24" value="12" aria-label="Total cities"><div class="range-labels"><span>6 · compact</span><span>24 · expansive</span></div>
+<div class="setting"><div><label for="cities">Cities</label></div><div class="stepper"><button id="cities-down" aria-label="Fewer cities">−</button><output id="city-value" for="cities">14</output><button id="cities-up" aria-label="More cities">+</button></div></div>
+<input id="cities" type="range" min="6" max="24" value="14" aria-label="Total cities"><div class="range-labels"><span>6 · compact</span><span>24 · expansive</span></div>
 <div class="setting enemy-setting"><div><label>Enemies</label></div></div>
 <div class="segments" id="enemies" role="group" aria-label="Number of enemy factions"><button data-value="1" aria-pressed="false">1</button><button data-value="2" aria-pressed="true">2</button><button data-value="3" aria-pressed="false">3</button><button data-value="4" aria-pressed="false">4</button></div>
-<p id="starting-note" class="note">You + 2 enemies · 9 neutral cities</p>
+<p id="starting-note" class="note">You + 2 enemies · 11 neutral cities</p>
 <div class="section-label features-label">ON THE FIELD</div>
 <div class="feature"><div><label>Industry</label></div><div class="segments" id="industry" role="group" aria-label="Industry"><button data-value="off" aria-pressed="false">Off</button><button data-value="on" aria-pressed="true">On</button></div></div>
 <div class="feature"><div><label>River & bridges</label></div><div class="segments" id="river" role="group" aria-label="River and bridges"><button data-value="off" aria-pressed="false">Off</button><button data-value="on" aria-pressed="true">On</button></div></div>
+<div class="feature"><div><label>Mountains</label></div><div class="segments" id="mountains" role="group" aria-label="Mountains"><button data-value="off" aria-pressed="false">Off</button><button data-value="on" aria-pressed="true">On</button></div></div>
 <div class="feature"><div><label>Artillery</label><small>Siege guns · mountains</small></div><div class="segments" id="artillery" role="group" aria-label="Artillery"><button data-value="off" aria-pressed="true">Off</button><button data-value="on" aria-pressed="false">On</button></div></div>
 <div class="advanced-settings">
 <details class="settings-section"><summary><span>Your upgrades</span><span id="player-upgrade-summary" class="summary-count">None enabled</span></summary><div id="player-upgrades" class="upgrade-list"></div></details>

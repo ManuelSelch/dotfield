@@ -21,6 +21,7 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
     <div className="home-section-label home-features-label">On the field</div>
     {([{ id: 'industry', name: 'Industry', aria: 'Map industry' },
       { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
+      { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
       { id: 'artillery', name: 'Artillery', aria: 'Artillery' }] as const).map(feature => <div className="home-feature" key={feature.id}>
       <div><span className="home-label">{feature.name}</span></div>
       <div className="home-segments" role="group" aria-label={feature.aria}>

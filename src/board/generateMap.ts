@@ -4,7 +4,6 @@ import { createRiver } from '../game/river';
 import { snapshotTerritories } from '../game/features/snapshot';
 import { createTerrain } from '../game/terrain/terrain';
 import { entersInterior } from '../game/terrain/geometry';
-import type { Terrain } from '../game/terrain/types';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export interface MapSettings {
@@ -12,14 +11,14 @@ export interface MapSettings {
   readonly enemies: number;
   readonly industry: boolean;
   readonly river: boolean;
+  readonly mountains: boolean;
   readonly artillery: boolean;
 }
 export interface GeneratedMap extends FieldMap {
-  readonly terrain: Terrain;
   readonly seed: number;
   readonly settings: MapSettings;
 }
-export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true, artillery: false });
+export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true, mountains: true, artillery: false });
 export const enemyIds = (count: number) => Array.from({ length: count }, (_, i) => i === 0 ? 'enemy' : `enemy-${i + 1}`);
 const MOUNTAIN_RANGE = { id: 'mountain-range', kind: 'mountain' as const,
   bounds: { minX: 140, minY: 270, maxX: 220, maxY: 370 } };
@@ -30,7 +29,7 @@ export function isMapSettings(value: unknown): value is MapSettings {
   return Number.isInteger(settings.cities) && settings.cities >= 6 && settings.cities <= 24
     && Number.isInteger(settings.enemies) && settings.enemies >= 1 && settings.enemies <= 4
     && typeof settings.industry === 'boolean' && typeof settings.river === 'boolean'
-    && typeof settings.artillery === 'boolean';
+    && typeof settings.mountains === 'boolean' && typeof settings.artillery === 'boolean';
 }
 
 // Bounded, reproducible randomness; no simulation or browser dependency.
@@ -74,10 +73,10 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!Number.isInteger(seed) || seed < 0 || seed >= 2 ** 32) throw new RangeError('Invalid map seed.');
   const random = seededRandom(seed);
   // Stratified capacity guarantees termination and >=58-unit city separation even
-  // at maximum density. Central slots shift around the fixed ridge.
+  // at maximum density. When Mountains is on, central slots shift around the ridge.
   const rows = settings.river ? [50, 120, 190, 290, 360, 430] : [40, 120, 200, 280, 360, 440];
   const slots: Territory[] = rows.flatMap((y, row) => {
-    const mountainRow = row === 3 || row === 4;
+    const mountainRow = settings.mountains && (row === 3 || row === 4);
     const xs = mountainRow ? [48, 116, 244, 312] : [48, 136, 224, 312];
     const offset = () => (random() - 0.5) * (mountainRow ? 8 : 12);
     return xs.map((x, column) => ({
@@ -100,7 +99,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
     scores.sort((a, b) => b.score - a.score);
     cities.push(scores[0].city);
   }
-  // Equal garrisons; fixed ridge geometry retains a connected legal staging graph.
+  // Equal garrisons; terrain-aware slots retain a connected legal staging graph.
   const starts: Territory[] = [];
   const factions = ['player', ...enemyIds(settings.enemies)];
   for (let i = 0; i < factions.length; i++) {
@@ -132,9 +131,8 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
     id: `bridge-${column}`, northId: slots[8 + column].id, southId: slots[12 + column].id, width: 64,
   })) }, territories) : undefined;
   const artilleryRidge = artilleryCity ? chooseArtilleryMountain(artilleryCity, territories) : undefined;
-  const terrain = createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers: [
-    MOUNTAIN_RANGE, ...(artilleryRidge ? [artilleryRidge] : []),
-  ] });
+  const barriers = [...(settings.mountains ? [MOUNTAIN_RANGE] : []), ...(artilleryRidge ? [artilleryRidge] : [])];
+  const terrain = barriers.length ? createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers }) : undefined;
   return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
-    territories: snapshotTerritories(territories), terrain, ...(river ? { river } : {}) });
+    territories: snapshotTerritories(territories), ...(terrain ? { terrain } : {}), ...(river ? { river } : {}) });
 }
