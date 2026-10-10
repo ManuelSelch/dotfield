@@ -15,7 +15,7 @@ describe('shared per-dot geometry', () => {
     expect(group().dotSlots).toEqual([0, 1, 2, 3, 4]);
     expect(group().formationSize).toBe(5);
   });
-  it.each([[0, 0], [0.15, 20], [0.3, 40], [0.5, 40], [0.9, 20], [1, 0]])(
+  it.each([[0, 0], [0.15, 16], [0.3, 32], [0.5, 32], [0.9, 16], [1, 0]])(
     'uses the existing opening/convergence at progress %s', (progress, width) => {
       const batch = group();
       const at = batch.durationMs * progress;

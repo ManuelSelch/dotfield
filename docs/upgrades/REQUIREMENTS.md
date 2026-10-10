@@ -47,7 +47,7 @@ The shared-rate/fixed-duration limitations below describe the original inspectio
 | Travel speed: 35 board units/s | `settings.ts`: `TRAVEL_SPEED` | `route.ts` computes a fixed `durationMs` when dispatching. Not read again during flight. |
 | Launch interval: 600 ms; group size: 5 | `settings.ts`: `BATCH_INTERVAL_MS`, `BATCH_SIZE` | `dispatch.ts` builds queued batches; `route.ts` uses these in AI order-duration estimates. |
 | Starting units: 36 per faction | `src/board/map.ts`, `src/board/maps.ts` | Map data copied at simulation/session creation. No separate starting-unit rule. |
-| Territory radius: 17; dot radius: 3.8; spacing: 10 | `settings.ts` | Shared rendering, route and collision geometry; not merely cosmetic. |
+| Territory radius: 14; dot radius: 3; spacing: 8 | `settings.ts` | Shared rendering, route and collision geometry; not merely cosmetic. |
 | Fixed simulation step: 50 ms | `settings.ts`: `SIMULATION_STEP_MS` | Clock, round stepping, travel collision sweeps and AI forecasts. |
 | AI cadence/scoring | `src/game/ai/config.ts`: `DEFAULT_AI` | Passed through FieldCanvas/startBoard/session; separate from physical rules. |
 

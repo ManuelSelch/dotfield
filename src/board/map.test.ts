@@ -17,9 +17,9 @@ describe('approved thirteen-city map', () => {
     }
   });
   it('uses approved smaller shared circle and troop geometry', () => {
-    expect(TERRITORY_RADIUS).toBe(17);
-    expect(DOT_RADIUS).toBe(3.8);
-    expect(DOT_SPACING).toBe(10);
+    expect(TERRITORY_RADIUS).toBe(14);
+    expect(DOT_RADIUS).toBe(3);
+    expect(DOT_SPACING).toBe(8);
     expect(DOT_SPACING).toBeGreaterThan(2 * DOT_RADIUS);
   });
 });
