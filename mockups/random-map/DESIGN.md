@@ -4,16 +4,16 @@
 Replace named-map browsing with match preferences and a fresh generated layout. Isolated HTML/CSS/JS prototype; no production changes.
 
 ## Revision
-2 — in review. No implementation approval yet.
+3 — in review. No implementation approval yet.
 
 ## Layout and interactions
 - Preserve Dotfield's warm light field, teal player, muted faction colours, and rounded controls.
-- Desktop: settings left, optional map preview right. Mobile: settings and Play first, preview below.
+- Desktop: settings left, always-visible map preview right. Mobile: settings and Play first, preview below.
 - Total cities: 6–24, slider and steppers. Enemies: 1–4 opposing factions. One starting city per faction; remaining cities neutral.
 - Industry and river/bridges: Off / On only. Selected features are fixed; layouts still change with every generation.
 - Always at least six cities, so every supported enemy count fits. Wider generation ranges and unavailable combinations are deferred to production design.
-- Preview responds to settings; Hide/Show preview and Reroll are available.
-- Play new map generates a new layout, not the shown preview; explicit copy communicates this.
+- Preview responds to settings; Reroll is available. No Hide/Show button or helper captions below the preview or Play button.
+- Play new map generates a new layout, not the shown preview.
 - Simulated match screen offers Restart same map, New map with unchanged settings, and return to settings.
 - Restart retains generated layout; New map changes it.
 - Keyboard controls and visible focus states; no animation or external assets.
@@ -25,8 +25,8 @@ Replace named-map browsing with match preferences and a fresh generated layout. 
 - Map seeds exist internally for repeatable restart but are not exposed in the UI.
 
 ## Review questions
-- Is settings-first mobile ordering useful, with the preview optional below?
+- Is settings-first mobile ordering useful, with the preview below?
 - Is generating a fresh layout on Play preferable to playing the inspected preview?
 
 ## Approval
-Pending user review of revision 2.
+Pending user review of revision 3.

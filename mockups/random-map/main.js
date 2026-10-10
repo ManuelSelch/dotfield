@@ -86,7 +86,6 @@ for(const key of ['enemies','industry','river'])$(key).addEventListener('click',
   refresh();
 });
 $('reroll').onclick=preview;
-$('toggle-preview').onclick=()=>{const hide=!$('preview-content').hidden;$('preview-content').hidden=hide;$('toggle-preview').textContent=hide?'Show preview':'Hide preview';$('toggle-preview').setAttribute('aria-expanded',String(!hide));};
 function newMatch(){match=makeMap();draw(match,$('match-map'));$('match-summary').textContent=description(match);$('match-status').textContent='';}
 $('play').onclick=()=>{newMatch();$('setup').hidden=true;$('match').hidden=false;$('restart').focus();window.scrollTo(0,0);};
 $('new-map').onclick=newMatch;
