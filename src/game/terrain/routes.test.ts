@@ -155,7 +155,7 @@ describe('safe terrain order validation before routed movement integration', () 
   });
   it('does not mistake a trimmed mountain detour for a legacy straight transfer', () => {
     const terrain = createTerrain({ bounds, crossings: [], barriers: [{ id: 'mountain', kind: 'mountain',
-      bounds: { minX: 178, minY: 384, maxX: 182, maxY: 390 } }] });
+      bounds: { minX: 178, minY: south.y - TERRITORY_RADIUS + 2, maxX: 182, maxY: south.y - 4 } }] });
     const route = planTerrainRoute(south, north, terrain)!;
     expect(route.points).toHaveLength(2);
     expect(route.points[0].x).not.toBe(180);

@@ -40,7 +40,7 @@ test('home previews generated Factories and restores its exact river round after
   await page.reload();
   await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Territory details' })).toContainText('Factory inactive (2× production)');
-  await expect(page.getByRole('status')).toContainText('River crossings require paired bridge-city orders');
+  await expect(page.getByRole('status').filter({ hasText: 'River crossings require paired bridge-city orders' })).toContainText('River crossings require paired bridge-city orders');
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
   const restored = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!).territories);
   expect(restored).toEqual(starting);

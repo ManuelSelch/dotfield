@@ -2,7 +2,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { generateMap, enemyIds, newMapSeed, seededRandom } from './board/generateMap';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
-import { OfflineNotice } from './ui/OfflineNotice';
+import { ConnectionBadge } from './ui/ConnectionBadge';
+import type { AppUpdates } from './pwa/appUpdates';
 import { AppHeader } from './ui/AppHeader';
 import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import { clearSavedGame, readSavedGame, writeSavedGame } from './game/persistence';
@@ -10,7 +11,7 @@ import { readMatchPreferences, writeMatchPreferences, type GeneratedMatch, type 
 import { createSnapshotSaver } from './game/snapshotSaver';
 
 type ActiveSetup = RoundSetup & { readonly generated?: GeneratedMatch };
-export function App() {
+export function App({ updates }: { updates: AppUpdates }) {
   const [saved, setSaved] = useState(() => readSavedGame());
   const [preferences, setPreferences] = useState(() => saved?.generated?.preferences ?? readMatchPreferences());
   const [previewSeed, setPreviewSeed] = useState(newMapSeed);
@@ -42,11 +43,10 @@ export function App() {
     setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
   }
   return <>
-    <OfflineNotice />
     <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
       <div className="app-viewport">
         <div className={`app-shell${setup ? ' app-shell--playing' : ' app-shell--home'}`}>
-          <AppHeader />
+          <AppHeader><ConnectionBadge updates={updates} playing={!!setup} /></AppHeader>
           {setup ? <section className="flex min-h-0 flex-1 flex-col">
             <FieldCanvas key={setup.generated?.seed ?? 'restored'} territories={setup.territories} river={setup.river} rules={setup.rules} ai={setup.ai}
               initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame}

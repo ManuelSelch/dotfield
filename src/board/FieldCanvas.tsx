@@ -38,7 +38,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           onResume={session.resume} onRestart={session.restart} onHome={onHome} onNewMap={onNewMap} />}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} onNewMap={onNewMap} />
       </div>
-      <TerritoryDetails territories={state.territories} />
+      <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />
       <TransferDetails state={state} />
     </>
   );

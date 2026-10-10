@@ -4,6 +4,7 @@ import { MATCH_PREFERENCES_KEY, defaultMatchPreferences } from '../src/game/matc
 import { generateMap } from '../src/board/generateMap';
 import { compileRoundSetup } from '../src/game/upgrades/compile';
 import { createSimulation } from '../src/game/state';
+import { TERRITORY_RADIUS } from '../src/game/settings';
 
 async function saved(page: import('@playwright/test').Page) {
   return page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY);
@@ -19,6 +20,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const play = page.getByRole('button', { name: 'Play new map', exact: true });
     const preview = page.getByRole('img', { name: 'Generated map preview' });
     await expect(preview.locator('circle[cx]')).toHaveCount(12);
+    for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', String(TERRITORY_RADIUS));
+    for (const counter of await preview.locator('text').all()) await expect(counter).toHaveAttribute('font-size', String(TERRITORY_RADIUS));
     await expect(page.getByRole('button', { name: /Next map|Previous map|Hide preview|Random/ })).toHaveCount(0);
     await expect(play).toBeInViewport();
     await expect.poll(() => play.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
@@ -30,7 +33,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByText('Your upgrades', { exact: true }).click();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Factory', exact: false }).check();
-    await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('2 enabled');
+    await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Capture shield', exact: true }).check();
+    await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('3 enabled');
     await page.getByText('Enemy settings', { exact: true }).click();
     await page.getByLabel('Enemy 4 behavior').selectOption('defensive');
     await page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' }).check();
@@ -54,6 +58,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     expect(initial.state.river).toBeUndefined();
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
+    expect(initial.state.rules.factions.player.captureShieldBatches).toBe(3);
     expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features[0].kind).toBe('factory');
     expect(initial.territories.find((c: { owner: string }) => c.owner === 'enemy-4').features[0].kind).toBe('watchtower');
     expect(initial.territories.map((c: { x: number; y: number }) => [c.x, c.y])).not.toEqual(previewCoordinates);

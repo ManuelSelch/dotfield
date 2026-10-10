@@ -1,6 +1,7 @@
 import type { SimulationState } from '../game/types';
 import type { DragSelection } from './drag';
 import { drawTerritories } from './drawTerritories';
+import { drawCaptureShields } from './drawCaptureShields';
 import { drawCityFeatures } from './drawCityFeatures';
 import { drawDrag } from './drawDrag';
 import { drawTransfers } from './drawTransfers';
@@ -48,6 +49,8 @@ export function drawBoard(
   // Territories mask the dot edges at launch/impact, keeping counters unobstructed.
   drawTransfers(ctx, state, width, height);
   drawTerritories(ctx, state, width, height);
+  drawCaptureShields(ctx, state, width, height,
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawCityFeatures(ctx, state, width, height);
   drawDrag(ctx, state.territories, selection, width, height, state.river);
 }

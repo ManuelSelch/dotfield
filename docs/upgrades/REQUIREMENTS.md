@@ -2,9 +2,9 @@
 
 ## Goal
 
-Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support multiple independently configured AI enemies, each with its own settings and upgrade selection. Support numeric modifiers and territory-attached mechanics such as towers and, later, slow zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
+Make pre-game upgrade effects easy to add without scattering upgrade IDs through simulation code. Support multiple independently configured AI enemies, each with its own settings and upgrade selection. Support numeric modifiers and territory-attached mechanics such as implemented Watchtowers and Slow Zones. Keep the simulation deterministic, browser-independent and shared with AI forecasting. Later progression should decide which effects are active without rewriting their implementation.
 
-Industry (+25% faction-owned city production), Factory (2× selected starting-city production, 2.5× combined) and Watchtower (72-unit coverage, up to four hostile dots/second) are implemented; see [effect catalog](EFFECTS.md). General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. The two-enemy Crossfire map is implemented as the fifth map. Slow zones are deferred. No economy, unlocks or persistence.
+Industry (+25% faction-owned city production), Factory (2× selected starting-city production, 2.5× combined) and Watchtower (72-unit coverage, up to four hostile dots/second) are implemented; see [effect catalog](EFFECTS.md). General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. The two-enemy Crossfire map is implemented as the fifth map. Player-only Slow Zone selection and its variable-speed foundation are implemented; radius 90, multiplier 0.5, random placement across all map cities and current-owner allegiance are documented in the [Slow Zone plan](slow-zone/REQUIREMENTS.md). No economy or unlocks exist. Home choices remain in memory; saved active rounds retain compiled effects/rules.
 
 ## Scope
 
@@ -19,15 +19,15 @@ Industry (+25% faction-owned city production), Factory (2× selected starting-ci
 
 ### Out of Scope
 
-- Currency, prices, rewards, levels, unlocks, progression saves or mid-round saves.
+- Currency, prices, rewards, levels, unlocks or progression saves. Active-round event saves are implemented separately.
 - Changing AI difficulty, hidden bonuses, procedural maps, or asynchronous/networked opponents.
 - A generic plugin/event-bus framework, ECS, arbitrary scripting or a game editor.
-- Slow zones, variable-speed movement, progression, currency, or persistence across browser reloads.
+- Additional unapproved effect types or persisted Home upgrade/AI selections. Slow Zones, variable-speed movement and compiled active-round restoration are part of the current implementation.
 - Hot-changing upgrades during a round.
 
 ## Requirements
 
-### 0. Industry implementation checkpoint
+### Current implementation checkpoint
 
 - `src/game/rules.ts` resolves, validates and freezes independent faction-ID keyed growth/speed/cadence rules. Ownership, hostile collisions, capture, elimination, and AI decision schedules now support arbitrary faction IDs; player remains the sole human faction.
 - `src/game/upgrades/catalog.ts` defines typed effects; `compile.ts` snapshots the map and resolves each faction's selected IDs. Home exposes player and per-enemy upgrade checkboxes plus independent Balanced/Aggressive/Defensive AI behavior choices. All selections are in-memory.
@@ -37,15 +37,17 @@ Industry (+25% faction-owned city production), Factory (2× selected starting-ci
 - Factory stays attached on capture and boosts its current non-neutral owner. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
 - Watchtower is implemented as a typed territory feature with 250ms simulation-time firing, shared with AI forecasts. Its current city owner controls it; capturing switches allegiance immediately, and the continuous cadence does not reset. It targets the nearest hostile dot center within 72 field units, removes one stable slot, and draws a subtle coverage circle plus tower silhouette.
 
-### 1. Baseline before Industry: inspected implementation
+### Historical baseline before Industry
 
-| Setting | Current source | Current consumer / limitation |
+The shared-rate/fixed-duration limitations below describe the original inspection, not the current per-faction/Slow Zone implementation. Geometry values are synchronized with current `settings.ts` (17 / 3.8 / 10).
+
+| Setting | Source | Historical consumer / limitation |
 |---|---|---|
 | Growth: 1 unit/s | `src/game/settings.ts`: `GROWTH_RULES` | Copied to `state.rules` by `createSimulation`; `advanceGrowth` reads it. One rate shared by both factions. |
 | Travel speed: 35 board units/s | `settings.ts`: `TRAVEL_SPEED` | `route.ts` computes a fixed `durationMs` when dispatching. Not read again during flight. |
 | Launch interval: 600 ms; group size: 5 | `settings.ts`: `BATCH_INTERVAL_MS`, `BATCH_SIZE` | `dispatch.ts` builds queued batches; `route.ts` uses these in AI order-duration estimates. |
 | Starting units: 36 per faction | `src/board/map.ts`, `src/board/maps.ts` | Map data copied at simulation/session creation. No separate starting-unit rule. |
-| Territory radius: 17; dot radius: 3.8; spacing: 10 | `settings.ts` | Shared rendering, route and collision geometry; not merely cosmetic. |
+| Territory radius: 14; dot radius: 3; spacing: 8 | `settings.ts` | Shared rendering, route and collision geometry; not merely cosmetic. |
 | Fixed simulation step: 50 ms | `settings.ts`: `SIMULATION_STEP_MS` | Clock, round stepping, travel collision sweeps and AI forecasts. |
 | AI cadence/scoring | `src/game/ai/config.ts`: `DEFAULT_AI` | Passed through FieldCanvas/startBoard/session; separate from physical rules. |
 
@@ -63,7 +65,7 @@ That legacy override applies the shared growth value to every configured faction
 
 ### 2. Separate baseline rules, selected upgrades and resolved round configuration
 
-Proposed conceptual types (names/API can be refined during implementation):
+Original conceptual type sketches (illustrative, not the current complete API; `RoundSetup` also carries AI/river metadata and the catalog supports random-feature placement):
 
 ```ts
 type FactionRules = Readonly<{
@@ -133,14 +135,14 @@ type TerritoryFeature =
 - Generate feature IDs deterministically from the host city and effect instance; validate uniqueness across the round. Restart recreates deadlines/charges, not references to the old runtime object.
 - A central initializer validates definitions and creates runtime state. Modules such as `features/tower.ts` and `features/slowZone.ts` own their mechanics. Start with explicit typed dispatch/handlers, not a general-purpose dynamic plugin loader.
 - Updated Factory policy (special-city slice 4): the structure remains on capture and boosts its current owner, including enemy captors; only neutral hosts are inactive. Confirmed Watchtower policy: follows current city ownership, fires against the former owner after capture; neutral-owned towers do not fire. Its global cadence continues through ownership changes.
-- A future factory would modify `getTerritoryGrowthRate(state, city)` on top of faction growth, not duplicate the growth loop. Faction effects belong to armies; building effects belong to their host.
+- Implemented Factory features modify `getTerritoryGrowthRate(state, city)` on top of faction growth, not duplicate the growth loop. Faction effects belong to armies; building effects belong to their host.
 - Feature visuals and accessible descriptions consume domain state, never apply damage or advance cooldowns. Add board feature rendering and describe city features in keyboard/screen-reader controls.
 - Preserve existing Voronoi caching keyed by positions/IDs/dimensions; features do not require rebuilding cells.
 - Initial area effects use circle/radius geometry in board coordinates. Do not use viewport-dependent clipped Voronoi polygons for physics: margins change with screen aspect ratio. If whole-region effects are wanted later, define a fixed logical-board region geometry independently of rendering.
 
 ### 5. Shared deterministic world stepping, including new damage
 
-Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel → combat. Forecasts also skip quiet intervals using launch/arrival times. Adding a tower to only the live loop would make the opponent reason about the wrong game.
+`worldStep.ts` provides physical stepping shared by live rounds and AI forecasts; their orchestration remains separate. Forecast quiet skipping and conservative completion horizons account for timed/spatial effects. The original duplicated-physics risk has been addressed; new features must preserve the common kernel.
 
 - Extract a browser-independent world-advance kernel used by both live play and forecasts. It owns physical rules and terminal checks but never issues AI orders.
 - The live orchestrator runs world steps and then scheduled AI decisions; the forecast replays only known orders through the same world steps. Never recursively run AI during forecasting.
@@ -164,52 +166,61 @@ Currently `round.ts` and `ai/forecast.ts` each orchestrate growth → travel →
 - Draw a compact tower silhouette and subtle owner-tinted 72-unit coverage circle without changing counters, region touch targets or combat geometry.
 - Confirmed values/policies: 72 field units; 250ms cadence; dot-center range; tower switches allegiance on capture; impacts/collisions resolve before tower shots in each fixed step.
 
-Slow zones and the variable-speed movement foundation are deferred; they are not part of the two-enemy goal.
+Slow Zones and the variable-speed movement foundation were implemented after the original two-enemy increment. See the focused [Slow Zone plan](slow-zone/REQUIREMENTS.md) for travel, ownership, overlap and verification boundaries.
 
 ## Assumptions
 
-- The current implemented effects (Industry, Factory, Watchtower) are available candidates for each enemy's independent selection. The exact initial default selections and AI behavior controls can be chosen during implementation; all configuration remains in memory.
+- Each enemy can independently select Industry/Factory/Watchtower and Balanced/Aggressive/Defensive behavior; defaults are empty effects and Balanced behavior. Slow Zone selection is player-only. Home configuration stays in memory; compiled active-round rules/AI/features are restored with the round.
 - Each faction starts with baseline rules and no selected upgrades unless configured. Player and AI selections are independent, in-memory only; no mirroring or shared enemy configuration.
-- Factory stays with its city and transfers its bonus to the current owner, including enemy captors. Other feature capture policies remain subject to approval. Faction modifiers follow the current owner or issuing army as described above.
+- Factory stays with its city and transfers its bonus to the current owner, including enemy captors. Watchtower and Slow Zone allegiance also follows the current owner; neutral towers are inactive and neutral zones slow everyone. Faction modifiers follow the current owner or issuing army as described above.
 - Existing engine constants and collision geometry remain unchanged by these upgrades.
 
 ## Implementation Plan
 
 ### 1. Round rules and shared world stepping
 
-Replace upgradeable global reads with resolved per-faction rules; thread one immutable setup through simulation, session and board initialization/restart. Extract shared live/forecast physics without changing baseline gameplay or AI policy. Verify zero-modifier baseline equivalence, independent player/enemy rates, route/dispatch/AI-horizon agreement, restart isolation and all existing tests.
+Status: implemented.
+Description: Replace upgradeable global reads with resolved per-faction rules; thread one immutable setup through simulation, session and board initialization/restart. Extract shared live/forecast physics without changing baseline gameplay or AI policy. Verify zero-modifier baseline equivalence, independent player/enemy rates, route/dispatch/AI-horizon agreement, restart isolation and all existing tests.
 
 ### 2. Upgrade catalog and setup compiler
 
-Add typed catalog effects, deterministic composition, validation and seed transformation for starting units/features. Keep UI/progression concerns outside core rules. Verify selection-order independence, duplicate handling, unchanged source maps, one-time starting bonuses and no neutral bonuses. Depends on slice 1; no progression implementation.
+Status: implemented for catalog stat, starting-feature and random-feature effects; proposed starting-unit bonuses are not exposed.
+Description: Add typed catalog effects, deterministic composition, validation and seed transformation for starting units/features. Keep UI/progression concerns outside core rules. Verify selection-order independence, duplicate handling, unchanged source maps, one-time starting bonuses and no neutral bonuses. Depends on slice 1; no progression implementation.
 
 ### 3. Pre-game selection for numeric effects
 
-Add a compact upgrade selection surface before Play, with resolved-effect descriptions and independent per-faction selections. Snapshot on Play; keep selection on Home; restart/replay retain the same setup. Verify phone layouts without scrolling, no simulation before Play, modified actual units/speed/growth, fresh starts and keyboard/touch behavior. Depends on slice 2; only confirmed numeric effects appear.
+Status: implemented for confirmed effects; Quick march/Rapid deployment remain proposals.
+Description: Add a compact upgrade selection surface before Play, with resolved-effect descriptions and independent per-faction selections. Snapshot on Play; keep selection on Home; restart/replay retain the same setup. Verify phone layouts without scrolling, no simulation before Play, modified actual units/speed/growth, fresh starts and keyboard/touch behavior. Depends on slice 2; only confirmed numeric effects appear.
 
 ### 4. Territory feature definitions and runtime lifecycle
 
-Add validated discriminated feature definitions, separate runtime initialization, capture policy, board/accessibility feature presentation and shared simulation integration points. Verify old maps without features, unique IDs, copied seed/runtime independence, capture/reset and unchanged Voronoi cache/input. Depends on slices 1–2; no tower damage yet.
+Status: implemented.
+Description: Add validated discriminated feature definitions, separate runtime initialization, capture policy, board/accessibility feature presentation and shared simulation integration points. Verify old maps without features, unique IDs, copied seed/runtime independence, capture/reset and unchanged Voronoi cache/input. Depends on slices 1–2; no tower damage yet.
 
-### 5. Watchtower simulation, forecasts and selection (implemented)
+### 5. Watchtower simulation, forecasts and selection
 
-Attach a tower to the selecting faction's starting city; at each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette, expose accessible status and select from Home. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.
+Status: implemented.
+Description: Attach a tower to the selecting faction's starting city; at each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette, expose accessible status and select from Home. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.
 
-### 6. Variable-speed movement foundation (deferred; out of scope for the two-enemy goal)
+### 6. Variable-speed movement foundation
 
-Separate launch scheduling from flight distance/time. Make shared position/formation/collision/arrival and AI timing helpers support piecewise motion without changing constant-speed outcomes. Verify no teleportation, partial-step launches/impacts, baseline formation geometry, stable survivor slots, fixed/bulk-step equivalence and old regression scenarios. Depends on slice 5 so tower geometry also migrates; no slow-zone UI yet.
+Status: implemented with Slow Zone integration after the original two-enemy scope.
+Description: Separate launch scheduling from flight distance/time. Make shared position/formation/collision/arrival and AI timing helpers support piecewise motion without changing constant-speed outcomes. Verify no teleportation, partial-step launches/impacts, baseline formation geometry, stable survivor slots, fixed/bulk-step equivalence and old regression scenarios. Depends on slice 5 so tower geometry also migrates; no slow-zone UI yet.
 
-### 7. General faction identity and multi-enemy simulation (implemented)
+### 7. General faction identity and multi-enemy simulation
 
-Replace the two-value player/enemy ownership assumption with stable faction IDs plus separate human/AI control metadata. Generalize ownership, dispatch authorization, hostile pair collisions, tower targeting, capture, elimination, terminal outcomes, and accessible faction presentation. All factions are mutually hostile; do not add alliances or teams. Preserve exact two-faction behavior. Verify three-or-more factions with pairwise combat, friendly pass-through, captures among AI factions, player victory/defeat and no-faction draw, deterministic simultaneous events, and existing regression tests.
+Status: implemented.
+Description: Replace the two-value player/enemy ownership assumption with stable faction IDs plus separate human/AI control metadata. Generalize ownership, dispatch authorization, hostile pair collisions, tower targeting, capture, elimination, terminal outcomes, and accessible faction presentation. All factions are mutually hostile; do not add alliances or teams. Preserve exact two-faction behavior. Verify three-or-more factions with pairwise combat, friendly pass-through, captures among AI factions, player victory/defeat and no-faction draw, deterministic simultaneous events, and existing regression tests.
 
-### 8. Independent AI behavior and upgrade configuration (implemented)
+### 8. Independent AI behavior and upgrade configuration
 
-Give each AI faction its own AI behavior settings, simulation-time decision schedule, faction rules and selected upgrade IDs. Extend the immutable round setup and compiler to resolve each faction independently; thread the setup through Home → Play → board/session and preserve it on restart/replay. Add Home controls to configure both enemies' AI behavior and upgrade effects separately. Nothing is persisted across reloads. Verify choices affect only their selected enemy, both AIs act independently, baseline defaults are valid, and restart/replay preserve the in-memory choices.
+Status: implemented.
+Description: Give each AI faction its own AI behavior settings, simulation-time decision schedule, faction rules and selected upgrade IDs. Extend the immutable round setup and compiler to resolve each faction independently; thread the setup through Home → Play → board/session and preserve it on restart/replay. Add Home controls to configure both enemies' AI behavior and upgrade effects separately. Home choices reset on reload; active-round saves retain their compiled configuration. Verify choices affect only their selected enemy, both AIs act independently, baseline defaults are valid, and restart/replay preserve the in-memory choices.
 
-### 9. Two-enemy map and complete round flow (implemented)
+### 9. Two-enemy map and complete round flow
 
-Add the 23-city Crossfire map containing the player, two distinct mutually hostile AI factions and neutrals. Make it playable through the existing visual map picker. Verify the full Home → Play → multi-enemy combat → player victory/defeat → replay/Home flow, including both enemies' independent settings and upgrades. Slow zones and variable-speed movement remain excluded.
+Status: implemented; human balance/real-device playtesting remains.
+Description: Add the 23-city Crossfire map containing the player, two distinct mutually hostile AI factions and neutrals. Make it playable through the existing visual map picker. Verify the full Home → Play → multi-enemy combat → player victory/defeat → replay/Home flow, including both enemies' independent settings and upgrades. Slow Zones and variable-speed movement were separate later increments and are now implemented.
 
 ## Open Questions
 

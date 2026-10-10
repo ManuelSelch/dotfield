@@ -4,6 +4,7 @@ const port = Number(process.env.PLAYWRIGHT_PORT ?? 5180);
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: '**/pwa/**',
   use: {
     baseURL: `http://127.0.0.1:${port}`,
     headless: true,

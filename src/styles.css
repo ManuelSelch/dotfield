@@ -21,24 +21,36 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background: var(--color-page); }
 #root { height: 100%; overflow: hidden; }
 
-.offline-notice {
-  position: fixed;
-  z-index: 20;
-  top: max(8px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: calc(100% - 32px);
-  padding: 7px 12px;
-  border: 1px solid #d8cfae;
-  border-radius: 999px;
-  color: #675b2d;
-  background: #fff9dd;
-  box-shadow: 0 3px 12px rgb(37 60 51 / 10%);
-  font-size: 12px;
+.connection-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-muted);
+  font-size: 11px;
   line-height: 1.3;
-  text-align: center;
 }
+.connection-badge [role="status"] { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.connection-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: #267c72; }
+.connection-badge--offline .connection-badge__dot { background: #879087; }
+.connection-badge--updating .connection-badge__dot { background: #b58b35; animation: badge-pulse 1s ease-in-out infinite alternate; }
+.connection-badge--ready .connection-badge__dot { background: #467da8; }
+.connection-badge--error .connection-badge__dot { background: #bd624e; }
+.connection-badge button {
+  min-height: 44px;
+  padding: 0 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-field);
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.connection-badge button:focus-visible { outline: 2px solid var(--color-player); outline-offset: 2px; }
+/* Only Home offers the action; keep it in flow so it cannot cover other controls. */
+.connection-badge:has(button) { flex-direction: column; align-items: flex-end; gap: 4px; }
+@keyframes badge-pulse { to { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .connection-badge__dot { animation: none; } }
 
 .app-safe-area {
   padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));

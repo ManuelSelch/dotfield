@@ -6,6 +6,8 @@ import { bridgeDecks } from '../game/river';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
+  const badgeRadius = Math.max(5, TERRITORY_RADIUS * 0.34);
+  const badgeOffset = Math.max(TERRITORY_RADIUS * 0.9, TERRITORY_RADIUS / 2 + badgeRadius + 2);
   const regions = useMemo(() => createCityRegions(map.territories, 360, 480, map.river), [map]);
   return <svg viewBox="0 0 360 480" role="img" aria-label={index === undefined ? 'Generated map preview' : `Map ${index + 1} preview`}
     className="block h-full w-full rounded-[20px] bg-field" preserveAspectRatio="xMidYMid meet">
@@ -26,11 +28,11 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
       const palette = factionPalette(city.owner);
       return <g key={city.id}>
         <circle cx={city.x} cy={city.y} r={TERRITORY_RADIUS} fill={palette.fill} stroke={palette.stroke} />
-        <text x={city.x} y={city.y} textAnchor="middle" dominantBaseline="central" fill={palette.ink} fontSize="17" fontFamily="system-ui">{city.units}</text>
+        <text x={city.x} y={city.y} textAnchor="middle" dominantBaseline="central" fill={palette.ink} fontSize={TERRITORY_RADIUS} fontFamily="system-ui">{city.units}</text>
         {city.features?.some(feature => feature.kind === 'factory') && <g aria-label="Factory"
-          transform={`translate(${city.x + 19} ${city.y - 19})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
-          <circle r="8" fill={palette.fill} stroke={palette.stroke} />
-          <path d="M-4.5 4V-.5L-1.5-2.5V-.5L1.5-2.5V-.5H2.5V-4.5H4.5V4Z" fill={palette.ink} />
+          transform={`translate(${city.x + badgeOffset} ${city.y - badgeOffset})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>
+          <circle r={badgeRadius} fill={palette.fill} stroke={palette.stroke} />
+          <path transform={`scale(${badgeRadius / 7})`} d="M-4.5 4V-.5L-1.5-2.5V-.5L1.5-2.5V-.5H2.5V-4.5H4.5V4Z" fill={palette.ink} />
         </g>}
       </g>;
     })}

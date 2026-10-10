@@ -1,5 +1,7 @@
 import { createRiver, canRiverOrder } from './river';
 import { isGeneratedMatch, type GeneratedMatch } from './matchPreferences';
+import { createRules } from './rules';
+import { restoreCaptureShields } from './features/captureShield';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -33,9 +35,11 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
   try {
     const raw = (storage ?? window.localStorage).getItem(SAVED_GAME_KEY);
     if (!raw) return null;
-    const value: unknown = JSON.parse(raw);
-    if (!isSavedGame(value)) return null;
-    if (!isGeneratedMatch(value.generated)) delete (value as { generated?: unknown }).generated;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isSavedGame(parsed)) return null;
+    if (!isGeneratedMatch(parsed.generated)) delete (parsed as { generated?: unknown }).generated;
+    const state = { ...parsed.state, rules: createRules(parsed.state.rules) };
+    const value: SavedGame = { ...parsed, state: { ...state, captureShields: restoreCaptureShields(state) } };
     if (value.state.river !== undefined) {
       const river = createRiver(value.state.river, value.territories);
       createRiver(river, value.state.territories);

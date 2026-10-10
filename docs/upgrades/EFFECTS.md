@@ -1,6 +1,6 @@
 # Upgrade effects
 
-Pre-game effects, without currency, purchases, levels or unlocks. The player and each AI faction can select effects independently; all selections are in memory and reset on reload. Later progression can supply the same active-effect IDs instead of manual selection.
+Pre-game effects, without currency, purchases, levels or unlocks. Player and AI effects are selected independently; Slow Zone selection is player-only. Home choices are memory-only and reset on reload, while a saved active round restores its compiled rules/features. Later progression can supply the same active-effect IDs instead of manual selection.
 
 | Upgrade | Simple effect | What it changes | Status |
 |---|---|---|---|
@@ -11,7 +11,7 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 | Watchtower | Starting city automatically destroys up to four nearby hostile airborne dots per second, within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented |
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | A randomly selected city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented |
-| Capture shield | Each newly captured city absorbs its first three incoming enemy units without losing garrison. | Helps establish a foothold; shield does not regenerate. | Proposed; recapture policy unresolved |
+| Capture shield | Each newly captured city blocks its first three hostile arriving batches without losing garrison (normally 15 troops). | Helps establish a foothold; no regeneration. Qualifying recapture grants three fresh charges. | Implemented; independently selectable for every faction |
 
 ## Industry scope
 
@@ -32,6 +32,7 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 
 ## Slow Zone scope
 
+- Player-selectable only; enemies can own/control its randomly chosen host without selecting the effect.
 - Off by default; selecting it attaches one zone to a uniformly selected city from the current map. The selection is resolved once when starting a round; Restart and Play again retain the same host, while a new Home → Play may choose another city.
 - Its fixed 90-unit radius is drawn as a distinct dashed owner-tinted circle with an hourglass marker. The circle uses logical field coordinates and does not change touch regions or combat geometry.
 - A zone owned by a faction slows only hostile airborne groups. Capturing the host switches allegiance immediately. A neutral-owned zone slows both player and enemy airborne groups.
@@ -48,6 +49,17 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 - Fire resolution is part of the shared fixed-step physical simulation used in live rounds and forecasts. A tower kill removes one dot/slot, not an entire dispatched group.
 - The radius uses fixed 360×480 field coordinates and scales with the board. The coverage circle is visual only; it does not change touch regions, launch boundaries or collision geometry.
 
+## Capture shield scope
+
+- Off by default and independently selectable for the player and each AI faction. Compiles into that faction's capture bonus, not a permanent building.
+- Successful captures of neutral or hostile cities grant three charges. Starting holdings, ties and friendly reinforcement grant none; reinforcements do not replenish charges.
+- One charge blocks one entire hostile arriving batch, regardless of its surviving troop count. A partial final launch or a batch reduced by collisions/Watchtower still consumes one charge. Fully destroyed batches never arrive or consume a charge.
+- Once depleted, subsequent hostile batches fight the garrison normally. There is no regeneration or expiry. Recapture by an upgraded faction grants three fresh charges; capture by an unupgraded faction clears protection.
+- Existing sequential arrival ordering applies: a capture can protect against later hostile arrivals in the same simulation step. Live combat and AI forecasts use the same path.
+- Three owner-coloured compact arcs surround the city. Each blocked batch removes one arc with a brief simulation-time flash; reduced-motion mode skips flashing. Unit counters, production, input regions and collision/impact geometry are unchanged.
+- Runtime charges and hit feedback persist with the round. Legacy saves default to no shields, never retroactively grant charges. Restart/Play again retain the rule but clear capture runtime; paused/hidden/terminal state freezes effects.
+- Approved design: [mockup revision 2](../../mockups/capture-shield/DESIGN.md). Browser regression tests cover three blocks then normal damage at 320/430px, partial/depleted shield restore in the real application, pause, restart and Home setup.
+
 ## Board indicators
 
 - Factory: a small vector factory silhouette (sawtooth roof and chimney) at the upper-right edge, dimmed while inactive. No letter F or emoji.
@@ -56,4 +68,4 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
 - Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
-See [architecture and implementation plan](REQUIREMENTS.md). All effects other than Industry, Factory and Watchtower remain proposals, not implemented features.
+See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, Watchtower, Slow Zone and Capture shield are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.

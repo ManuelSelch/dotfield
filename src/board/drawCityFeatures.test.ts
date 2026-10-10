@@ -58,8 +58,14 @@ describe('city upgrade indicators', () => {
   });
   it('keeps small-board icons readable and separated from counters', () => {
     const ctx = render(seed(['factory', 'industry']), 288, 260);
-    for (const call of ctx.arc.mock.calls) expect(call[2]).toBeGreaterThanOrEqual(7);
+    for (const call of ctx.arc.mock.calls) expect(call[2]).toBe(5);
     expect(ctx.save).toHaveBeenCalledTimes(2); expect(ctx.restore).toHaveBeenCalledTimes(2);
+  });
+  it('uses compact badges outside the counter on the logical-size board', () => {
+    const ctx = render(seed(['factory', 'industry']));
+    expect(ctx.arc.mock.calls.map(call => call.slice(0, 3))).toEqual([
+      [114, 86, 5], [86, 86, 5],
+    ]);
   });
   it('adds no indicators when no upgrades are active', () => {
     expect(render().arc).not.toHaveBeenCalled();

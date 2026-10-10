@@ -9,7 +9,8 @@
     "deploy": "npm run build && npx vercel --prod",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:pwa": "npm run build && playwright test --config playwright.pwa.config.ts"
   },
   "dependencies": {
     "@mantine/core": "^9.7.1",

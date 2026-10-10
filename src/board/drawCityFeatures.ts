@@ -7,7 +7,7 @@ import { TERRITORY_RADIUS } from '../game/settings';
 
 export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
   for (const city of projectBoard(state.territories, width, height)) {
-    const radius = Math.max(7, city.radius * 0.34);
+    const radius = Math.max(5, city.radius * 0.34);
     const offset = Math.max(city.radius * 0.9, city.fontSize / 2 + radius + 2);
     function badge(side: -1 | 1, active: boolean, draw: (ctx: CanvasRenderingContext2D) => void, vertical: -1 | 1 = -1) {
       const x = Math.max(radius + 1, Math.min(width - radius - 1, city.x + side * offset));

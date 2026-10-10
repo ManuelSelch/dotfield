@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { fieldPoints } from './helpers/fieldPoints';
+import { TERRITORY_RADIUS, TRAVEL_SPEED, BATCH_INTERVAL_MS } from '../src/game/settings';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -20,7 +21,7 @@ async function attack(page: import('@playwright/test').Page) {
 test('victory freezes the board and replay resets units, troops, outcome and clock', async ({ page }) => {
   await setup(page);
   await attack(page);
-  await page.clock.runFor(5500);
+  await page.clock.runFor(Math.ceil((200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000) + BATCH_INTERVAL_MS + 150);
   const result = page.getByRole('region', { name: 'Victory' });
   await expect(result).toBeVisible();
   const canvas = page.getByRole('img', { name: 'Territory board' });
