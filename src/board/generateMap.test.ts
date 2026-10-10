@@ -90,7 +90,7 @@ describe('generated fields', () => {
       expect(guns).toHaveLength(1);
       expect(guns[0]).toMatchObject({ owner: 'neutral', units: 14 });
       expect(guns[0].features?.some(feature => feature.kind === 'factory')).toBe(false);
-      expect(map.terrain.barriers.map(barrier => barrier.id)).toEqual(['mountain-range', 'artillery-ridge']);
+      expect(map.terrain.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
       expect(generateMap(settings, 19)).toEqual(map);
     }
     const disabled = generateMap({ ...DEFAULT_MAP_SETTINGS, artillery: false }, 19);
@@ -106,7 +106,7 @@ describe('generated fields', () => {
         expect(guns).toHaveLength(1);
         expect(guns[0].owner).toBe('neutral');
         expect(guns[0].units).toBe(14);
-        expect(map.terrain.barriers.map(barrier => barrier.id)).toEqual(['mountain-range', 'artillery-ridge']);
+        expect(map.terrain.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
       }
   });
   it('compiles the mountain terrain together with independent faction settings', () => {
