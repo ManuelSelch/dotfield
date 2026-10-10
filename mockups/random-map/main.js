@@ -5,8 +5,7 @@ let seed = 107, match;
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function makeMap() {
   const random = rng(++seed);
-  const resolve = value => value === 'random' ? random() > .5 : value === 'on';
-  const river = resolve(settings.river), industry = resolve(settings.industry);
+  const river = settings.river === 'on', industry = settings.industry === 'on';
   const cities = [], count = settings.cities;
   // Jittered rows are illustrative, not a production balance algorithm.
   const rows = Math.ceil(count / 3), columns = Math.ceil(count / rows);
