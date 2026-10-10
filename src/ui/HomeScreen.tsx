@@ -41,6 +41,7 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
           <div className="home-badges" aria-live="polite">
             <span>{map.territories.length} cities</span><span>{preferences.map.enemies} {preferences.map.enemies === 1 ? 'enemy' : 'enemies'}</span>
             <span>{map.settings.industry ? 'Industry' : 'No industry'}</span><span>{map.river ? `${map.river.bridges.length} bridges` : 'No river'}</span>
+            <span>{map.terrain?.barriers.some(barrier => barrier.kind === 'mountain') ? 'Mountain range' : 'No mountains'}</span>
           </div>
           <Button variant="outline" color="#267c72" radius="xl" mih={44} onClick={onReroll} aria-label="Reroll">↻ Reroll</Button>
         </section>

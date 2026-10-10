@@ -61,7 +61,7 @@ test('resizing preserves map preview and independent choices through Play and Ho
     await expect(page.getByLabel('Enemy 2 behavior')).toHaveValue('defensive');
   }
   await page.getByRole('button', { name: 'Play new map', exact: true }).click();
-  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(12);
+  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(14);
   await expect(page.getByRole('listitem').filter({ hasText: /Factory active/ })).toContainText('Faction enemy-2');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();

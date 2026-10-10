@@ -4,7 +4,7 @@ A small personal territory-conquest game, built one milestone at a time.
 
 ## Current milestone: fresh generated matches
 
-Choose **6–24 cities**, **1–4 enemies**, and whether the field has **Industry** (neutral Factories) and **River & bridges**, then press **Play new map**. Every match gets a fresh seeded layout. **Reroll** changes the preview; Play generates another layout. **Restart** and **Play again** repeat the current field, while **New map** in pause/results generates another with the same settings. No simulation or AI runs on Home.
+Choose **6–24 cities**, **1–4 enemies**, **Industry** (neutral Factories), and optional **River & bridges**, then press **Play new map**. Every generated field includes a central mountain ridge; the default larger field has 14 cities. Every match gets a fresh seeded layout. **Reroll** changes the preview; Play generates another layout. **Restart** and **Play again** repeat the current field, while **New map** in pause/results generates another with the same settings. No simulation or AI runs on Home.
 
 Collapsible **Your upgrades** and **Enemy settings** offer independent Industry, Factory, Slow Zone, Watchtower and Capture shield effects, plus Balanced/Aggressive/Defensive behavior for each enemy. Preferences survive reload; inactive enemy settings remain remembered but are not applied to smaller matches. On mobile, settings and preview scroll while **Play stays fixed at the bottom**. Desktop places settings left and preview right. See [generated matches](docs/generated-maps.md) for the generation contract and limitations. Progression, alliances and teams remain out of scope.
 

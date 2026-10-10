@@ -1,14 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import { generateMap, DEFAULT_MAP_SETTINGS } from './generateMap';
 import { canRiverOrder, createRiver } from '../game/river';
+import { canDirectTerrainOrder } from '../game/terrain/directOrder';
 import { TERRITORY_RADIUS } from '../game/settings';
 import { compileRoundSetup } from '../game/upgrades/compile';
 
 describe('generated fields', () => {
-  it('reproduces the exact field from settings and seed, without shared mutable cities', () => {
+  it('reproduces the larger fourteen-city default field from settings and seed', () => {
+    expect(DEFAULT_MAP_SETTINGS.cities).toBe(14);
     expect(generateMap(DEFAULT_MAP_SETTINGS, 42)).toEqual(generateMap(DEFAULT_MAP_SETTINGS, 42));
     expect(generateMap(DEFAULT_MAP_SETTINGS, 42).territories).not.toBe(generateMap(DEFAULT_MAP_SETTINGS, 42).territories);
     expect(generateMap(DEFAULT_MAP_SETTINGS, 43).territories).not.toEqual(generateMap(DEFAULT_MAP_SETTINGS, 42).territories);
+  });
+  it('combines a central mountain ridge with the optional river and keeps a legal city path around it', () => {
+    const map = generateMap({ cities: 24, enemies: 1, industry: false, river: true }, 42);
+    expect(map.terrain?.barriers).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'mountain-range', kind: 'mountain', bounds: expect.any(Object) }),
+    ]));
+    expect(map.river?.bridges).toHaveLength(2);
+    const mountain = map.terrain!.barriers.find(barrier => barrier.kind === 'mountain')!;
+    expect(map.territories.every(city => city.x <= mountain.bounds.minX || city.x >= mountain.bounds.maxX
+      || city.y <= mountain.bounds.minY || city.y >= mountain.bounds.maxY)).toBe(true);
+    const west = map.territories.find(city => city.x < mountain.bounds.minX && city.y > mountain.bounds.minY && city.y < mountain.bounds.maxY)!;
+    const east = map.territories.find(city => city.x > mountain.bounds.maxX && city.y > mountain.bounds.minY && city.y < mountain.bounds.maxY)!;
+    expect(canDirectTerrainOrder(west, east, map.terrain)).toBe(false);
+    const northBridge = map.territories.find(city => city.id === map.river!.bridges[0].northId)!;
+    const southBridge = map.territories.find(city => city.id === map.river!.bridges[0].southId)!;
+    expect(canRiverOrder(northBridge, southBridge, map.river)).toBe(true);
+    const reachable = new Set([map.territories[0].id]);
+    for (let pass = 0; pass < map.territories.length; pass++) for (const source of map.territories) if (reachable.has(source.id))
+      for (const target of map.territories) if (canRiverOrder(source, target, map.river)
+        && canDirectTerrainOrder(source, target, map.terrain)) reachable.add(target.id);
+    expect(reachable.size).toBe(map.territories.length);
   });
   it('rejects invalid counts, flags and seeds rather than silently ignoring them', () => {
     for (const cities of [5, 25, 6.5, NaN]) expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, cities }, 1)).toThrow();
@@ -34,6 +57,10 @@ describe('generated fields', () => {
           expect(c.y).toBeLessThanOrEqual(480 - TERRITORY_RADIUS);
           for (const other of map.territories) if (c !== other) expect(Math.hypot(c.x - other.x, c.y - other.y)).toBeGreaterThanOrEqual(58);
         }
+        const mountain = map.terrain?.barriers.find(barrier => barrier.kind === 'mountain');
+        expect(mountain?.id).toBe('mountain-range');
+        expect(map.territories.every(city => city.x <= mountain!.bounds.minX || city.x >= mountain!.bounds.maxX
+          || city.y <= mountain!.bounds.minY || city.y >= mountain!.bounds.maxY)).toBe(true);
         if (river) {
           expect(map.river?.bridges).toHaveLength(2);
           expect(createRiver(map.river!, map.territories)).toEqual(map.river);
@@ -44,11 +71,23 @@ describe('generated fields', () => {
         expect(reachable.size).toBe(cities);
       }
   });
+  it('keeps every generated city reachable by legal direct orders through mountain flanks and river bridges', () => {
+    for (let seed = 0; seed < 8; seed++) for (const cities of [6, 12, 24]) for (const enemies of [1, 4])
+      for (const river of [false, true]) {
+        const map = generateMap({ cities, enemies, river, industry: false }, seed);
+        const reachable = new Set([map.territories[0].id]);
+        for (let pass = 0; pass < cities; pass++) for (const source of map.territories) if (reachable.has(source.id))
+          for (const target of map.territories) if (canRiverOrder(source, target, map.river)
+            && canDirectTerrainOrder(source, target, map.terrain)) reachable.add(target.id);
+        expect(reachable.size, `seed ${seed}, cities ${cities}, enemies ${enemies}, river ${river}`).toBe(cities);
+      }
+  });
   it('does not add neutral industry when disabled and compiles all four independent enemy settings', () => {
     const map = generateMap({ cities: 24, enemies: 4, river: true, industry: false }, 4);
     expect(map.territories.every(c => !c.features?.length)).toBe(true);
-    const setup = compileRoundSetup(map.territories, { player: ['industry'], enemy: ['factory'], 'enemy-4': ['watchtower'] }, undefined, 0, { 'enemy-4': 'defensive' }, map.river);
+    const setup = compileRoundSetup(map.territories, { player: ['industry'], enemy: ['factory'], 'enemy-4': ['watchtower'] }, undefined, 0, { 'enemy-4': 'defensive' }, map.river, map.terrain);
     expect(Object.keys(setup.ai)).toHaveLength(4);
+    expect(setup.terrain).toEqual(map.terrain);
     expect(setup.territories.find(c => c.owner === 'enemy')?.features?.[0].kind).toBe('factory');
     expect(setup.territories.find(c => c.owner === 'enemy-4')?.features?.[0].kind).toBe('watchtower');
   });

@@ -1,6 +1,8 @@
 import type { FieldMap } from './maps';
 import type { Territory } from '../game/types';
 import { createRiver } from '../game/river';
+import { createTerrain } from '../game/terrain/terrain';
+import type { Terrain } from '../game/terrain/types';
 import { snapshotTerritories } from '../game/features/snapshot';
 
 export interface MapSettings {
@@ -10,10 +12,11 @@ export interface MapSettings {
   readonly river: boolean;
 }
 export interface GeneratedMap extends FieldMap {
+  readonly terrain: Terrain;
   readonly seed: number;
   readonly settings: MapSettings;
 }
-export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 12, enemies: 2, industry: true, river: true });
+export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true });
 export const enemyIds = (count: number) => Array.from({ length: count }, (_, i) => i === 0 ? 'enemy' : `enemy-${i + 1}`);
 
 export function isMapSettings(value: unknown): value is MapSettings {
@@ -41,13 +44,17 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!isMapSettings(settings)) throw new RangeError('Invalid map settings.');
   if (!Number.isInteger(seed) || seed < 0 || seed >= 2 ** 32) throw new RangeError('Invalid map seed.');
   const random = seededRandom(seed);
-  const jitter = () => (random() - 0.5) * 12;
   // Stratified capacity guarantees termination and >=58-unit city separation even
   // at maximum density. Each generation jitters coordinates and chooses new slots.
   const rows = settings.river ? [50, 120, 190, 290, 360, 430] : [40, 120, 200, 280, 360, 440];
-  const slots: Territory[] = rows.flatMap((y, row) => [48, 136, 224, 312].map((x, column) => ({
-    id: `city-${row * 4 + column + 1}`, owner: 'neutral', units: 8 + Math.floor(random() * 5), x: x + jitter(), y: y + jitter(),
-  })));
+  const slots: Territory[] = rows.flatMap((y, row) => {
+    const mountainRow = row === 3 || row === 4;
+    const xs = mountainRow ? [48, 116, 244, 312] : [48, 136, 224, 312];
+    const offset = () => (random() - 0.5) * (mountainRow ? 8 : 12);
+    return xs.map((x, column) => ({
+      id: `city-${row * 4 + column + 1}`, owner: 'neutral', units: 8 + Math.floor(random() * 5), x: x + offset(), y: y + offset(),
+    }));
+  });
   const cities: Territory[] = [];
   if (settings.river) {
     for (const column of [0, 3]) {
@@ -92,6 +99,9 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: [0, 3].map(column => ({
     id: `bridge-${column}`, northId: slots[8 + column].id, southId: slots[12 + column].id, width: 64,
   })) }, territories) : undefined;
+  const terrain = createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, barriers: [{
+    id: 'mountain-range', kind: 'mountain', bounds: { minX: 140, minY: 270, maxX: 220, maxY: 370 },
+  }], crossings: [] });
   return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
-    territories: snapshotTerritories(territories), ...(river ? { river } : {}) });
+    territories: snapshotTerritories(territories), terrain, ...(river ? { river } : {}) });
 }

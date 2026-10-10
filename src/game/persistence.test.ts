@@ -47,7 +47,7 @@ describe('round persistence', () => {
     const target = storage();
     const preferences = defaultMatchPreferences();
     const map = generateMap(preferences.map, 123);
-    const state = createSimulation(map.territories, undefined, map.river);
+    const state = createSimulation(map.territories, undefined, map.river, map.terrain);
     writeSavedGame({ state, territories: map.territories, ai: {}, phase: 'paused', generated: { seed: map.seed, preferences } }, target);
     const saved = readSavedGame(target)!;
     expect(saved.generated).toEqual({ seed: 123, preferences });
@@ -55,6 +55,7 @@ describe('round persistence', () => {
     session.restart();
     expect(session.state.territories).toEqual(state.territories);
     expect(session.state.river).toEqual(map.river);
+    expect(session.state.terrain).toEqual(map.terrain);
     const raw = JSON.parse(target.getItem(SAVED_GAME_KEY)!);
     raw.generated.preferences.map.cities = 99;
     target.setItem(SAVED_GAME_KEY, JSON.stringify(raw));
