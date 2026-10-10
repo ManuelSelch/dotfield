@@ -30,7 +30,7 @@ export function App() {
       <OfflineNotice />
       <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
         <div className="app-viewport">
-          <div className={`app-shell${setup ? ' app-shell--playing' : ''}`}>
+          <div className={`app-shell${setup ? ' app-shell--playing' : ' app-shell--home'}`}>
             <AppHeader />
             {setup ? <section className="flex min-h-0 flex-1 flex-col">
               <FieldCanvas territories={setup.territories} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
