@@ -30,6 +30,7 @@ export function createSimulation(
     transfers: [],
     arrivals: [],
     nextTransferId: 1,
+    captureShields: {},
     watchtowerElapsedMs: Object.fromEntries(opening.flatMap(city => (city.features ?? [])
       .filter(feature => feature.kind === 'watchtower').map(feature => [feature.id, 0]))),
     rules: resolved,

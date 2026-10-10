@@ -49,7 +49,9 @@ for (const viewport of [
 }
 
 test('roomy desktop centers settings without unnecessary two-enemy scrolling', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  // Five upgrades for each of three factions need more room than the former four-upgrade catalog.
+  // Smaller viewports retain the existing bounded settings scroller (covered above).
+  await page.setViewportSize({ width: 1440, height: 1200 });
   await page.goto('/');
   const settings = page.locator('.home-settings');
   const body = page.locator('.home-body');

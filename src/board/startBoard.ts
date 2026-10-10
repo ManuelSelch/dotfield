@@ -4,6 +4,7 @@ import type { AiConfigurations } from '../game/ai/tick';
 import type { DragSelection } from './drag';
 import { bindBoardInput } from './bindBoardInput';
 import { drawBoard } from './drawBoard';
+import { hasShieldFlash } from './drawCaptureShields';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
@@ -91,11 +92,13 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
       || state.transfers.reduce((sum, t) => sum + t.units, 0) !== previous.transfers.reduce((sum, t) => sum + t.units, 0)
+      || state.captureShields !== previous.captureShields
       || state.roundStatus !== previous.roundStatus;
     if (state.roundStatus !== 'playing') drag.cancel();
     if (changed) onState(state);
     if (state.roundStatus !== previous.roundStatus) options.onSnapshot?.(session.state, session.phase, true);
-    if (changed || selection || state.transfers.length || previous.transfers.length) redraw();
+    if (changed || selection || state.transfers.length || previous.transfers.length
+      || hasShieldFlash(state) || hasShieldFlash(previous)) redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }
   if (aiWorker) {

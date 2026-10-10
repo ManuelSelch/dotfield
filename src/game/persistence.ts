@@ -1,4 +1,6 @@
 import { createRiver, canRiverOrder } from './river';
+import { createRules } from './rules';
+import { restoreCaptureShields } from './features/captureShield';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -31,8 +33,10 @@ export function readSavedGame(storage: Pick<Storage, 'getItem'> = window.localSt
   try {
     const raw = storage.getItem(SAVED_GAME_KEY);
     if (!raw) return null;
-    const value: unknown = JSON.parse(raw);
-    if (!isSavedGame(value)) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isSavedGame(parsed)) return null;
+    const state = { ...parsed.state, rules: createRules(parsed.state.rules) };
+    const value: SavedGame = { ...parsed, state: { ...state, captureShields: restoreCaptureShields(state) } };
     if (value.state.river !== undefined) {
       const river = createRiver(value.state.river, value.territories);
       createRiver(river, value.state.territories);
