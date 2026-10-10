@@ -12,6 +12,9 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
     sourceId = null; focusId = null;
     if (selected) onSelection(null);
   }
+  function validate() {
+    if (sourceId && !getTerritories().some(node => node.id === sourceId && node.owner === 'player' && node.units >= 2)) cancel();
+  }
   function notify() {
     const node = getTerritories().find(n => n.id === focusId);
     if (!node) { cancel(); return; }
@@ -26,6 +29,7 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
     focusId = id; notify();
   }
   function click(event: Event) {
+    validate();
     const id = cityId(event);
     const node = getTerritories().find(n => n.id === id);
     if (!node || document.hidden) return;
@@ -34,6 +38,7 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
       cancel(); onDispatch(source, node.id); focusId = node.id; notify();
     } else if (sourceId === id) { cancel(); focusId = node.id; notify(); }
     else if (node.owner === 'player' && node.units >= 2) { sourceId = node.id; focusId = node.id; notify(); }
+    else { focusId = node.id; notify(); }
   }
   function key(event: KeyboardEvent) {
     if (event.key === 'Escape') {
@@ -48,7 +53,7 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
   root.addEventListener('focusout', blur);
   root.addEventListener('click', click);
   root.addEventListener('keydown', key);
-  return { cancel, dispose() {
+  return { cancel, validate, dispose() {
     cancel();
     root.removeEventListener('focusin', focus); root.removeEventListener('focusout', blur);
     root.removeEventListener('click', click); root.removeEventListener('keydown', key);

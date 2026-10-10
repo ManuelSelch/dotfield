@@ -47,6 +47,7 @@ Description: Adapt the application shell and in-round board sizing to available 
 Description: Building on slice 1's adaptive shell, introduce a larger proportional map preview beside existing setup controls and Play when space permits, with a stacked fallback and bounded settings overflow. Preserve map navigation, selections, and Home/Play behavior. Verify all maps, multiple enemy sections, keyboard map navigation, and visible Play at wide, short, and phone viewports; inspect screenshots. No new settings or map-picker features.
 
 ### 3. Mouse click-to-click orders
+Status: implemented. Explicitly mouse-only (`pointerType === 'mouse'`); touch/pen remain drag-only. Movement threshold is 5 CSS pixels. Persistent source selection, cancellation, live source validation and shared keyboard coordination are covered by focused unit/browser regressions. No simulation or dispatch-rule changes.
 Description: Add persistent mouse source selection and destination-click dispatch while retaining drag behavior and existing keyboard/touch controls. Distinguish click jitter from intentional dragging, reuse selection visuals and the shared dispatch command, and implement cancellation/source-invalidity lifecycle rules. Unit-test input transitions and browser-test exactly-one dispatch, reinforcement, source re-click/Escape, invalid drag, queued-order replacement, pause/resize/capture cancellation, and touch/keyboard regressions. No hover behavior or new shortcuts.
 
 ### 4. Cross-layout regression verification

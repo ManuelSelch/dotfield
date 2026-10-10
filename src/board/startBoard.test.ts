@@ -9,8 +9,8 @@ import * as roundRules from '../game/round';
 import { createSnapshotSaver } from '../game/snapshotSaver';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
-vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
-vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
+vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
+vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStart = true) {
@@ -28,7 +28,7 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   let onResize = () => {};
   vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { onResize = callback; } observe = observe; disconnect = disconnect; });
   let bounds = { width: 360, height: 480 };
-  const canvas = { getBoundingClientRect: () => bounds } as HTMLCanvasElement;
+  const canvas = { parentElement: new EventTarget(), getBoundingClientRect: () => bounds } as HTMLCanvasElement;
   const onCounts = vi.fn();
   const onSnapshot = vi.fn();
   const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot });
@@ -36,6 +36,30 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
 }
 
 describe('board lifecycle adapter', () => {
+  it('revalidates selection every frame and cancels on page exit', () => {
+    const board = harness();
+    const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
+    board.frame(0); board.frame(100);
+    expect(input.validate).toHaveBeenCalledTimes(2);
+    board.window.dispatchEvent(new Event('pagehide'));
+    expect(input.cancel).toHaveBeenCalledOnce();
+    board.stop();
+  });
+  it('validates against newly captured or depleted source state, not the previous frame', () => {
+    for (const [owner, units] of [['enemy', 36], ['player', 1]] as const) {
+      const board = harness();
+      const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
+      const before: SimulationState = board.onCounts.mock.lastCall![0];
+      const next = { ...before, territories: before.territories.map(node => node.id === 'south' ? { ...node, owner, units } : node) };
+      input.validate.mockImplementation(() => {
+        const nodes = vi.mocked(bindDrag).mock.lastCall![1]();
+        expect(nodes.find(node => node.id === 'south')).toMatchObject({ owner, units });
+      });
+      const spy = vi.spyOn(roundRules, 'advanceRound').mockReturnValueOnce(next);
+      board.frame(0); expect(input.validate).toHaveBeenCalledOnce();
+      spy.mockRestore(); board.stop();
+    }
+  });
   it('forces latest snapshots on hide and page exit without advancing time', () => {
     const board = harness();
     board.frame(0); board.frame(100);
@@ -162,6 +186,7 @@ describe('board lifecycle adapter', () => {
     board.frame(1800);
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
+    expect(vi.mocked(bindDrag).mock.results.at(-1)!.value.cancel).toHaveBeenCalled();
     expect(board.onSnapshot).toHaveBeenLastCalledWith(ended, 'running', true);
     const requests = board.request.mock.calls.length;
     expect(getTerritories()).toEqual([]);

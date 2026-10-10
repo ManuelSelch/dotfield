@@ -70,6 +70,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (disposed || !session.active) return;
     const previous = state;
     state = session.frame(timestamp);
+    drag.validate();
     requestAiDecisions();
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
@@ -87,6 +88,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       if (!pendingAi.delete(id) || disposed) return;
       if (order && session.active) {
         state = session.dispatchFaction(order.sourceId, order.targetId, factionId);
+        drag.validate();
         onState(state);
         redraw();
       }
@@ -102,6 +104,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (session.active) frameId = requestAnimationFrame(frame);
   }
   function onPageHide() {
+    drag.cancel();
     // Save the already-applied state; never advance the clock just to persist it.
     options.onSnapshot?.(session.state, session.phase, true);
   }
