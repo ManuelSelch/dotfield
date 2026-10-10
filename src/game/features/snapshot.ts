@@ -8,7 +8,7 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
     const features = city.features?.map(feature => {
       if (!feature.id || ids.has(feature.id) || kinds.has(feature.kind)) throw new RangeError('Duplicate or invalid city feature.');
       if (feature.kind === 'factory') {
-        if (!feature.beneficiaryId || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
+        if ((feature.beneficiaryId !== undefined && !feature.beneficiaryId) || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
           throw new RangeError('Invalid Factory definition.');
         }
       } else if (feature.kind === 'watchtower') {

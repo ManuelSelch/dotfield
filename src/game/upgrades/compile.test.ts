@@ -38,7 +38,7 @@ describe('Industry setup', () => {
     expect(result.rules.factions.enemy.unitsPerSecond).toBe(1.25);
     expect(result.rules.factions['enemy-2'].unitsPerSecond).toBe(1);
     expect(result.territories.find(city => city.id === 'north-2')?.features?.[0]).toMatchObject({
-      kind: 'factory', beneficiaryId: 'enemy-2', productionMultiplier: 2,
+      kind: 'factory', productionMultiplier: 2,
     });
     expect(result.ai.enemy!.decisionIntervalMs).toBeLessThan(result.ai['enemy-2']!.decisionIntervalMs);
   });

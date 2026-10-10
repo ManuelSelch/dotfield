@@ -17,7 +17,7 @@ export function createSimulation(
   for (const city of opening) {
     if (city.owner !== 'neutral') getFactionRules({ rules: resolved }, city.owner);
     for (const feature of city.features ?? []) {
-      if (feature.kind === 'factory') getFactionRules({ rules: resolved }, feature.beneficiaryId);
+      if (feature.kind === 'factory' && feature.beneficiaryId !== undefined) getFactionRules({ rules: resolved }, feature.beneficiaryId);
     }
   }
 

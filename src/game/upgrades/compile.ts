@@ -45,9 +45,8 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
           const host = effect.kind === 'attach-random-feature'
             ? seed[Math.floor(placementChoice * seed.length)] : seed.find(city => city.owner === id);
           if (!host) throw new RangeError(`No eligible city for faction ${id}.`);
-          const feature = effect.feature.kind === 'factory'
-            ? { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}`, beneficiaryId: id }
-            : { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}` };
+          if (effect.feature.kind === 'factory' && host.features?.some(feature => feature.kind === 'factory')) continue;
+          const feature = { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}` };
           seed = seed.map(city => city === host ? { ...city, features: [...(city.features ?? []), feature] } : city);
         }
       }

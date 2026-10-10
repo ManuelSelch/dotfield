@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const mapCounts = [13, 11, 9, 21, 23];
+const mapCounts = [13, 11, 9, 21, 23, 10, 8];
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
   test(`home uses visual arrow selection and supports every map at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -26,16 +26,17 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
       await page.getByRole('button', { name: /^Select south region: You/ }).focus();
-      await page.keyboard.press('Enter'); await page.getByRole('button', { name: /^Select centre region: Neutral/ }).focus();
+      const targetId = index < 5 ? 'centre' : index === 5 ? 'west-south' : 'west-north';
+      await page.keyboard.press('Enter'); await page.getByRole('button', { name: new RegExp(`^Select ${targetId} region:`) }).focus();
       await page.keyboard.press('Enter');
-      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText('south → centre');
+      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText(`south → ${targetId}`);
       await page.clock.runFor(1100);
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Restart', exact: true }).click();
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await page.clock.runFor(2000);
       await expect(page.getByRole('list', { name: 'Unit transfers' }))
-        .toContainText(index === 4 ? 'enemy-west →' : 'north →');
+        .toContainText(index === 4 ? 'enemy-west →' : index === 5 ? 'north-east →' : 'north →');
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Home', exact: true }).click();
       await expect(page.getByRole('img', { name: `Map ${index + 1} preview` })).toBeVisible();
