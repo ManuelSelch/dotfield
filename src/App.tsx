@@ -42,6 +42,14 @@ export function App({ updates }: { updates: AppUpdates }) {
     clearSavedGame(); setSaved(null);
     setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
   }
+  function startPreviewGame(preferences: MatchPreferences) {
+    const active = ['player', ...enemyIds(preferences.map.enemies)];
+    const upgrades = Object.fromEntries(Object.entries(preferences.upgrades).filter(([id]) => active.includes(id)));
+    const behaviors = Object.fromEntries(Object.entries(preferences.aiBehaviors).filter(([id]) => active.includes(id)));
+    const compiled = compileRoundSetup(preview.territories, upgrades, undefined, behaviors, preview.river, preview.terrain);
+    clearSavedGame(); setSaved(null);
+    setSetup({ ...compiled, generated: { seed: preview.seed, preferences } });
+  }
   return <>
     <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
       <div className="app-viewport">
@@ -52,7 +60,7 @@ export function App({ updates }: { updates: AppUpdates }) {
               initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame}
               onNewMap={() => play(setup.generated?.preferences ?? preferences)} />
           </section> : <HomeScreen map={preview} preferences={preferences} onChange={changePreferences}
-            onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => play()} />}
+            onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => startPreviewGame(preferences)} />}
         </div>
       </div>
     </main>

@@ -87,7 +87,6 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const before = await preview.locator('circle[cx]').first().getAttribute('cx');
     await page.getByRole('button', { name: 'Reroll' }).click();
     expect(await preview.locator('circle[cx]').first().getAttribute('cx')).not.toBe(before);
-    const previewCoordinates = await preview.locator('circle[cx]').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
     await play.click();
     await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
     const initial = await saved(page);
@@ -103,7 +102,6 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'watchtower'))).toHaveLength(1);
     expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'slow-zone'))).toHaveLength(1);
     expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features.some((feature: { kind: string }) => feature.kind === 'factory')).toBe(true);
-    expect(initial.territories.map((c: { x: number; y: number }) => [c.x, c.y])).not.toEqual(previewCoordinates);
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
     expect((await saved(page)).territories).toEqual(initial.territories);
@@ -168,6 +166,20 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   expect(Object.keys(next.ai)).toHaveLength(4);
   expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
   expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');
+});
+
+test('Play uses the current preview map after reroll', async ({ page }) => {
+  await page.goto('/');
+  const preview = page.getByRole('img', { name: 'Generated map preview' });
+  const first = await preview.locator('circle[cx]:not([aria-label="Artillery range"])').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
+  await page.getByRole('button', { name: 'Reroll' }).click();
+  const rerolled = await preview.locator('circle[cx]:not([aria-label="Artillery range"])').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
+  expect(rerolled).not.toEqual(first);
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+  const game = await saved(page);
+  const gameCoordinates = game.territories.map((c: { x: number; y: number }) => [c.x, c.y]);
+  expect(gameCoordinates).toEqual(rerolled);
 });
 
 test('bad preferences fall back safely and city controls work with the keyboard', async ({ page }) => {
