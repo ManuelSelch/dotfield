@@ -13,7 +13,7 @@ import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase) => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
 export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, river, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,7 +26,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
         {phase === 'running' && <PauseButton onPause={session.pause} />}
       </div>
-      <div className="relative min-h-0 flex-1">
+      <div className="field-viewport relative min-h-0 flex-1">
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details upgrade-icon-help${state.river ? ' bridge-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>

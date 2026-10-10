@@ -6,6 +6,7 @@ import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { SimulationState } from '../game/types';
 import * as roundRules from '../game/round';
+import { createSnapshotSaver } from '../game/snapshotSaver';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
@@ -29,11 +30,63 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   let bounds = { width: 360, height: 480 };
   const canvas = { getBoundingClientRect: () => bounds } as HTMLCanvasElement;
   const onCounts = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart });
-  return { resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, request, cancel, disconnect, onCounts, stop };
+  const onSnapshot = vi.fn();
+  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot });
+  return { resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('forces latest snapshots on hide and page exit without advancing time', () => {
+    const board = harness();
+    board.frame(0); board.frame(100);
+    const dispatch = vi.mocked(bindDrag).mock.lastCall![3];
+    dispatch('south', 'centre');
+    const latest = board.onCounts.mock.lastCall![0];
+    board.document.hidden = true;
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(latest, 'running', true);
+    board.window.dispatchEvent(new Event('pagehide'));
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(latest, 'running', true);
+    expect(board.onSnapshot.mock.lastCall![0].elapsedMs).toBe(100);
+    const snapshots = board.onSnapshot.mock.calls.length;
+    board.stop();
+    board.window.dispatchEvent(new Event('pagehide'));
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
+  });
+
+  it('saves an unsaved order on hide and cannot recreate a cleared save after disposal', () => {
+    const board = harness();
+    const write = vi.fn();
+    board.onSnapshot.mockImplementation(createSnapshotSaver(write));
+    board.frame(0); board.frame(100);
+    vi.mocked(bindDrag).mock.lastCall![3]('south', 'centre');
+    expect(write).not.toHaveBeenCalled();
+    board.document.hidden = true;
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    expect(write).toHaveBeenCalledOnce();
+    expect(write.mock.lastCall![0].transfers).toHaveLength(7);
+    // Home clears storage and disposes this adapter; no delayed/event write may revive it.
+    write.mockClear(); board.stop();
+    board.window.dispatchEvent(new Event('pagehide'));
+    board.document.dispatchEvent(new Event('visibilitychange'));
+    board.frame(200);
+    expect(write).not.toHaveBeenCalled();
+  });
+
+  it('forces phase changes but does not force every frame', () => {
+    const board = harness();
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'running', true);
+    const snapshots = board.onSnapshot.mock.calls.length;
+    board.frame(0); board.frame(1000);
+    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
+    board.stop.pause();
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'paused', true);
+    board.stop.resume();
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'running', true);
+    board.stop();
+  });
+
   it('does not cancel first input on the initial same-size observer notification', () => {
     const board = harness();
     const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
@@ -109,6 +162,7 @@ describe('board lifecycle adapter', () => {
     board.frame(1800);
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(ended, 'running', true);
     const requests = board.request.mock.calls.length;
     expect(getTerritories()).toEqual([]);
     dispatch('source', 'target');

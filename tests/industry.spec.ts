@@ -64,7 +64,13 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(city('south')).toHaveText('south: You, 37 units.');
     await expect(city('north')).toHaveText('north: Opponent, 37 units.');
     expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
-    await page.reload(); await expect(industry).not.toBeChecked();
+    await page.reload();
+    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
+    await expect(city('south')).toHaveText('south: You, 37 units.');
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
+    await expect(industry).not.toBeChecked();
     expect(errors).toEqual([]);
   });
 }

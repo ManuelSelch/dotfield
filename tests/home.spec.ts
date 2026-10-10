@@ -105,6 +105,9 @@ test('home arrow selection supports keyboard and resets on page reload', async (
   await expect(page.getByRole('img', { name: 'Map 2 preview' })).toBeVisible();
   await page.getByRole('button', { name: 'Play', exact: true }).focus(); await page.keyboard.press('Enter');
   await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(11);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Map 2 preview' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('img', { name: 'Map 1 preview' })).toBeVisible();
   await expect(page.getByRole('img', { name: 'Territory board' })).toHaveCount(0);

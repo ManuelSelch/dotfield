@@ -8,7 +8,7 @@ import type { AiConfigurations } from '../game/ai/tick';
 import { startBoard } from './startBoard';
 import type { River } from '../game/river';
 
-export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | AiConfigurations | null, autoStart: boolean, rules?: RulesInput, initialState?: SimulationState, initialPhase?: Exclude<SessionPhase, 'ready'>, onSnapshot?: (state: SimulationState, phase: SessionPhase) => void, river?: River) {
+export function useBoardSession(canvas: RefObject<HTMLCanvasElement | null>, territories: readonly Territory[], ai: AiConfig | AiConfigurations | null, autoStart: boolean, rules?: RulesInput, initialState?: SimulationState, initialPhase?: Exclude<SessionPhase, 'ready'>, onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void, river?: River) {
   const controller = useRef<ReturnType<typeof startBoard> | null>(null);
   const [feedback, setFeedback] = useState('');
   const [state, setState] = useState(() => initialState ?? createSimulation(territories, rules, river));

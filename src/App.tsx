@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { MAPS } from './board/maps';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
@@ -8,8 +8,7 @@ import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import type { UpgradeId } from './game/upgrades/catalog';
 import type { AiBehavior } from './game/ai/behaviors';
 import { clearSavedGame, readSavedGame, writeSavedGame } from './game/persistence';
-import type { SessionPhase } from './game/session';
-import type { SimulationState } from './game/types';
+import { createSnapshotSaver } from './game/snapshotSaver';
 
 export function App() {
   const [saved, setSaved] = useState(() => readSavedGame());
@@ -22,32 +21,29 @@ export function App() {
     rules: saved.state.rules,
     ai: saved.ai ?? {},
   } : null);
-  const lastSavedAt = useRef(0);
-  const saveSnapshot = useCallback((state: SimulationState, phase: SessionPhase) => {
-    if (!setup || phase === 'ready') return;
-    const now = performance.now();
-    if (phase === 'running' && now - lastSavedAt.current < 500) return;
-    lastSavedAt.current = now;
-    writeSavedGame({ state, territories: setup.territories, ai: setup.ai, phase });
-  }, [setup]);
+  const saveSnapshot = useMemo(() => createSnapshotSaver((state, phase) => {
+    if (setup) writeSavedGame({ state, territories: setup.territories, ai: setup.ai, phase });
+  }), [setup]);
   const leaveGame = useCallback(() => { clearSavedGame(); setSaved(null); setSetup(null); }, []);
   const map = MAPS.find(map => map.id === selectedMapId) ?? MAPS[0];
   return (
     <>
       <OfflineNotice />
-      <main className="app-safe-area mx-auto flex h-full min-h-0 w-full max-w-[496px] flex-col">
-        <AppHeader />
-        {setup ? <>
-          <section className="flex min-h-0 flex-1 flex-col">
-            <FieldCanvas territories={setup.territories} river={setup.river} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
-          </section>
-        </> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
-          aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
-          onPlay={() => {
-            clearSavedGame();
-            setSaved(null);
-            setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors, map.river));
-          }} />}
+      <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
+        <div className="app-viewport">
+          <div className={`app-shell${setup ? ' app-shell--playing' : ''}`}>
+            <AppHeader />
+            {setup ? <section className="flex min-h-0 flex-1 flex-col">
+              <FieldCanvas territories={setup.territories} river={setup.river} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
+            </section> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
+              aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
+              onPlay={() => {
+                clearSavedGame();
+                setSaved(null);
+                setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors, map.river));
+              }} />}
+          </div>
+        </div>
       </main>
     </>
   );
