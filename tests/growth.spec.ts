@@ -71,10 +71,13 @@ test('city counters stop at 50 and production resumes after sending troops', asy
   await expect(player).toContainText('south: You, 46 units.');
 });
 
-test('a fresh page starts from the initial map rather than previous live state', async ({ page }) => {
+test('Home abandons the saved round and Play starts fresh armies', async ({ page }) => {
   await page.clock.runFor(3100);
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 39 units.');
-  await page.reload();
+  expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).not.toBeNull();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).toBeNull();
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
 });

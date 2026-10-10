@@ -7,10 +7,11 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
     await page.goto('/');
-    const option = page.getByRole('checkbox', { name: 'Slow Zone', exact: true });
+    const upgrades = page.getByRole('group', { name: 'Your upgrades', exact: true });
+    const option = upgrades.getByRole('checkbox', { name: 'Slow Zone', exact: true });
     await expect(option).not.toBeChecked();
     await expect(option).toBeInViewport();
-    await expect(page.getByText('50% hostile speed within 90 units')).toBeVisible();
+    await expect(upgrades.getByText('50% hostile speed within 90 units')).toBeVisible();
     await option.check();
     await page.getByRole('button', { name: 'Play', exact: true }).tap();
     const details = page.getByRole('list', { name: 'Territory details' });
