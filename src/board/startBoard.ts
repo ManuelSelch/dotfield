@@ -11,7 +11,7 @@ import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
 interface BoardOptions {
   autoStart?: boolean;
   onPhase?: (phase: SessionPhase) => void;
-  onSnapshot?: (state: SimulationState, phase: SessionPhase) => void;
+  onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void;
   rules?: RulesInput;
   initialState?: SimulationState;
   initialPhase?: Exclude<SessionPhase, 'ready'>;
@@ -99,8 +99,12 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     cancelAnimationFrame(frameId);
     drag.cancel();
     session.setHidden(document.hidden);
-    options.onSnapshot?.(state, session.phase);
+    options.onSnapshot?.(session.state, session.phase, true);
     if (session.active) frameId = requestAnimationFrame(frame);
+  }
+  function onPageHide() {
+    // Save the already-applied state; never advance the clock just to persist it.
+    options.onSnapshot?.(session.state, session.phase, true);
   }
   let bounds = canvas.getBoundingClientRect();
   const observer = new ResizeObserver(() => {
@@ -111,10 +115,11 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   });
   observer.observe(canvas);
   window.addEventListener('resize', redraw);
+  window.addEventListener('pagehide', onPageHide);
   document.addEventListener('visibilitychange', onVisibilityChange);
   redraw();
   onState(state);
-  options.onSnapshot?.(state, session.phase);
+  options.onSnapshot?.(session.state, session.phase, true);
   options.onPhase?.(session.phase);
   if (session.active) frameId = requestAnimationFrame(frame);
   function command(action: 'start' | 'pause' | 'resume' | 'restart') {
@@ -122,7 +127,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     cancelAnimationFrame(frameId);
     drag.cancel(); session.setHidden(document.hidden); session[action]();
     pendingAi.clear();
-    state = session.state; onState(state); options.onSnapshot?.(state, session.phase); options.onPhase?.(session.phase); redraw();
+    state = session.state; onState(state); options.onSnapshot?.(state, session.phase, true); options.onPhase?.(session.phase); redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }
   const dispose = () => {
@@ -132,6 +137,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     drag.dispose();
     observer.disconnect();
     window.removeEventListener('resize', redraw);
+    window.removeEventListener('pagehide', onPageHide);
     document.removeEventListener('visibilitychange', onVisibilityChange);
     aiWorker?.terminate();
   };

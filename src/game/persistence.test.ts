@@ -21,6 +21,13 @@ describe('round persistence', () => {
     expect(readSavedGame(target)).toEqual({ state, territories: TERRITORIES, ai: {}, phase: 'running' });
   });
 
+  it('storage failures are nonfatal for reads, writes and clearing', () => {
+    const fail = () => { throw new Error('Storage unavailable'); };
+    expect(readSavedGame({ getItem: fail })).toBeNull();
+    expect(() => writeSavedGame({ state: createSimulation(TERRITORIES), territories: TERRITORIES, ai: {}, phase: 'running' }, { setItem: fail })).not.toThrow();
+    expect(() => clearSavedGame({ removeItem: fail })).not.toThrow();
+  });
+
   it('ignores corrupt or incomplete storage and can clear it', () => {
     const target = storage();
     target.values.set(SAVED_GAME_KEY, '{not json');

@@ -12,7 +12,7 @@ import type { SessionPhase } from '../game/session';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase) => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
 export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
