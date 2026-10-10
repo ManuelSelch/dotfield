@@ -2,6 +2,47 @@ const $ = id => document.getElementById(id);
 const settings = { cities: 12, enemies: 2, industry: 'on', river: 'on' };
 const colors = ['#267c72', '#bd624e', '#a28b46', '#727bad', '#947188'];
 let seed = 107, match;
+const upgrades = [
+  ['industry', 'Industry', '+25% production · This faction only'],
+  ['factory', 'Factory', '2× starting-city production · Follows ownership'],
+  ['slow-zone', 'Slow Zone', '50% hostile speed nearby · Random city · Neutral slows everyone'],
+  ['watchtower', 'Watchtower', 'Shoots nearby enemy troops · Changes sides if captured'],
+];
+const factionSettings = Array.from({ length: 5 }, () => ({ upgrades: new Set(), behavior: 'balanced' }));
+function upgradeControls(faction) {
+  return upgrades.map(([id, name, description]) => `<label class="upgrade-option"><input type="checkbox" data-faction="${faction}" data-upgrade="${id}" ${factionSettings[faction].upgrades.has(id) ? 'checked' : ''}><span><strong>${name}</strong><small>${description}</small></span></label>`).join('');
+}
+function upgradeSummaries() {
+  const count = factionSettings[0].upgrades.size;
+  $('player-upgrade-summary').textContent = count ? `${count} enabled` : 'None enabled';
+  const active = factionSettings.slice(1, settings.enemies + 1);
+  const total = active.reduce((sum, faction) => sum + faction.upgrades.size, 0);
+  const balanced = active.every(faction => faction.behavior === 'balanced');
+  $('enemy-settings-summary').textContent = `${settings.enemies} ${settings.enemies === 1 ? 'enemy' : 'enemies'} · ${total ? total + ' upgrades' : balanced ? 'Balanced' : 'Custom behavior'}`;
+  for (let i = 1; i <= settings.enemies; i++) {
+    const count = factionSettings[i].upgrades.size;
+    $(`enemy-count-${i}`).textContent = count ? `${count} upgrades` : 'No upgrades';
+  }
+}
+function renderEnemies() {
+  $('enemy-options').innerHTML = Array.from({ length: settings.enemies }, (_, index) => {
+    const faction = index + 1;
+    return `<section class="enemy-option"><h2><span class="faction-dot" style="background:${colors[faction]}"></span>Enemy ${faction}<span id="enemy-count-${faction}" class="summary-count"></span></h2><label class="behavior-option">Behavior<select data-behavior="${faction}" aria-label="Enemy ${faction} behavior">${['balanced', 'aggressive', 'defensive'].map(value => `<option value="${value}" ${factionSettings[faction].behavior === value ? 'selected' : ''}>${value[0].toUpperCase() + value.slice(1)}</option>`).join('')}</select></label><div class="upgrade-list">${upgradeControls(faction)}</div></section>`;
+  }).join('');
+  upgradeSummaries();
+}
+$('player-upgrades').innerHTML = upgradeControls(0);
+renderEnemies();
+for (const id of ['player-upgrades', 'enemy-options']) $(id).addEventListener('change', event => {
+  const input = event.target;
+  if (input.dataset.upgrade) {
+    const selected = factionSettings[Number(input.dataset.faction)].upgrades;
+    if (input.checked) selected.add(input.dataset.upgrade); else selected.delete(input.dataset.upgrade);
+  } else if (input.dataset.behavior) {
+    factionSettings[Number(input.dataset.behavior)].behavior = input.value;
+  }
+  upgradeSummaries();
+});
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t ^= t + Math.imul(t ^ t >>> 7, 61 | t); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function makeMap() {
   const random = rng(++seed);
@@ -82,11 +123,17 @@ for(const [id,delta] of [['cities-down',-1],['cities-up',1]])$(id).onclick=()=>{
 for(const key of ['enemies','industry','river'])$(key).addEventListener('click',e=>{
   const button=e.target.closest('button');if(!button)return;
   settings[key]=key==='enemies'?Number(button.dataset.value):button.dataset.value;
+  if (key === 'enemies') renderEnemies();
   for(const b of $(key).querySelectorAll('button'))b.setAttribute('aria-pressed',String(b===button));
   refresh();
 });
 $('reroll').onclick=preview;
-function newMatch(){match=makeMap();draw(match,$('match-map'));$('match-summary').textContent=description(match);$('match-status').textContent='';}
+function newMatch(){
+  match=makeMap();
+  match.factions = factionSettings.slice(0, settings.enemies + 1).map(faction => ({ upgrades: [...faction.upgrades], behavior: faction.behavior }));
+  draw(match,$('match-map'));$('match-summary').textContent=description(match);$('match-status').textContent='';
+  $('match-upgrades').textContent = match.factions.map((faction, index) => `${index ? 'Enemy ' + index : 'You'}: ${faction.upgrades.length} upgrades${index ? ', ' + faction.behavior : ''}`).join(' · ');
+}
 $('play').onclick=()=>{newMatch();$('setup').hidden=true;$('match').hidden=false;$('restart').focus();window.scrollTo(0,0);};
 $('new-map').onclick=newMatch;
 $('restart').onclick=()=>{draw(match,$('match-map'));$('match-status').textContent='Same layout. Back to the starting positions.';};
