@@ -16,6 +16,11 @@
       <a href="?state=mountain" data-state="mountain">Mountain</a>
       <a href="?state=blocked" data-state="blocked">Blocked</a>
     </nav>
+    <section id="pass-options" class="pass-options" aria-label="Mountain staging route" hidden>
+      <button type="button" data-pass="west" aria-pressed="true">West passage</button>
+      <button type="button" data-pass="east" aria-pressed="false">East passage</button>
+      <p id="pass-summary" aria-live="polite">West passage · 5 city-to-city orders</p>
+    </section>
     <div class="board"><svg id="field" viewBox="0 0 360 480" aria-label="Terrain route mockup. Select your south city, then a destination." role="group">
       <defs>
         <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L7 3.5L0 7" fill="#267c72" /></marker>

@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: slices 1, 2, 4 and 5 are implemented. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing bridge-map layout remains unchanged. Slice 5 implements approved Artillery revision 1, ownership-aware cadence, mountain shot/order blocking and a separate Siege map. Portal (slice 6) is next.
+Status: slices 1, 2, 4 and 5 are implemented, and generated matches now combine a fixed central mountain ridge with optional river bridges. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing authored layouts remain unchanged. Slice 5 implements approved Artillery revision 1, ownership-aware cadence, mountain shot/order blocking and a separate Siege map. Portal (slice 6) is next.
 
 ## Scope
 
@@ -25,7 +25,7 @@ Status: slices 1, 2, 4 and 5 are implemented. The user skipped Gatehouse (slice 
 - Gatehouse, Factory, Artillery and Portal implementation in the bridge-only increment.
 - Defensive-stance controls, fortresses, radar, relays or transport hubs.
 - Currency, unlocks, upgrade levels, alliances or multiplayer.
-- Destructible terrain, bridge construction, procedural terrain generation or manual path drawing.
+- Destructible terrain, bridge construction, arbitrary procedural terrain shapes or manual path drawing.
 - Altering existing map layouts; the starting-city Factory upgrade's ownership behaviour is explicitly included in the planned change.
 - Placing every special-city type on every map.
 
@@ -37,7 +37,7 @@ Status: slices 1, 2, 4 and 5 are implemented. The user skipped Gatehouse (slice 
 - R2. Terrain and crossings are authored in logical field coordinates. Phone dimensions, Voronoi regions and pixel density must not change route legality or travel outcomes.
 - R3. River maps use straight same-bank travel and cross-bank travel only between the two endpoint cities of a bridge. Preview that straight route; mark other cross-bank orders invalid. Troops arriving at an endpoint stay there until a new explicit order. Preserve staggered five-unit batches, cadence and border geometry.
 - R4. An unreachable target is clearly indicated. Releasing an invalid order must not remove the source's existing launch queue or deduct troops.
-- R5. The bridge increment adds a separate two-crossing river map matching the approved mockup; existing maps remain unchanged. Its two open paired crossings provide alternative staging approaches. The later Gatehouse scenario remains a separate increment.
+- R5. The bridge increment adds a separate two-crossing river map matching the approved mockup; existing authored maps remain unchanged. Its two open paired crossings provide alternative staging approaches. Generated fields now add a fixed central mountain ridge with optional river crossings. The later Gatehouse scenario remains a separate increment.
 - R6. Path bends, crossings and any portal transit must use one authoritative movement model for rendering, per-dot collisions, Slow Zones, Watchtower targeting and AI forecasts. Collisions must not sweep through an obstacle or across a teleport gap.
 - R7. Existing cities along a route must not be silently captured or receive troops unless they are an explicit destination. Hostile Gatehouses are an explicit access restriction, described below.
 - R8. Existing maps without terrain retain their current direct routes, border launch/impact geometry and dispatch rules.
@@ -101,7 +101,7 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 - Portal links require no resource or unlock beyond owning both endpoints. Existing group size and launch cadence are retained for explicit transport; the confirmed 2-second transit applies independently to each launched batch.
 - A city receives at most one Factory multiplier even if its authored Factory and a selected spawn Factory upgrade coincide; no duplicate bonus or badge.
 - The first implementation should use fixed authored terrain and limited scenarios, not a general map editor.
-- Current gameplay has direct straight routes, river-bank restrictions, paired bridge crossings, Factory/Watchtower/Slow Zone/Artillery features, and authored mountains blocking direct orders and Artillery fire. Bent-path movement and automatic mountain detours remain deferred; Gatehouse and Portal are not implemented.
+- Current gameplay has direct straight routes, river-bank restrictions, paired bridge crossings, Factory/Watchtower/Slow Zone/Artillery features, and generated/authored mountains blocking direct orders and Artillery fire. Mountain flanks require manual city staging; bent-path movement and automatic mountain detours remain deferred; Gatehouse and Portal are not implemented.
 
 ## Implementation Plan
 

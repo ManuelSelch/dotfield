@@ -25,10 +25,16 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
       </g>)}
     </g>}
     {map.terrain?.barriers.filter(b => b.kind === 'mountain').map(barrier => {
-      const b = barrier.bounds, x = (b.minX + b.maxX) / 2, y = (b.minY + b.maxY) / 2;
+      const b = barrier.bounds;
       return <g key={barrier.id} aria-label="Mountain blocks direct orders and shots">
-        <rect x={b.minX} y={b.minY} width={b.maxX - b.minX} height={b.maxY - b.minY} fill="#d5d8cd" stroke="#a8afa0" />
-        <path d={`M${x - 7} ${y + 8}L${x} ${y - 9}L${x + 7} ${y + 8}`} fill="none" stroke="#9ca692" />
+        {(() => {
+          const width = b.maxX - b.minX, height = b.maxY - b.minY;
+          return <>
+            <rect x={b.minX} y={b.minY} width={width} height={height} fill="#d5d8cd" stroke="#a8afa0" />
+            <path d={`M${b.minX + width * .04} ${b.minY + height * .78}L${b.minX + width * .2} ${b.minY + height * .46}L${b.minX + width * .34} ${b.minY + height * .62}L${b.minX + width * .53} ${b.minY + height * .16}L${b.minX + width * .71} ${b.minY + height * .57}L${b.minX + width * .86} ${b.minY + height * .31}L${b.minX + width * .96} ${b.minY + height * .76}L${b.minX + width * .96} ${b.minY + height * .9}L${b.minX + width * .04} ${b.minY + height * .9}Z`} fill="#c3c9bb" stroke="#a8afa0" />
+            <path d={`M${b.minX + width * .44} ${b.minY + height * .37}L${b.minX + width * .53} ${b.minY + height * .16}L${b.minX + width * .62} ${b.minY + height * .37}L${b.minX + width * .55} ${b.minY + height * .32}L${b.minX + width * .51} ${b.minY + height * .37}Z M${b.minX + width * .79} ${b.minY + height * .43}L${b.minX + width * .86} ${b.minY + height * .31}L${b.minX + width * .92} ${b.minY + height * .48}L${b.minX + width * .87} ${b.minY + height * .44}L${b.minX + width * .83} ${b.minY + height * .47}Z`} fill="#eef0e8" stroke="#a8afa0" />
+          </>;
+        })()}
       </g>;
     })}
     {map.territories.flatMap(city => (city.features ?? []).filter(f => f.kind === 'artillery').map(feature =>

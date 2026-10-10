@@ -23,7 +23,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(page.getByText(/^You \+ \d+ enemies? · \d+ neutral cities$/)).toHaveCount(0);
     const play = page.getByRole('button', { name: 'Play', exact: true });
     const preview = page.getByRole('img', { name: 'Generated map preview' });
-    await expect(preview.locator('circle[cx]')).toHaveCount(12);
+    await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
+    await expect(page.getByText('Mountain range', { exact: true })).toBeVisible();
+    await expect(page.getByText(/WEST PASS|EAST PASS/)).toHaveCount(0);
+    await expect(preview.locator('circle[cx]')).toHaveCount(14);
     await expect(preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]')).toHaveCount(2);
     await expect(page.locator('.home-preview').getByRole('button', { name: 'Reroll' })).toHaveCount(0);
     for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', String(TERRITORY_RADIUS));
@@ -71,10 +74,11 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await play.click();
     await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
     const initial = await saved(page);
-    expect(initial.territories).toHaveLength(13);
+    expect(initial.territories).toHaveLength(15);
     expect(initial.state.river).toBeUndefined();
     expect(initial.generated.preferences.map.artillery).toBe(true);
-    expect(initial.state.terrain?.barriers[0].kind).toBe('mountain');
+    expect(initial.state.terrain.barriers[0].id).toBe('mountain-range');
+    expect(initial.state.terrain.barriers).toHaveLength(2);
     expect(initial.territories.filter((city: { features?: { kind: string }[] }) => city.features?.some(feature => feature.kind === 'artillery'))).toHaveLength(1);
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
@@ -98,7 +102,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'Home', exact: true }).click();
     await expect(play).toBeFocused();
     await page.reload();
-    await expect(preview.locator('circle[cx][r="14"]')).toHaveCount(13);
+    await expect(preview.locator('circle[cx][r="14"]')).toHaveCount(15);
     await page.getByText('Your upgrades', { exact: true }).click();
     await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
     await expect(page.getByRole('group', { name: 'Artillery' }).getByRole('button', { name: 'On', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -128,8 +132,8 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true, artillery: false },
     upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
   const map = generateMap(preferences.map, 17);
-  const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river);
-  const initial = createSimulation(setup.territories, setup.rules, setup.river);
+  const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river, map.terrain);
+  const initial = createSimulation(setup.territories, setup.rules, setup.river, setup.terrain);
   const game = { territories: setup.territories, ai: setup.ai, phase: 'running', generated: { seed: 17, preferences },
     state: { ...initial, roundStatus: 'victory', territories: initial.territories.map(city => ({ ...city, owner: 'player' })) } };
   await page.addInitScript(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
@@ -142,6 +146,7 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   expect(next.generated.seed).not.toBe(17);
   expect(next.territories).toHaveLength(6);
   expect(next.state.river.bridges).toHaveLength(2);
+  expect(next.state.terrain.barriers[0].id).toBe('mountain-range');
   expect(Object.keys(next.ai)).toHaveLength(4);
   expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
   expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');
@@ -152,7 +157,7 @@ test('bad preferences fall back safely and city controls work with the keyboard'
   await page.goto('/');
   const range = page.getByRole('slider', { name: 'Total cities' });
   await range.focus(); await page.keyboard.press('ArrowRight');
-  await expect(range).toHaveValue('13');
+  await expect(range).toHaveValue('15');
   await page.getByRole('button', { name: 'Fewer cities' }).click();
-  await expect(range).toHaveValue('12');
+  await expect(range).toHaveValue('14');
 });

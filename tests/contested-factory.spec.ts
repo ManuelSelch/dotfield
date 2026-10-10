@@ -34,7 +34,7 @@ test('home previews generated Factories and restores its exact river round after
   await expect(preview).toBeVisible();
   await expect(preview.locator('[aria-label="Factory"]')).toHaveCount(2);
   await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(12);
+  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(14);
   const starting = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!).territories);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.reload();

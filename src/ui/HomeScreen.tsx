@@ -41,6 +41,7 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
             <span>{map.territories.length} cities</span><span>{preferences.map.enemies} {preferences.map.enemies === 1 ? 'enemy' : 'enemies'}</span>
             <span>{map.settings.industry ? 'Industry' : 'No industry'}</span><span>{map.river ? `${map.river.bridges.length} bridges` : 'No river'}</span>
             <span>{map.settings.artillery ? 'Artillery' : 'No artillery'}</span>
+            <span>Mountain range</span>
           </div>
         </section>
       </div>
