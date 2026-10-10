@@ -20,6 +20,6 @@ export function projectBoard(territories: readonly Territory[], width: number, h
     x: offsetX + node.x * scale,
     y: offsetY + node.y * scale,
     radius: FIELD.radius * scale,
-    fontSize: Math.max(12, 17 * scale),
+    fontSize: Math.max(11, FIELD.radius * scale),
   }));
 }

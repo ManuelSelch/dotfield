@@ -20,7 +20,7 @@ describe('static board', () => {
         expect(node.x + node.radius).toBeLessThanOrEqual(width);
         expect(node.y - node.radius).toBeGreaterThanOrEqual(0);
         expect(node.y + node.radius).toBeLessThanOrEqual(height);
-        expect(node.fontSize).toBeGreaterThanOrEqual(12);
+        expect(node.fontSize).toBeGreaterThanOrEqual(11);
       }
       for (let i = 0; i < nodes.length; i++) {
         for (const other of nodes.slice(i + 1)) {

@@ -7,6 +7,7 @@ import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { SimulationState } from '../game/types';
 import * as roundRules from '../game/round';
 import { createSnapshotSaver } from '../game/snapshotSaver';
+import { TERRITORY_RADIUS, TRAVEL_SPEED } from '../game/settings';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), dispose: vi.fn() })) }));
@@ -159,7 +160,7 @@ describe('board lifecycle adapter', () => {
     const [_, getTerritories, __, dispatch] = vi.mocked(bindDrag).mock.lastCall!;
     dispatch('source', 'target');
     board.frame(0);
-    board.frame(2000); // Smaller city borders make the first flight slightly longer.
+    board.frame(Math.ceil((100 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000) + 100);
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
     expect(board.onSnapshot).toHaveBeenLastCalledWith(ended, 'running', true);
