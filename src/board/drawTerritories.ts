@@ -2,9 +2,8 @@ import type { SimulationState } from '../game/types';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
 
-export function drawTerritories(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
-  const territories = state.territories;
-  for (const node of projectBoard(territories, width, height)) {
+export function drawTerritoryBackgrounds(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
+  for (const node of projectBoard(state.territories, width, height)) {
     const palette = factionPalette(node.owner);
     if (node.owner !== 'neutral' && !state.captureShields[node.id]?.remaining) {
       ctx.beginPath();
@@ -22,6 +21,12 @@ export function drawTerritories(ctx: CanvasRenderingContext2D, state: Simulation
     ctx.strokeStyle = palette.stroke;
     ctx.lineWidth = 1.5;
     ctx.stroke();
+  }
+}
+
+export function drawTerritoryCounters(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
+  for (const node of projectBoard(state.territories, width, height)) {
+    const palette = factionPalette(node.owner);
     ctx.fillStyle = palette.ink;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -35,5 +40,4 @@ export function drawTerritories(ctx: CanvasRenderingContext2D, state: Simulation
       ctx.fill();
     } else ctx.fillRect(node.x - 3, markerY - 0.7, 6, 1.4);
   }
-
 }
