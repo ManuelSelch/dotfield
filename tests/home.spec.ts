@@ -17,6 +17,9 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'A fresh field. Every time.' })).toBeVisible();
+    for (const helper of ['Total cities on the field', 'Opposing factions, not cities', 'Factories worth fighting for', 'Crossings shape your strategy'])
+      await expect(page.getByText(helper, { exact: true })).toHaveCount(0);
+    await expect(page.getByText(/^You \+ \d+ enemies? · \d+ neutral cities$/)).toHaveCount(0);
     const play = page.getByRole('button', { name: 'Play new map', exact: true });
     const preview = page.getByRole('img', { name: 'Generated map preview' });
     await expect(preview.locator('circle[cx]')).toHaveCount(12);
