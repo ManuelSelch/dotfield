@@ -18,6 +18,10 @@ Victory/defeat counts both owned territories (even empty ones that can grow) and
 
 Baseline tuning is in `src/game/settings.ts`; geometry, batch size and simulation step remain global. `src/game/rules.ts` snapshots independent faction-ID keyed growth, movement speed and launch cadence. `src/game/upgrades/catalog.ts` defines typed stat modifiers; `compile.ts` resolves selections into per-round rules without changing shared defaults. Growth uses the current city owner; orders use the issuing faction's speed/cadence, including AI duration estimates. Starting positions/counts are in `src/board/map.ts` and `src/board/maps.ts`. Configuration supports extra faction IDs, but multiple-enemy gameplay still needs identity/AI/collision/outcome work. These are prototype tuning values. Backgrounding pauses the animation clock; returning does not grant growth for hidden time. While a round is active, the current board, airborne groups, pause state, rules and AI settings are saved locally and restored after a browser/mobile app reload. No offline growth is granted while the app is closed. Choosing Home, starting a new round, or clearing site data removes the saved round. Corrupt or unavailable storage safely falls back to a new Home screen.
 
+## Terrain routing foundation
+
+[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. Existing maps and gameplay remain unchanged. Bridge/pass travel, bent-route simulation and visuals are deferred to slice 2; terrain-aware dispatch safely rejects those routes until movement can follow them. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
+
 ## City regions and map generation
 
 Each circle is a city center. Voronoi regions are generated automatically from the city positions, clipped to the complete visible Canvas—including its aspect-ratio margins. Subtle faction fills, thin borders between cities and full-region source/target highlights match the approved mockup in `mockups/city-regions/`.
