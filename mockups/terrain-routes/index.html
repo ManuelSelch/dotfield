@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — Terrain route review</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header><h1><span aria-hidden="true"></span>dotfield</h1>
+      <button id="pause" class="pause" aria-label="Pause preview" title="Pause preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12" /></svg></button>
+    </header>
+    <nav class="scenarios" aria-label="Mockup scenarios (not production controls)">
+      <a href="?state=river" data-state="river">River</a>
+      <a href="?state=mountain" data-state="mountain">Mountain</a>
+      <a href="?state=blocked" data-state="blocked">Blocked</a>
+    </nav>
+    <div class="board"><svg id="field" viewBox="0 0 360 480" aria-label="Terrain route mockup. Select your south city, then a destination." role="group">
+      <defs>
+        <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L7 3.5L0 7" fill="#267c72" /></marker>
+      </defs>
+      <g id="regions"></g><g id="terrain"></g><g id="route"></g><g id="troops"></g><g id="cities"></g>
+    </svg></div>
+    <p id="hint" role="status" aria-live="polite">Drag between regions · leave one behind</p>
+    <footer>Visual mockup · no combat or saving <button id="reset">Reset</button></footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
