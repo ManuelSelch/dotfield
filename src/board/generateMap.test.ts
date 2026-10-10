@@ -76,15 +76,19 @@ describe('generated fields', () => {
         } else expect(map.river).toBeUndefined();
       }
   });
-  it('adds Watchtowers to every faction start and one random Slow Zone only when selected', () => {
+  it('places one seeded-random Watchtower and Slow Zone only when selected', () => {
     const settings = { ...DEFAULT_MAP_SETTINGS, watchtower: true, slowZone: true };
     const map = generateMap(settings, 19);
-    expect(map.territories.filter(city => city.features?.some(feature => feature.kind === 'watchtower')))
-      .toEqual(map.territories.filter(city => city.owner !== 'neutral'));
+    const towers = map.territories.filter(city => city.features?.some(feature => feature.kind === 'watchtower'));
+    expect(towers).toHaveLength(1);
     const zones = map.territories.filter(city => city.features?.some(feature => feature.kind === 'slow-zone'));
     expect(zones).toHaveLength(1);
     expect(zones[0].features).toContainEqual({ id: `${zones[0].id}:slow-zone`, kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 });
     expect(generateMap(settings, 19)).toEqual(map);
+    const placements = Array.from({ length: 20 }, (_, seed) => generateMap({ ...DEFAULT_MAP_SETTINGS, watchtower: true }, seed)
+      .territories.find(city => city.features?.some(feature => feature.kind === 'watchtower'))!);
+    expect(new Set(placements.map(city => city.id)).size).toBeGreaterThan(1);
+    expect(placements.some(city => city.owner === 'neutral')).toBe(true);
     const disabled = generateMap({ ...settings, watchtower: false, slowZone: false }, 19);
     expect(disabled.territories.every(city => !city.features?.some(feature => feature.kind === 'watchtower' || feature.kind === 'slow-zone'))).toBe(true);
   });
@@ -92,7 +96,7 @@ describe('generated fields', () => {
     const settings = { ...DEFAULT_MAP_SETTINGS, artillery: true, watchtower: true, slowZone: true, industry: true };
     for (let seed = 0; seed < 20; seed++) {
       const map = generateMap(settings, seed);
-      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'watchtower')).toHaveLength(3);
+      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'watchtower')).toHaveLength(1);
       expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'slow-zone')).toHaveLength(1);
       expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'artillery')).toHaveLength(1);
     }

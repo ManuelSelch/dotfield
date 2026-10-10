@@ -8,7 +8,7 @@ The approved revisions in `mockups/random-map/` replace carousel map selection. 
 - Map Industry: On adds 1–4 neutral Factories (rounded total cities / 6, capped by neutral count). Off omits neutral Factories. This differs from the faction Industry upgrade, which increases that faction's production by 25%.
 - Every field includes a central mountain ridge. Direct orders and Artillery shots through it are blocked; use city-to-city staging around its flanks. The mountain has no text labels.
 - Artillery: Off by default. On adds exactly one neutral 14-defender Artillery city with 90-unit range and an additional small mountain ridge, clear of city circles and the central ridge, to create shot-blocking opportunities. Artillery selection persists with the other match settings and both ridges accompany the generated round/save.
-- Watchtower: Off by default. On equips every faction's starting city with a 72-unit Watchtower; capture transfers tower control to the current owner.
+- Watchtower: Off by default. On places one Watchtower on a seeded-random city from the full field; its current owner controls it, and a neutral Watchtower is inactive until captured.
 - Slow Zone: Off by default. On places one 90-unit, 50%-speed zone on a seeded random city; the host's current owner controls it, while a neutral host slows both sides.
 - Introductory Home title/subtitle and helper captions are omitted. Match settings remain directly labelled; segmented selectors are compact, with Reroll beside Play.
 - River & bridges: On creates a horizontal river with exactly two aligned, disjoint, paired-city crossings. Off leaves the central mountain in place. Manual bank staging is unchanged.
