@@ -20,8 +20,8 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
     {map.river && <g aria-label="River with two paired bridge crossings">
       <rect x="0" y={map.river.top} width="360" height={map.river.bottom - map.river.top} fill="#c4d8db" />
       {bridgeDecks(map.river, map.territories).map(deck => <g key={deck.id}>
-        <rect x={deck.x} y={deck.y} width={deck.width} height={deck.height} fill="#f0f0e4" stroke="#a9ae98" />
-        <path d={`M${deck.x + 2} ${deck.y + 1}v${deck.height - 2}M${deck.x + deck.width - 2} ${deck.y + 1}v${deck.height - 2}`} stroke="#a4ac96" strokeWidth="1.3" />
+        <rect x={deck.x} y={deck.y} width={deck.width} height={deck.height} rx="3" fill="#ddd8bf" stroke="#87988a" />
+        <path d={`M${deck.x + deck.width / 2 - 12} ${deck.y + 1}v${deck.height - 2}M${deck.x + deck.width / 2 + 12} ${deck.y + 1}v${deck.height - 2}`} stroke="#9aa38d" strokeWidth="1.3" />
       </g>)}
     </g>}
     {map.terrain?.barriers.filter(b => b.kind === 'mountain').map(barrier => {

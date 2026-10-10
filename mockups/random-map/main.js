@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const settings = { cities: 12, enemies: 2, industry: 'on', river: 'on' };
+const settings = { cities: 12, enemies: 2, industry: 'on', river: 'on', artillery: 'off' };
 const colors = ['#267c72', '#bd624e', '#a28b46', '#727bad', '#947188'];
 let seed = 107, match;
 const upgrades = [
@@ -54,7 +54,7 @@ function makeMap() {
     const row = Math.floor(i / columns), col = i % columns;
     let y = 42 + row * (396 / Math.max(1, rows - 1)) + (random() - .5) * 17;
     if (river && Math.abs(y - 240) < 43) y = y < 240 ? 195 : 285;
-    cities.push({ x: 52 + col * (256 / Math.max(1, columns - 1)) + (random() - .5) * 28, y, faction: -1, factory: false });
+    cities.push({ x: 52 + col * (256 / Math.max(1, columns - 1)) + (random() - .5) * 28, y, faction: -1, factory: false, artillery: false });
   }
   const targets = [[.15,.88],[.85,.12],[.12,.12],[.88,.88],[.5,.5]];
   for (let f = 0; f <= settings.enemies; f++) {
@@ -67,6 +67,10 @@ function makeMap() {
     const n = Math.min(neutral.length, Math.max(1, Math.round(count / 6)));
     for (let i=0;i<n;i++) neutral.splice(Math.floor(random()*neutral.length),1)[0].factory = true;
   }
+  if (settings.artillery === 'on') {
+    const gun = cities.filter(c => c.faction < 0).sort((a,b) => Math.hypot(a.x-180,a.y-240)-Math.hypot(b.x-180,b.y-240))[0];
+    if (gun) { gun.artillery = true; gun.factory = false; gun.count = 14; }
+  }
   const bridges = [];
   if (river) {
     const north = cities.filter(c => c.y < 240).sort((a,b)=>b.y-a.y).slice(0,columns).sort((a,b)=>a.x-b.x);
@@ -75,7 +79,7 @@ function makeMap() {
       if (index >= 0 && !bridges.some(b=>b.a===north[index])) bridges.push({a:north[index],b:south[index]});
     }
   }
-  return { cities, river, industry, bridges, enemies: settings.enemies, seed };
+  return { cities, river, industry, artillery: settings.artillery === 'on', bridges, enemies: settings.enemies, seed };
 }
 function clip(poly, nx, ny, limit) {
   const out=[];
@@ -88,6 +92,8 @@ function clip(poly, nx, ny, limit) {
 }
 function draw(map, target) {
   let html='<rect width="360" height="480" fill="#eef1e9"/>';
+  const gun = map.cities.find(city => city.artillery);
+  if (gun) html += `<circle cx="${gun.x}" cy="${gun.y}" r="90" fill="#267c7207" stroke="#267c7255" stroke-dasharray="3 5"/><rect x="${gun.x+28}" y="${gun.y-8}" width="20" height="28" rx="2" fill="#d5d8cd" stroke="#a8afa0"/><path d="M${gun.x+32} ${gun.y+15}l6-12 6 12" fill="none" stroke="#9ca692"/>`;
   for(const c of map.cities){
     const minY=map.river && c.y>240?254:0,maxY=map.river && c.y<240?226:480;
     let polygon=[[0,minY],[360,minY],[360,maxY],[0,maxY]];
@@ -105,12 +111,13 @@ function draw(map, target) {
   }
   for(const c of map.cities){
     const color=c.faction<0?'#9aa78e':colors[c.faction];
-    html+=`<circle cx="${c.x}" cy="${c.y}" r="17" fill="${color}"/><text x="${c.x}" y="${c.y+4}" text-anchor="middle" fill="white" font-family="system-ui" font-size="11" font-weight="600">${c.faction<0?c.factory?14:8:36}</text>`;
+    html+=`<circle cx="${c.x}" cy="${c.y}" r="17" fill="${color}"/><text x="${c.x}" y="${c.y+4}" text-anchor="middle" fill="white" font-family="system-ui" font-size="11" font-weight="600">${c.faction<0?(c.artillery?14:c.factory?14:8):36}</text>`;
     if(c.factory)html+=`<path d="M${c.x-7} ${c.y-24}v-8l5 3v-3l5 3v-7h3v12z" fill="#68785e"/>`;
+    if(c.artillery)html+=`<circle cx="${c.x+14}" cy="${c.y-14}" r="5" fill="#fcfcfa" stroke="${color}"/><path d="M${c.x+11} ${c.y-13}l5-3 1 1-5 3M${c.x+11} ${c.y-12}h5" stroke="${color}" fill="none" stroke-width="1"/>`;
   }
   target.innerHTML=html;
 }
-function description(map){return `${map.cities.length} cities · ${map.enemies} enemies · ${map.industry?'Industry':'No industry'} · ${map.river?map.bridges.length+' bridges':'No river'}`;}
+function description(map){return `${map.cities.length} cities · ${map.enemies} enemies · ${map.industry?'Industry':'No industry'} · ${map.river?map.bridges.length+' bridges':'No river'} · ${map.artillery?'Artillery':'No artillery'}`;}
 function preview(){const map=makeMap();draw(map,$('map'));$('summary').innerHTML=description(map).split(' · ').map(text=>`<span>${text}</span>`).join('');}
 function refresh(){
   $('cities').value=settings.cities;$('city-value').value=settings.cities;
@@ -120,7 +127,7 @@ function refresh(){
 }
 $('cities').addEventListener('input',e=>{settings.cities=Number(e.target.value);refresh();});
 for(const [id,delta] of [['cities-down',-1],['cities-up',1]])$(id).onclick=()=>{settings.cities=Math.min(24,Math.max(6,settings.cities+delta));refresh();};
-for(const key of ['enemies','industry','river'])$(key).addEventListener('click',e=>{
+for(const key of ['enemies','industry','river','artillery'])$(key).addEventListener('click',e=>{
   const button=e.target.closest('button');if(!button)return;
   settings[key]=key==='enemies'?Number(button.dataset.value):button.dataset.value;
   if (key === 'enemies') renderEnemies();

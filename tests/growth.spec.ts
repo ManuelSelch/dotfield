@@ -78,7 +78,7 @@ test('Home abandons the saved round and Play starts fresh armies', async ({ page
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).toBeNull();
-  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   const game = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
   expect(game.territories.find((city: { owner: string }) => city.owner === 'player').units).toBe(36);
 });

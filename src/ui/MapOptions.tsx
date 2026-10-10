@@ -20,7 +20,8 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
     </div>
     <div className="home-section-label home-features-label">On the field</div>
     {([{ id: 'industry', name: 'Industry', aria: 'Map industry' },
-      { id: 'river', name: 'River & bridges', aria: 'River and bridges' }] as const).map(feature => <div className="home-feature" key={feature.id}>
+      { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
+      { id: 'artillery', name: 'Artillery', aria: 'Artillery' }] as const).map(feature => <div className="home-feature" key={feature.id}>
       <div><span className="home-label">{feature.name}</span></div>
       <div className="home-segments" role="group" aria-label={feature.aria}>
         {[false, true].map(value => <button type="button" key={String(value)} aria-pressed={settings[feature.id] === value} onClick={() => onChange({ ...settings, [feature.id]: value })}>{value ? 'On' : 'Off'}</button>)}

@@ -16,26 +16,43 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'A fresh field. Every time.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'A fresh field. Every time.' })).toHaveCount(0);
+    await expect(page.getByText('Choose your match. We’ll make the map.')).toHaveCount(0);
     for (const helper of ['Total cities on the field', 'Opposing factions, not cities', 'Factories worth fighting for', 'Crossings shape your strategy'])
       await expect(page.getByText(helper, { exact: true })).toHaveCount(0);
     await expect(page.getByText(/^You \+ \d+ enemies? · \d+ neutral cities$/)).toHaveCount(0);
-    const play = page.getByRole('button', { name: 'Play new map', exact: true });
+    const play = page.getByRole('button', { name: 'Play', exact: true });
     const preview = page.getByRole('img', { name: 'Generated map preview' });
     await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
     await expect(page.getByText('Mountain range', { exact: true })).toBeVisible();
     await expect(page.getByText(/WEST PASS|EAST PASS/)).toHaveCount(0);
     await expect(preview.locator('circle[cx]')).toHaveCount(14);
+    await expect(preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]')).toHaveCount(2);
+    await expect(page.locator('.home-preview').getByRole('button', { name: 'Reroll' })).toHaveCount(0);
     for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', String(TERRITORY_RADIUS));
     for (const counter of await preview.locator('text').all()) await expect(counter).toHaveAttribute('font-size', String(TERRITORY_RADIUS));
     await expect(page.getByRole('button', { name: /Next map|Previous map|Hide preview|Random/ })).toHaveCount(0);
+    const artillery = page.getByRole('group', { name: 'Artillery' });
+    await expect(artillery.getByRole('button', { name: 'Off', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveCount(0);
+    await artillery.getByRole('button', { name: 'On', exact: true }).click();
+    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
+    await expect(preview.locator('[aria-label="Artillery"]')).toHaveCount(1);
+    await artillery.getByRole('button', { name: 'Off', exact: true }).click();
     await expect(play).toBeInViewport();
+    const initialRerollBox = (await page.getByRole('button', { name: 'Reroll' }).boundingBox())!;
+    const initialPlayBox = (await play.boundingBox())!;
+    expect(Math.abs(initialRerollBox.y - initialPlayBox.y)).toBeLessThan(1);
+    expect(initialRerollBox.x + initialRerollBox.width).toBeLessThanOrEqual(initialPlayBox.x);
+    expect((await artillery.getByRole('button', { name: 'Off', exact: true }).boundingBox())!.height).toBeLessThanOrEqual(32);
     await expect.poll(() => play.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
     await page.screenshot({ path: `test-results/generated-setup-${viewport.width}.png` });
     await page.getByRole('button', { name: 'More cities' }).click();
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
     await page.getByRole('group', { name: 'River and bridges' }).getByRole('button', { name: 'Off', exact: true }).click();
     await page.getByRole('group', { name: 'Map industry' }).getByRole('button', { name: 'Off', exact: true }).click();
+    await artillery.getByRole('button', { name: 'On', exact: true }).click();
+    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
     await page.getByText('Your upgrades', { exact: true }).click();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' }).check();
     await page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Factory', exact: false }).check();
@@ -49,9 +66,6 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       expect(await play.evaluate(el => getComputedStyle(el.parentElement!).position)).toBe('fixed');
       await page.getByRole('button', { name: 'Reroll' }).scrollIntoViewIfNeeded();
       await expect(play).toBeInViewport();
-      const rerollBox = (await page.getByRole('button', { name: 'Reroll' }).boundingBox())!;
-      const playBox = (await play.boundingBox())!;
-      expect(rerollBox.y + rerollBox.height).toBeLessThanOrEqual(playBox.y);
     }
     const before = await preview.locator('circle[cx]').first().getAttribute('cx');
     await page.getByRole('button', { name: 'Reroll' }).click();
@@ -62,7 +76,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const initial = await saved(page);
     expect(initial.territories).toHaveLength(15);
     expect(initial.state.river).toBeUndefined();
-    expect(initial.state.terrain.barriers).toContainEqual(expect.objectContaining({ id: 'mountain-range', kind: 'mountain' }));
+    expect(initial.generated.preferences.map.artillery).toBe(true);
+    expect(initial.state.terrain.barriers[0].id).toBe('mountain-range');
+    expect(initial.state.terrain.barriers).toHaveLength(2);
+    expect(initial.territories.filter((city: { features?: { kind: string }[] }) => city.features?.some(feature => feature.kind === 'artillery'))).toHaveLength(1);
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
     expect(initial.state.rules.factions.player.captureShieldBatches).toBe(3);
@@ -85,9 +102,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'Home', exact: true }).click();
     await expect(play).toBeFocused();
     await page.reload();
-    await expect(preview.locator('circle[cx]')).toHaveCount(15);
+    await expect(preview.locator('circle[cx][r="14"]')).toHaveCount(15);
     await page.getByText('Your upgrades', { exact: true }).click();
     await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
+    await expect(page.getByRole('group', { name: 'Artillery' }).getByRole('button', { name: 'On', exact: true })).toHaveAttribute('aria-pressed', 'true');
     expect(errors).toEqual([]);
   });
 }
@@ -105,13 +123,13 @@ test('inactive enemy settings are retained but not compiled into smaller matches
   await expect(page.getByLabel('Enemy 4 behavior')).toHaveValue('aggressive');
   await expect(page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Industry' })).toBeChecked();
   await count.getByRole('button', { name: '1', exact: true }).click();
-  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
   expect(Object.keys((await saved(page)).ai)).toEqual(['enemy']);
 });
 
 test('terminal New map preserves settings and upgrades, including a minimal four-enemy river field', async ({ page }) => {
-  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true },
+  const preferences = { ...defaultMatchPreferences(), map: { cities: 6, enemies: 4, river: true, industry: true, artillery: false },
     upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
   const map = generateMap(preferences.map, 17);
   const setup = compileRoundSetup(map.territories, preferences.upgrades, undefined, 0, {}, map.river, map.terrain);
@@ -128,7 +146,7 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   expect(next.generated.seed).not.toBe(17);
   expect(next.territories).toHaveLength(6);
   expect(next.state.river.bridges).toHaveLength(2);
-  expect(next.state.terrain.barriers).toContainEqual(expect.objectContaining({ id: 'mountain-range', kind: 'mountain' }));
+  expect(next.state.terrain.barriers[0].id).toBe('mountain-range');
   expect(Object.keys(next.ai)).toHaveLength(4);
   expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
   expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');

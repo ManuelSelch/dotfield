@@ -24,7 +24,7 @@ test('restores the active round instead of returning to Home after reload', asyn
   await page.reload();
 
   await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
   expect(await page.getByRole('list', { name: 'Territory details' }).textContent()).toBe(before);
   expect(await page.getByRole('list', { name: 'Unit transfers' }).textContent()).toBe(transfersBefore);
 });

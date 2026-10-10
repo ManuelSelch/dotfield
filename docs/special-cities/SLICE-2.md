@@ -31,7 +31,7 @@ Following the approved bridge-city mockup (revision 3), this slice adds a select
 
 ### Rendering
 
-- `drawRiver()` draws muted blue-grey river fill and compact `#f0f0e4` bridge decks with rail strokes.
+- `drawRiver()` draws a muted blue-grey river and rounded warm `#ddd8bf` bridge decks with inset rail strokes. The 64×38 footprint remains validated for batch clearance; the later approved mockup revision changes only presentation.
 - `drawRegions()` clips Voronoi cells independently per bank; the river itself is not a city region.
 - `drawDrag()` shows a dashed paired-city ring on selection, city-border-to-border straight route previews, and red dashed guides for invalid cross-bank targets.
 - `MapPreview.tsx` renders river + bridges in the SVG home preview.

@@ -9,13 +9,20 @@ describe('match preferences', () => {
     expect(readMatchPreferences({ getItem: () => { throw Error('blocked'); } })).toEqual(defaultMatchPreferences());
   });
   it('remembers map options, player upgrades and inactive enemy settings', () => {
-    const value = { map: { ...DEFAULT_MAP_SETTINGS, cities: 24, enemies: 1 },
+    const value = { map: { ...DEFAULT_MAP_SETTINGS, cities: 24, enemies: 1, artillery: true },
       upgrades: { player: ['industry' as const], 'enemy-4': ['watchtower' as const] },
       aiBehaviors: { enemy: 'aggressive' as const, 'enemy-4': 'defensive' as const } };
     let raw = '';
     writeMatchPreferences(value, { setItem: (key, data) => { expect(key).toBe(MATCH_PREFERENCES_KEY); raw = data; } });
     expect(readMatchPreferences({ getItem: () => raw })).toEqual(value);
     expect(() => writeMatchPreferences(value, { setItem: () => { throw Error('full'); } })).not.toThrow();
+  });
+  it('rejects saved map settings without the required Artillery flag', () => {
+    const defaults = defaultMatchPreferences();
+    const { artillery: _omitted, ...oldMap } = defaults.map;
+    const oldPreferences = { ...defaults, map: oldMap };
+    expect(isMatchPreferences(oldPreferences)).toBe(false);
+    expect(readMatchPreferences({ getItem: () => JSON.stringify(oldPreferences) })).toEqual(defaults);
   });
   it('rejects unknown factions, upgrades, behaviors and malformed selections', () => {
     const base = defaultMatchPreferences();

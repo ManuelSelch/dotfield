@@ -39,8 +39,8 @@ test('offline launch and reconnection never reload a round; update requires a Ho
   await context.setOffline(true);
   await expect(page.locator('header').getByRole('status')).toHaveText('Offline');
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   const counts = await page.getByRole('list', { name: 'Territory details' }).textContent();
   // A document-local marker disappears on any unexpected reload.
@@ -69,7 +69,7 @@ test('offline launch and reconnection never reload a round; update requires a Ho
   await testInfo.attach('home-update-ready', { path: screenshot, contentType: 'image/png' });
   await Promise.all([page.waitForEvent('framenavigated', frame => frame === page.mainFrame()), apply.click()]);
   await expect(page.locator('header').getByRole('status')).toHaveText('Online');
-  await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.dataset.noReload)).toBeUndefined();
   await expect(page.getByRole('button', { name: 'Update now', exact: true })).toHaveCount(0);
 });
@@ -80,7 +80,7 @@ test('activation in another tab does not reload an active round', async ({ page,
   await page.reload();
   const other = await context.newPage();
   await other.goto(url);
-  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.evaluate(() => { document.documentElement.dataset.noReload = 'active-tab'; });
   const counts = await page.getByRole('list', { name: 'Territory details' }).textContent();
