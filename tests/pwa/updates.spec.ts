@@ -62,7 +62,7 @@ test('offline launch and reconnection never reload a round; update requires a Ho
   const apply = page.getByRole('button', { name: 'Update now', exact: true });
   await expect(apply).toBeVisible();
   const bounds = await apply.boundingBox();
-  expect(bounds!.height).toBeGreaterThanOrEqual(44);
+  expect(bounds!.height).toBeLessThanOrEqual(20);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
   const screenshot = testInfo.outputPath('home-update-ready.png');
   await page.screenshot({ path: screenshot });

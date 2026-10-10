@@ -36,19 +36,17 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
 .connection-badge--updating .connection-badge__dot { background: #b58b35; animation: badge-pulse 1s ease-in-out infinite alternate; }
 .connection-badge--ready .connection-badge__dot { background: #467da8; }
 .connection-badge--error .connection-badge__dot { background: #bd624e; }
-.connection-badge button {
-  min-height: 44px;
-  padding: 0 6px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-field);
+.connection-badge__action {
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--color-ink);
   font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
 }
-.connection-badge button:focus-visible { outline: 2px solid var(--color-player); outline-offset: 2px; }
-/* Only Home offers the action; keep it in flow so it cannot cover other controls. */
-.connection-badge:has(button) { flex-direction: column; align-items: flex-end; gap: 4px; }
+.connection-badge__action:focus-visible { outline: 2px solid var(--color-player); outline-offset: 3px; border-radius: 2px; }
 @keyframes badge-pulse { to { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .connection-badge__dot { animation: none; } }
 

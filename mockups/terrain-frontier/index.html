@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — Mountain and river routes</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header><h1><span class="brand-dot" aria-hidden="true"></span>dotfield</h1><span class="eyebrow">TACTICAL FIELD STUDY</span></header>
+    <section class="intro">
+      <p class="kicker">MOUNTAINS + RIVER</p>
+      <h2>Choose your approach.</h2>
+      <p class="subhead">Two flanks. Two bridges. No direct route through the ridge.</p>
+    </section>
+    <section class="route-picker" aria-label="Illustrated staging route">
+      <div class="route-buttons">
+        <button type="button" data-route="west" aria-pressed="true">West flank</button>
+        <button type="button" data-route="east" aria-pressed="false">East flank</button>
+      </div>
+      <p id="route-summary" aria-live="polite">West flank · 7 city-to-city orders · west pass + bridge</p>
+    </section>
+    <div class="field">
+      <svg id="map" viewBox="0 0 420 620" role="img" aria-labelledby="map-title map-description">
+        <title id="map-title">Mountain ridge and river with two crossing routes</title>
+        <desc id="map-description">A larger battlefield. A central mountain range divides the western and eastern approaches. A river runs across the northern field with a bridge at either flank. The selected route is highlighted as separate city-to-city orders.</desc>
+        <defs>
+          <marker id="route-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0 0L8 4L0 8" fill="#267c72" /></marker>
+        </defs>
+        <g id="regions"></g>
+        <g id="river"></g>
+        <g id="mountains"></g>
+        <g id="routes"></g>
+        <g id="cities"></g>
+      </svg>
+    </div>
+    <footer><span class="legend"><i class="player-dot"></i>You <i class="enemy-square"></i>Opponent <i class="neutral-line"></i>Neutral</span>
+      <p>Stage through cities; cross only at paired bridge cities.</p>
+    </footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

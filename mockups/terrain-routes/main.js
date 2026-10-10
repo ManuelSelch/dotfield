@@ -17,7 +17,16 @@ const cities = [
   { x: 290, y: 360, owner: 'neutral', count: 8 },
   { x: 180, y: 430, owner: 'player', count: 45 },
 ];
-const obstacle = { x: 140, y: 200, right: 220, bottom: 280 };
+if (state === 'mountain') cities[2].owner = 'neutral';
+const mountain = [
+  { x: 130, y: 164 }, { x: 149, y: 150 }, { x: 164, y: 169 }, { x: 184, y: 128 },
+  { x: 204, y: 163 }, { x: 222, y: 145 }, { x: 248, y: 178 }, { x: 235, y: 196 },
+  { x: 251, y: 217 }, { x: 237, y: 238 }, { x: 248, y: 258 }, { x: 227, y: 278 },
+  { x: 213, y: 307 }, { x: 194, y: 294 }, { x: 178, y: 314 }, { x: 160, y: 299 },
+  { x: 142, y: 307 }, { x: 132, y: 283 }, { x: 115, y: 269 }, { x: 127, y: 248 },
+  { x: 113, y: 228 }, { x: 128, y: 207 }, { x: 116, y: 187 },
+];
+const stagingPaths = { west: [9, 7, 5, 3, 1, 0], east: [9, 8, 6, 4, 2, 0] };
 // Parallel angular banks use the same flat polygon language as city regions.
 const upperBank = [{ x: 0, y: 229 }, { x: 58, y: 229 }, { x: 118, y: 222 },
   { x: 180, y: 228 }, { x: 242, y: 218 }, { x: 302, y: 231 }, { x: 360, y: 228 }];
@@ -86,6 +95,17 @@ let target = null;
 let drag = false;
 let paused = false;
 let batch = null;
+let selectedPass = 'west';
+const passOptions = document.querySelector('#pass-options');
+if (state === 'mountain') {
+  passOptions.hidden = false;
+  passOptions.querySelectorAll('[data-pass]').forEach(button => button.addEventListener('click', () => {
+    selectedPass = button.dataset.pass;
+    passOptions.querySelectorAll('[data-pass]').forEach(option => option.setAttribute('aria-pressed', String(option === button)));
+    document.querySelector('#pass-summary').textContent = `${button.textContent} · 5 city-to-city orders`;
+    update();
+  }));
+}
 const length = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const total = path => path.slice(1).reduce((sum, p, i) => sum + length(path[i], p), 0);
 const coords = path => path.map(p => `${p.x},${p.y}`).join(' ');
@@ -116,25 +136,27 @@ function cell(city) {
   }
   return poly;
 }
-function hits(a, b) {
-  let enter = 0, exit = 1;
-  for (const [start, delta, low, high] of [[a.x, b.x - a.x, obstacle.x, obstacle.right],
-    [a.y, b.y - a.y, obstacle.y, obstacle.bottom]]) {
-    if (delta === 0) { if (start <= low || start >= high) return false; }
-    else {
-      const p = (low - start) / delta, q = (high - start) / delta;
-      enter = Math.max(enter, Math.min(p, q)); exit = Math.min(exit, Math.max(p, q));
-    }
+function insideMountain(point) {
+  let inside = false;
+  for (let i = 0, j = mountain.length - 1; i < mountain.length; j = i++) {
+    const a = mountain[i], b = mountain[j];
+    const crosses = (a.y > point.y) !== (b.y > point.y)
+      && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x;
+    if (crosses) inside = !inside;
   }
-  return exit > enter;
+  return inside;
+}
+function hits(a, b) {
+  const steps = Math.ceil(length(a, b) / 2);
+  for (let i = 0; i <= steps; i++) {
+    const t = steps ? i / steps : 0;
+    if (insideMountain({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t })) return true;
+  }
+  return false;
 }
 function route(a, b) {
   if (state !== 'mountain') return riverRoute(a, b);
-  if (!hits(a, b)) return [a, b];
-  const corners = [{ x: 140, y: 200 }, { x: 140, y: 280 }, { x: 220, y: 200 }, { x: 220, y: 280 }];
-  const candidates = corners.flatMap(p => [[a, p, b], ...corners.filter(q => q !== p).map(q => [a, p, q, b])])
-    .filter(path => path.slice(1).every((p, i) => !hits(path[i], p)));
-  return candidates.sort((a, b) => total(a) - total(b))[0] ?? null;
+  return hits(a, b) ? null : [a, b];
 }
 function at(path, offset) {
   for (let i = 1; i < path.length; i++) {
@@ -161,8 +183,11 @@ if (state !== 'mountain') {
 for (const city of cities) city.cell = node('polygon', { points: coords(cell(city)), class: `cell ${city.owner}` }, regionLayer);
 const terrainLayer = document.querySelector('#terrain');
 if (state === 'mountain') {
-  node('rect', { x: obstacle.x, y: obstacle.y, width: obstacle.right - obstacle.x, height: obstacle.bottom - obstacle.y, class: 'mountain' }, terrainLayer);
-  node('path', { d: 'M151 251l16-31 14 25 12-18 15 24M161 231l6 3 5-3M187 237l6 3 5-3', class: 'mountain-glyph' }, terrainLayer);
+  node('polygon', { points: coords(mountain), class: 'mountain-mass' }, terrainLayer);
+  node('polygon', { points: '184,128 204,163 222,145 248,178 235,196 251,217 237,238 248,258 227,278 213,307 194,294 202,253 190,221 203,188', class: 'mountain-shadow' }, terrainLayer);
+  node('polygon', { points: '184,128 173,153 183,147 190,157 204,163', class: 'mountain-snow' }, terrainLayer);
+  node('polygon', { points: '222,145 211,164 220,160 228,170 248,178', class: 'mountain-snow' }, terrainLayer);
+  node('path', { d: 'M164 169L181 196 162 224 181 254 160 299M204 163L190 192 211 219 190 250 194 294M128 207l14 18-15 23M235 196l-16 23 18 19', class: 'mountain-ridge' }, terrainLayer);
 } else {
   node('polygon', { points: coords(riverPolygon), class: 'river' }, terrainLayer);
   if (state === 'river') for (const bridge of bridges) {
@@ -188,9 +213,17 @@ for (const [index, city] of cities.entries()) {
 function update() {
   const path = source && target && source !== target ? route(source, target) : undefined;
   for (const city of cities) city.cell.setAttribute('class', `cell ${city.owner}${city === source ? ' source' : ''}${city === target && city !== source ? path ? ' target' : ' blocked-target' : ''}`);
-  document.querySelector('#route').replaceChildren();
-  if (source && target && source !== target) node('polyline', { points: coords(path ? trim(path) : trim([source, target])), class: `guide${path ? '' : ' invalid'}` }, document.querySelector('#route'));
-  hint.textContent = paused ? 'Preview paused' : path === null ? 'No crossing · choose another destination'
+  const routeLayer = document.querySelector('#route');
+  routeLayer.replaceChildren();
+  if (state === 'mountain') {
+    const stagedCities = stagingPaths[selectedPass].map(index => cities[index]);
+    for (let i = 1; i < stagedCities.length; i++) {
+      node('polyline', { points: coords(trim([stagedCities[i - 1], stagedCities[i]])), class: 'staging-route' }, routeLayer);
+    }
+  }
+  if (source && target && source !== target) node('polyline', { points: coords(path ? trim(path) : trim([source, target])), class: `guide${path ? '' : ' invalid'}` }, routeLayer);
+  hint.textContent = paused ? 'Preview paused' : path === null
+    ? state === 'mountain' ? 'Ridge blocks direct orders · stage through a side city' : 'No crossing · choose another destination'
     : source && !target ? 'Choose a destination · Escape cancels' : 'Drag between regions · leave one behind';
 }
 function choose(city) {

@@ -1,0 +1,67 @@
+:root {
+  color-scheme: light;
+  --page: #f6f7f3;
+  --ink: #253c33;
+  --muted: #6b776e;
+  --player: #267c72;
+  --enemy: #bd624e;
+  --border: #c8d1c4;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { background: var(--page); color: var(--ink); }
+button { font: inherit; -webkit-tap-highlight-color: transparent; }
+.app { display: flex; flex-direction: column; gap: 8px; width: min(100%, 540px); height: 100svh; margin: auto; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+header { height: 32px; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding-inline: 4px; }
+h1 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.5px; }
+.brand-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--player); }
+.eyebrow, .kicker { color: #829086; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; }
+.intro { flex: 0 0 auto; padding: 0 7px 1px; }
+.kicker { margin: 1px 0 4px; }
+h2 { margin: 0; font-size: clamp(19px, 5vw, 23px); line-height: 1.15; font-weight: 560; letter-spacing: -.6px; }
+.subhead { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+.route-picker { flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 7px 10px; }
+.route-buttons { display: flex; gap: 6px; }
+.route-buttons button { min-height: 34px; padding: 5px 14px; border: 1px solid #d5ddd2; border-radius: 18px; background: #fcfcfa; color: #5d6b61; font-size: 11px; cursor: pointer; }
+.route-buttons button[aria-pressed="true"] { border-color: #76a79a; background: #e3eee8; color: #185f55; }
+.route-buttons button:focus-visible { outline: 2px solid var(--player); outline-offset: 2px; }
+#route-summary { margin: 0; color: #6b776e; font-size: 10px; text-align: center; }
+.field { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; border: 1px solid #dce2d8; border-radius: 16px; background: #eef1e9; }
+#map { display: block; width: 100%; height: 100%; }
+.region { stroke: var(--border); stroke-width: 1; stroke-linejoin: round; }
+.region.neutral { fill: #eef1e9; }
+.region.player { fill: #dcece3; }
+.region.enemy { fill: #f0e3d9; }
+.river-water { fill: #dce7e5; stroke: #b2c8c4; stroke-width: 1; stroke-linejoin: round; }
+.bridge-deck { fill: #f3f2e8; stroke: #a9ae98; stroke-width: 1; }
+.bridge-rail { fill: none; stroke: #9da58f; stroke-width: 1.4; }
+.mountain-mass { fill: #d5d8cd; stroke: #a8afa0; stroke-width: 1.1; stroke-linejoin: round; }
+.mountain-shadow { fill: #c3c9bb; }
+.mountain-snow { fill: #eef0e8; stroke: #a8afa0; stroke-width: 1; stroke-linejoin: round; }
+.mountain-ridge { fill: none; stroke: #a8afa0; stroke-width: 1; stroke-linejoin: round; }
+.route-leg { fill: none; stroke: #267c72; stroke-width: 2.7; stroke-dasharray: 5 4; stroke-linecap: round; marker-end: url(#route-arrow); opacity: .9; }
+.city-disc { stroke-width: 1.5; }
+.city-disc.player { fill: var(--player); stroke: var(--player); }
+.city-disc.enemy { fill: var(--enemy); stroke: var(--enemy); }
+.city-disc.neutral { fill: #fcfcfa; stroke: #bdc9ba; }
+.city-count { font-size: 15px; font-weight: 650; text-anchor: middle; dominant-baseline: middle; font-variant-numeric: tabular-nums; }
+.city-count.owned { fill: white; }
+.city-count.neutral { fill: #404b46; }
+.city-mark { fill: none; stroke: #fff; stroke-width: 1.5; }
+footer { flex: 0 0 auto; min-height: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--muted); font-size: 9px; text-align: center; }
+footer p { margin: 0; }
+.legend { display: flex; align-items: center; gap: 5px; }
+.legend i { display: inline-block; width: 6px; height: 6px; margin-left: 8px; }
+.legend i:first-child { margin-left: 0; }
+.player-dot { border-radius: 50%; background: var(--player); }
+.enemy-square { background: var(--enemy); }
+.neutral-line { height: 2px; background: #808b80; }
+@media (max-height: 640px) {
+  .app { gap: 5px; padding-top: 7px; padding-bottom: 5px; }
+  header { height: 27px; }
+  .subhead { font-size: 10px; }
+  .route-buttons button { min-height: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }

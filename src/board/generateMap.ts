@@ -4,6 +4,7 @@ import { createRiver } from '../game/river';
 import { snapshotTerritories } from '../game/features/snapshot';
 import { createTerrain } from '../game/terrain/terrain';
 import { entersInterior } from '../game/terrain/geometry';
+import type { Terrain } from '../game/terrain/types';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export interface MapSettings {
@@ -16,11 +17,14 @@ export interface MapSettings {
   readonly slowZone: boolean;
 }
 export interface GeneratedMap extends FieldMap {
+  readonly terrain: Terrain;
   readonly seed: number;
   readonly settings: MapSettings;
 }
-export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 12, enemies: 2, industry: true, river: true, artillery: false, watchtower: false, slowZone: false });
+export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true, artillery: false, watchtower: false, slowZone: false });
 export const enemyIds = (count: number) => Array.from({ length: count }, (_, i) => i === 0 ? 'enemy' : `enemy-${i + 1}`);
+const MOUNTAIN_RANGE = { id: 'mountain-range', kind: 'mountain' as const,
+  bounds: { minX: 140, minY: 270, maxX: 220, maxY: 370 } };
 
 export function isMapSettings(value: unknown): value is MapSettings {
   if (!value || typeof value !== 'object') return false;
@@ -46,10 +50,13 @@ export function newMapSeed(): number {
 }
 
 function chooseArtilleryMountain(gun: Territory, territories: readonly Territory[]) {
+  const separatedFromRange = (bounds: typeof MOUNTAIN_RANGE.bounds) =>
+    bounds.maxX < MOUNTAIN_RANGE.bounds.minX || bounds.minX > MOUNTAIN_RANGE.bounds.maxX
+    || bounds.maxY < MOUNTAIN_RANGE.bounds.minY || bounds.minY > MOUNTAIN_RANGE.bounds.maxY;
   const candidates = [85, 155, 190, 290, 325, 395].flatMap(y => [92, 180, 268].map(x => ({
     id: 'artillery-ridge', kind: 'mountain' as const,
     bounds: { minX: x - 8, minY: y - 14, maxX: x + 8, maxY: y + 14 },
-  }))).filter(({ bounds }) => territories.every(city => {
+  }))).filter(({ bounds }) => separatedFromRange(bounds) && territories.every(city => {
     const dx = Math.max(bounds.minX - city.x, 0, city.x - bounds.maxX);
     const dy = Math.max(bounds.minY - city.y, 0, city.y - bounds.maxY);
     return Math.hypot(dx, dy) > TERRITORY_RADIUS + 3;
@@ -69,13 +76,17 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!isMapSettings(settings)) throw new RangeError('Invalid map settings.');
   if (!Number.isInteger(seed) || seed < 0 || seed >= 2 ** 32) throw new RangeError('Invalid map seed.');
   const random = seededRandom(seed);
-  const jitter = () => (random() - 0.5) * 12;
   // Stratified capacity guarantees termination and >=58-unit city separation even
-  // at maximum density. Each generation jitters coordinates and chooses new slots.
+  // at maximum density. Central slots shift around the fixed ridge.
   const rows = settings.river ? [50, 120, 190, 290, 360, 430] : [40, 120, 200, 280, 360, 440];
-  const slots: Territory[] = rows.flatMap((y, row) => [48, 136, 224, 312].map((x, column) => ({
-    id: `city-${row * 4 + column + 1}`, owner: 'neutral', units: 8 + Math.floor(random() * 5), x: x + jitter(), y: y + jitter(),
-  })));
+  const slots: Territory[] = rows.flatMap((y, row) => {
+    const mountainRow = row === 3 || row === 4;
+    const xs = mountainRow ? [48, 116, 244, 312] : [48, 136, 224, 312];
+    const offset = () => (random() - 0.5) * (mountainRow ? 8 : 12);
+    return xs.map((x, column) => ({
+      id: `city-${row * 4 + column + 1}`, owner: 'neutral', units: 8 + Math.floor(random() * 5), x: x + offset(), y: y + offset(),
+    }));
+  });
   const cities: Territory[] = [];
   if (settings.river) {
     for (const column of [0, 3]) {
@@ -84,7 +95,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
       cities.push(north, slots[12 + column]);
     }
   } else cities.push(slots[Math.floor(random() * slots.length)]);
-  // Farthest-point sampling spreads sparse maps, with random weighting for variety.
+  // Farthest-point sampling spreads sparse maps and faction starts.
   while (cities.length < settings.cities) {
     const candidates = slots.filter(slot => !cities.includes(slot));
     const scores = candidates.map(city => ({ city, score: Math.min(...cities.map(other =>
@@ -92,8 +103,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
     scores.sort((a, b) => b.score - a.score);
     cities.push(scores[0].city);
   }
-  // Equal garrisons, separated starts. Every bank has at least two cities and
-  // both bridges remain legal; no generated faction/area can be disconnected.
+  // Equal garrisons; fixed ridge geometry retains a connected legal staging graph.
   const starts: Territory[] = [];
   const factions = ['player', ...enemyIds(settings.enemies)];
   for (let i = 0; i < factions.length; i++) {
@@ -132,9 +142,10 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: [0, 3].map(column => ({
     id: `bridge-${column}`, northId: slots[8 + column].id, southId: slots[12 + column].id, width: 64,
   })) }, territories) : undefined;
-  const terrain = artilleryCity ? createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers: [
-    chooseArtilleryMountain(artilleryCity, territories),
-  ] }) : undefined;
+  const artilleryRidge = artilleryCity ? chooseArtilleryMountain(artilleryCity, territories) : undefined;
+  const terrain = createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers: [
+    MOUNTAIN_RANGE, ...(artilleryRidge ? [artilleryRidge] : []),
+  ] });
   return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
-    territories: snapshotTerritories(territories), ...(river ? { river } : {}), ...(terrain ? { terrain } : {}) });
+    territories: snapshotTerritories(territories), terrain, ...(river ? { river } : {}) });
 }
