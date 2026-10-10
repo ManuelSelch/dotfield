@@ -4,7 +4,7 @@
 
 Keep faction upgrades independently configurable per player and AI faction, and keep territory features deterministic and shared with AI forecasting. Watchtower and Slow Zone are field-level map settings rather than faction upgrades; Industry, Factory and Capture shield remain independently selectable faction upgrades.
 
-Industry, Factory, Watchtower and Slow Zone mechanics are implemented; see the [effect catalog](EFFECTS.md). Watchtower globally equips every faction start; Slow Zone globally adds one seeded-random host. Both are toggled in Home's On the field settings. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/rules.
+Industry, Factory, Watchtower and Slow Zone mechanics are implemented; see the [effect catalog](EFFECTS.md). Watchtower and Slow Zone each globally add one seeded-random host. Both are toggled in Home's On the field settings. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/rules.
 
 ## Scope
 
@@ -158,7 +158,7 @@ type TerritoryFeature =
 
 ### 6. Watchtower (implemented)
 
-- The global On the field toggle equips every faction's starting city; generated territory features attach during seeded map generation.
+- The global On the field toggle places one Watchtower on a seeded-random city; generated territory features attach during map generation.
 - On a firing opportunity, target the nearest eligible hostile airborne dot within range. Stable transfer/slot IDs break equal-distance ties.
 - Remove one real dot per shot; do not damage friendly dots, queued troops or city garrisons. Range uses shared dot-position geometry in board space.
 - A shot requires a live eligible target at that event time. Empty firing opportunities do not accumulate a burst of stored shots.
@@ -200,7 +200,7 @@ Description: Add validated discriminated feature definitions, separate runtime i
 ### 5. Watchtower simulation, forecasts and field setting
 
 Status: implemented.
-Description: Seeded map generation attaches a tower to every faction's starting city when enabled in On the field settings. At each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette and expose accessible status. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.
+Description: Seeded map generation attaches one tower to a random city when enabled in On the field settings. At each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette and expose accessible status. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.
 
 ### 6. Variable-speed movement foundation and Slow Zone
 

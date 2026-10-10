@@ -78,7 +78,7 @@ describe('city upgrade indicators', () => {
   it('adds no indicators when no upgrades are active', () => {
     expect(render().arc).not.toHaveBeenCalled();
   });
-  it('draws the Watchtower coverage ring and tower silhouette at the starting city', () => {
+  it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
     const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 72, fireIntervalMs: 250 }]); const ctx = render(state);
     // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
     expect(ctx.arc).toHaveBeenCalledTimes(2);

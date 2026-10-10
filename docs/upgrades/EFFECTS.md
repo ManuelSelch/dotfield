@@ -8,7 +8,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 | Industry | Owned cities produce 25% faster: 1.25 instead of 1 unit/sec. | Rewards expansion and holding territory. Applies to newly captured cities too; other factions and neutral production are unchanged. | Implemented |
 | Quick march | Troops move 20% faster. | Faster attacks and defensive reinforcement; still vulnerable to collisions. | Proposed |
 | Rapid deployment | Launch groups every 450 ms instead of 600 ms. | Commits armies sooner, but also empties the source sooner. | Proposed |
-| Watchtower | On the field: equips every faction's starting city to destroy nearby hostile airborne dots, within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented as a field setting |
+| Watchtower | On the field: places one tower on a seeded-random city; it destroys nearby hostile airborne dots within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented as a field setting |
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | On the field: a seeded random city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented as a field setting |
 | Capture shield | Each newly captured city blocks its first three hostile arriving batches without losing garrison (normally 15 troops). | Helps establish a foothold; no regeneration. Qualifying recapture grants three fresh charges. | Implemented; independently selectable for every faction |
@@ -42,7 +42,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 
 ## Watchtower scope
 
-- Off by default in On the field; when enabled, every faction's starting city receives a tower. Its fixed 72-unit radius is drawn as a subtle owner-tinted circle; a distinct tower silhouette marks each host.
+- Off by default in On the field; when enabled, one seeded-random city from the full field receives a tower. Its fixed 72-unit radius is drawn as a subtle owner-tinted circle; a distinct tower silhouette marks the host. Neutral towers remain inactive until captured.
 - Every 250 ms, the tower destroys at most one hostile airborne dot currently within range (up to four per second). It selects the nearest eligible individual dot; ties resolve deterministically by transfer ID and stable formation slot. It never targets friendly units or stationary garrisons.
 - The tower's firing timer is continuous even while no target is in range. It does not bank missed shots; an in-range target is destroyed at the next 250ms cadence boundary.
 - Tower ownership follows the current owner of its host city. Capturing a tower immediately turns it against the original owner; recapture turns it back. Neutral-owned towers do not fire.

@@ -44,7 +44,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(preview.locator('[aria-label="Artillery"]')).toHaveCount(1);
     await artillery.getByRole('button', { name: 'Off', exact: true }).click();
     await watchtower.getByRole('button', { name: 'On', exact: true }).click();
-    await expect(preview.locator('[aria-label="Watchtower coverage"]')).toHaveCount(3);
+    await expect(preview.locator('[aria-label="Watchtower coverage"]')).toHaveCount(1);
     await slowZone.getByRole('button', { name: 'On', exact: true }).click();
     await expect(preview.locator('[aria-label="Slow Zone coverage"]')).toHaveCount(1);
     await watchtower.getByRole('button', { name: 'Off', exact: true }).click();
@@ -100,7 +100,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
     expect(initial.state.rules.factions.player.captureShieldBatches).toBe(3);
-    expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'watchtower'))).toHaveLength(5);
+    expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'watchtower'))).toHaveLength(1);
     expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'slow-zone'))).toHaveLength(1);
     expect(initial.territories.find((c: { owner: string }) => c.owner === 'player').features.some((feature: { kind: string }) => feature.kind === 'factory')).toBe(true);
     expect(initial.territories.map((c: { x: number; y: number }) => [c.x, c.y])).not.toEqual(previewCoordinates);

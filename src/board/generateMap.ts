@@ -118,9 +118,11 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
     const index = starts.indexOf(city);
     return index < 0 ? city : { ...city, owner: factions[index], units: 36 };
   });
-  if (settings.watchtower) territories = territories.map(city => city.owner === 'neutral' ? city : {
-    ...city, features: [...(city.features ?? []), { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }],
-  });
+  if (settings.watchtower) {
+    const host = territories[Math.floor(random() * territories.length)];
+    territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
+      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }] } : city);
+  }
   if (settings.slowZone) {
     const host = territories[Math.floor(random() * territories.length)];
     territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
