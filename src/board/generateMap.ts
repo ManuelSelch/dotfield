@@ -3,7 +3,7 @@ import type { Territory } from '../game/types';
 import { createRiver } from '../game/river';
 import { snapshotTerritories } from '../game/features/snapshot';
 import { createTerrain } from '../game/terrain/terrain';
-import { entersInterior } from '../game/terrain/geometry';
+import type { Terrain } from '../game/terrain/types';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export interface MapSettings {
@@ -48,28 +48,6 @@ export function newMapSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0];
 }
 
-function chooseArtilleryMountain(gun: Territory, territories: readonly Territory[]) {
-  const separatedFromRange = (bounds: typeof MOUNTAIN_RANGE.bounds) =>
-    bounds.maxX < MOUNTAIN_RANGE.bounds.minX || bounds.minX > MOUNTAIN_RANGE.bounds.maxX
-    || bounds.maxY < MOUNTAIN_RANGE.bounds.minY || bounds.minY > MOUNTAIN_RANGE.bounds.maxY;
-  const candidates = [85, 155, 190, 290, 325, 395].flatMap(y => [92, 180, 268].map(x => ({
-    id: 'artillery-ridge', kind: 'mountain' as const,
-    bounds: { minX: x - 8, minY: y - 14, maxX: x + 8, maxY: y + 14 },
-  }))).filter(({ bounds }) => separatedFromRange(bounds) && territories.every(city => {
-    const dx = Math.max(bounds.minX - city.x, 0, city.x - bounds.maxX);
-    const dy = Math.max(bounds.minY - city.y, 0, city.y - bounds.maxY);
-    return Math.hypot(dx, dy) > TERRITORY_RADIUS + 3;
-  }));
-  if (!candidates.length) throw new Error('Could not place Artillery ridge clear of generated cities.');
-  const hostile = territories.filter(city => city.owner !== 'neutral' && city.owner !== gun.owner
-    && Math.hypot(city.x - gun.x, city.y - gun.y) <= 110);
-  return candidates.sort((a, b) => {
-    const blocked = (barrier: typeof a) => hostile.filter(city => entersInterior(gun, city, barrier.bounds)).length;
-    const scoreA = blocked(a) * 1000 - Math.hypot((a.bounds.minX + a.bounds.maxX) / 2 - gun.x, (a.bounds.minY + a.bounds.maxY) / 2 - gun.y);
-    const scoreB = blocked(b) * 1000 - Math.hypot((b.bounds.minX + b.bounds.maxX) / 2 - gun.x, (b.bounds.minY + b.bounds.maxY) / 2 - gun.y);
-    return scoreB - scoreA || a.bounds.minY - b.bounds.minY || a.bounds.minX - b.bounds.minX;
-  })[0];
-}
 
 export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!isMapSettings(settings)) throw new RangeError('Invalid map settings.');
@@ -143,8 +121,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: [0, 3].map(column => ({
     id: `bridge-${column}`, northId: slots[8 + column].id, southId: slots[12 + column].id, width: 64,
   })) }, territories) : undefined;
-  const artilleryRidge = artilleryCity ? chooseArtilleryMountain(artilleryCity, territories) : undefined;
-  const barriers = [...(settings.mountains ? [MOUNTAIN_RANGE] : []), ...(artilleryRidge ? [artilleryRidge] : [])];
+  const barriers = [...(settings.mountains ? [MOUNTAIN_RANGE] : [])];
   const terrain = barriers.length ? createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers }) : undefined;
   return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
     territories: snapshotTerritories(territories), ...(terrain ? { terrain } : {}), ...(river ? { river } : {}) });
