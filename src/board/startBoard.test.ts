@@ -55,18 +55,16 @@ describe('board lifecycle adapter', () => {
     expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
   });
 
-  it('flushes a throttled order on hide and cannot recreate a cleared save after disposal', () => {
+  it('saves an unsaved order on hide and cannot recreate a cleared save after disposal', () => {
     const board = harness();
-    let now = 0;
     const write = vi.fn();
-    board.onSnapshot.mockImplementation(createSnapshotSaver(write, () => now));
-    board.frame(0);
-    now = 100; board.frame(100);
+    board.onSnapshot.mockImplementation(createSnapshotSaver(write));
+    board.frame(0); board.frame(100);
     vi.mocked(bindDrag).mock.lastCall![3]('south', 'centre');
-    expect(write).toHaveBeenCalledTimes(1);
+    expect(write).not.toHaveBeenCalled();
     board.document.hidden = true;
     board.document.dispatchEvent(new Event('visibilitychange'));
-    expect(write).toHaveBeenCalledTimes(2);
+    expect(write).toHaveBeenCalledOnce();
     expect(write.mock.lastCall![0].transfers).toHaveLength(7);
     // Home clears storage and disposes this adapter; no delayed/event write may revive it.
     write.mockClear(); board.stop();
@@ -79,8 +77,9 @@ describe('board lifecycle adapter', () => {
   it('forces phase changes but does not force every frame', () => {
     const board = harness();
     expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'running', true);
-    board.frame(0); board.frame(100);
-    expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'running');
+    const snapshots = board.onSnapshot.mock.calls.length;
+    board.frame(0); board.frame(1000);
+    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
     board.stop.pause();
     expect(board.onSnapshot).toHaveBeenLastCalledWith(expect.anything(), 'paused', true);
     board.stop.resume();
@@ -163,6 +162,7 @@ describe('board lifecycle adapter', () => {
     board.frame(1800);
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(ended, 'running', true);
     const requests = board.request.mock.calls.length;
     expect(getTerritories()).toEqual([]);
     dispatch('source', 'target');

@@ -50,7 +50,6 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       if (next === state) return;
       state = next;
       onState(state);
-      options.onSnapshot?.(state, session.phase);
       redraw();
     });
 
@@ -78,7 +77,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       || state.roundStatus !== previous.roundStatus;
     if (state.roundStatus !== 'playing') drag.cancel();
     if (changed) onState(state);
-    options.onSnapshot?.(state, session.phase);
+    if (state.roundStatus !== previous.roundStatus) options.onSnapshot?.(session.state, session.phase, true);
     if (changed || selection || state.transfers.length || previous.transfers.length) redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }

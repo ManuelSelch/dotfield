@@ -4,41 +4,35 @@ import { createSimulation } from './state';
 import { TERRITORIES } from '../board/map';
 
 function harness() {
-  let time = 0;
   const write = vi.fn();
-  const save = createSnapshotSaver(write, () => time);
+  const save = createSnapshotSaver(write);
   const state = createSimulation(TERRITORIES);
-  return { save, write, state, time: (next: number) => { time = next; } };
+  return { save, write, state };
 }
 
-describe('snapshot save policy', () => {
-  it('writes the initial state immediately and throttles ordinary frames to 500ms', () => {
+describe('event-only snapshot save policy', () => {
+  it('never writes ordinary snapshots even as simulation time advances', () => {
     const h = harness();
-    h.save(h.state, 'running');
-    h.time(499); h.save(h.state, 'running');
-    expect(h.write).toHaveBeenCalledTimes(1);
-    h.time(500); h.save(h.state, 'running');
-    expect(h.write).toHaveBeenCalledTimes(2);
+    for (const elapsedMs of [0, 500, 1000, 10000, 60000]) {
+      h.save({ ...h.state, elapsedMs }, 'running');
+    }
+    expect(h.write).not.toHaveBeenCalled();
   });
 
-  it('forced flush writes the latest snapshot inside the throttle window', () => {
+  it('event flush writes the latest supplied snapshot immediately', () => {
     const h = harness();
-    h.save(h.state, 'running');
+    h.save(h.state, 'running', true);
     const latest = { ...h.state, elapsedMs: 100 };
-    h.time(100); h.save(latest, 'running');
+    h.save(latest, 'running');
     expect(h.write).toHaveBeenCalledTimes(1);
     h.save(latest, 'running', true);
     expect(h.write).toHaveBeenLastCalledWith(latest, 'running');
-    h.time(599); h.save(latest, 'running');
     expect(h.write).toHaveBeenCalledTimes(2);
-    h.time(600); h.save(latest, 'running');
-    expect(h.write).toHaveBeenCalledTimes(3);
   });
 
-  it('paused snapshots bypass the throttle and forced resume records running phase', () => {
+  it('explicit pause and resume events save their phase', () => {
     const h = harness();
-    h.save(h.state, 'running');
-    h.save(h.state, 'paused');
+    h.save(h.state, 'paused', true);
     expect(h.write).toHaveBeenLastCalledWith(h.state, 'paused');
     h.save(h.state, 'running', true);
     expect(h.write).toHaveBeenLastCalledWith(h.state, 'running');
@@ -52,11 +46,11 @@ describe('snapshot save policy', () => {
     expect(h.state.elapsedMs).toBe(0);
   });
 
-  it('never saves a ready session, including a forced request', () => {
+  it('never saves a ready session, including an event request', () => {
     const h = harness();
     h.save(h.state, 'ready'); h.save(h.state, 'ready', true);
     expect(h.write).not.toHaveBeenCalled();
-    h.save(h.state, 'running');
+    h.save(h.state, 'running', true);
     expect(h.write).toHaveBeenCalledTimes(1);
   });
 });

@@ -14,11 +14,13 @@ test('restores the active round instead of returning to Home after reload', asyn
   await page.mouse.move(target.x, target.y); await page.mouse.up();
   const before = await page.getByRole('list', { name: 'Territory details' }).textContent();
   const transfersBefore = await page.getByRole('list', { name: 'Unit transfers' }).textContent();
-  const periodicSave = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
-  await test.info().attach('periodic-save-before-reload', { body: JSON.stringify(periodicSave), contentType: 'application/json' });
+  const eventSave = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
+  expect(eventSave.state.elapsedMs).toBe(0);
+  expect(eventSave.state.transfers).toHaveLength(0);
+  await test.info().attach('event-save-before-reload', { body: JSON.stringify(eventSave), contentType: 'application/json' });
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 32 units.');
 
-  // Reload inside the 500ms save interval, without a test-only flush or extra wait.
+  // No periodic save: actual reload must flush the unsaved growth and order.
   await page.reload();
 
   await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
