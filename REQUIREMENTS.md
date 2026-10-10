@@ -4,6 +4,8 @@ Status: mobile board, simulation, AI, pause/replay, five-map home, Industry/Fact
 
 Desktop layout and mouse-control improvements are planned separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
+Repair of pre-existing browser-test failures and lifecycle save verification is planned in [docs/test-repair/REQUIREMENTS.md](docs/test-repair/REQUIREMENTS.md). Existing unit tests are green; the repair plan distinguishes obsolete reload assertions from potentially stale lifecycle saves.
+
 ## 1. Purpose
 
 A small personal strategy game for a few minutes of play when bored. Preserve the satisfying core of State.io: circles accumulate units, the player sends units to capture other circles, and timing and expansion choices matter.
