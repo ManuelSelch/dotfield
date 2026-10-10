@@ -15,7 +15,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(option).toBeInViewport();
     await expect(upgrades.getByText('50% hostile speed within 90 units')).toBeVisible();
     await option.check();
-    await page.getByRole('button', { name: 'Play new map', exact: true }).tap();
+    await page.getByRole('button', { name: 'Play', exact: true }).tap();
     const details = page.getByRole('list', { name: 'Territory details' });
     await expect(details.getByRole('listitem').filter({ hasText: 'Slow Zone controlled by' })).toHaveCount(1);
     await expect(details.getByRole('listitem').filter({ hasText: 'Slow Zone controlled by' })).toContainText('90 units');

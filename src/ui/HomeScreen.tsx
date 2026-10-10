@@ -1,4 +1,4 @@
-import { Button, Title } from '@mantine/core';
+import { Button } from '@mantine/core';
 import type { GeneratedMap } from '../board/generateMap';
 import type { MatchPreferences } from '../game/matchPreferences';
 import { MapPreview } from './MapPreview';
@@ -17,10 +17,6 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
   const selected = preferences.upgrades.player ?? [];
   return <section className="home-screen" aria-labelledby="home-title">
     <div className="home-scroll">
-      <div className="home-intro">
-        <Title order={2} id="home-title">A fresh field. Every time.</Title>
-        <p>Choose your match. We’ll make the map.</p>
-      </div>
       <div className="home-body">
         <section className="home-settings" aria-label="Match settings">
           <MapOptions settings={preferences.map} onChange={value => onChange({ ...preferences, map: value })} />
@@ -33,7 +29,10 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
             <EnemySettings map={map} upgrades={preferences.upgrades} onUpgrades={value => onChange({ ...preferences, upgrades: value })}
               aiBehaviors={preferences.aiBehaviors} onAiBehaviors={value => onChange({ ...preferences, aiBehaviors: value })} />
           </div>
-          <div className="home-play-slot"><Button className="home-play" color="#267c72" autoFocus fullWidth radius="xl" mih={48} onClick={onPlay}>Play new map <span className="home-play-arrow" aria-hidden="true">↗</span></Button></div>
+          <div className="home-play-slot">
+            <Button className="home-reroll" variant="outline" color="#267c72" radius="xl" mih={44} onClick={onReroll} aria-label="Reroll">↻ Reroll</Button>
+            <Button className="home-play" color="#267c72" autoFocus fullWidth radius="xl" mih={44} onClick={onPlay}>Play <span className="home-play-arrow" aria-hidden="true">↗</span></Button>
+          </div>
         </section>
         <section className="home-preview" aria-label="Map preview">
           <div className="home-preview-heading home-section-label">A possible field</div>
@@ -41,8 +40,8 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
           <div className="home-badges" aria-live="polite">
             <span>{map.territories.length} cities</span><span>{preferences.map.enemies} {preferences.map.enemies === 1 ? 'enemy' : 'enemies'}</span>
             <span>{map.settings.industry ? 'Industry' : 'No industry'}</span><span>{map.river ? `${map.river.bridges.length} bridges` : 'No river'}</span>
+            <span>{map.settings.artillery ? 'Artillery' : 'No artillery'}</span>
           </div>
-          <Button variant="outline" color="#267c72" radius="xl" mih={44} onClick={onReroll} aria-label="Reroll">↻ Reroll</Button>
         </section>
       </div>
     </div>

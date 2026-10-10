@@ -3,10 +3,13 @@ import { expect, test, type Page } from '@playwright/test';
 async function assertHome(page: Page, wide: boolean) {
   const preview = (await page.getByRole('img', { name: 'Generated map preview' }).boundingBox())!;
   const settings = (await page.locator('.home-settings').boundingBox())!;
-  const play = (await page.getByRole('button', { name: 'Play new map', exact: true }).boundingBox())!;
+  const play = (await page.getByRole('button', { name: 'Play', exact: true }).boundingBox())!;
+  const reroll = (await page.getByRole('button', { name: 'Reroll' }).boundingBox())!;
   const viewport = page.viewportSize()!;
   expect(Math.abs(preview.width / preview.height - .75)).toBeLessThan(.005);
   expect(play.height).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(reroll.y - play.y)).toBeLessThan(1);
+  expect(reroll.x + reroll.width).toBeLessThanOrEqual(play.x);
   if (wide) {
     expect(preview.x).toBeGreaterThan(settings.x + settings.width);
     expect(preview.width).toBeGreaterThan(250);
@@ -31,7 +34,7 @@ for (const viewport of [
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
     await page.getByText('Enemy settings', { exact: true }).click();
     await page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' }).check();
-    await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Reroll' }).scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: 'Reroll' }).click();
     await assertHome(page, viewport.width > 760);
@@ -60,12 +63,12 @@ test('resizing preserves map preview and independent choices through Play and Ho
     await expect(page.getByLabel('Enemy 1 behavior')).toHaveValue('aggressive');
     await expect(page.getByLabel('Enemy 2 behavior')).toHaveValue('defensive');
   }
-  await page.getByRole('button', { name: 'Play new map', exact: true }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(12);
   await expect(page.getByRole('listitem').filter({ hasText: /Factory active/ })).toContainText('Faction enemy-2');
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Play new map', exact: true })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
   await page.getByText('Your upgrades', { exact: true }).click();
   await expect(player).toBeChecked();
   await page.getByText('Enemy settings', { exact: true }).click();

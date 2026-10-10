@@ -11,11 +11,14 @@ export function drawRiver(ctx: CanvasRenderingContext2D, territories: readonly T
   ctx.fillRect(0, top, width, (river.bottom - river.top) * scale);
   for (const deck of bridgeDecks(river, territories)) {
     const p = screenPoint(deck, width, height), w = deck.width * scale, h = deck.height * scale;
-    ctx.fillStyle = '#f0f0e4'; ctx.strokeStyle = '#a9ae98'; ctx.lineWidth = scale;
-    ctx.fillRect(p.x, p.y, w, h); ctx.strokeRect(p.x, p.y, w, h);
-    ctx.strokeStyle = '#a4ac96'; ctx.lineWidth = 1.3 * scale;
+    ctx.fillStyle = '#ddd8bf'; ctx.strokeStyle = '#87988a'; ctx.lineWidth = scale;
     ctx.beginPath();
-    for (const x of [p.x + 2 * scale, p.x + w - 2 * scale]) {
+    if (typeof ctx.roundRect === 'function') ctx.roundRect(p.x, p.y, w, h, 3 * scale);
+    else ctx.rect(p.x, p.y, w, h);
+    ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#9aa38d'; ctx.lineWidth = scale;
+    ctx.beginPath();
+    for (const x of [p.x + w / 2 - 12 * scale, p.x + w / 2 + 12 * scale]) {
       ctx.moveTo(x, p.y + scale); ctx.lineTo(x, p.y + h - scale);
     }
     ctx.stroke();

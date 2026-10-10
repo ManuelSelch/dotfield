@@ -34,4 +34,12 @@
   .actions{position:fixed;z-index:5;left:0;right:0;bottom:0;margin:0;padding:12px 22px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#f6f7f3}
   .actions .primary{max-width:436px;margin:auto}
 }
+/* Revision 5: denser controls keep match choices from dominating the map. */
+.setting{margin:13px 0 9px}label{font-size:14px}.stepper button{width:30px;height:30px;font-size:18px}.stepper output{width:28px;font-size:17px}.range-labels{margin-top:4px}
+.enemy-setting{margin:14px 0 8px}.segments{padding:2px;gap:2px;border-radius:9px}.segments button{min-height:31px;border-radius:7px;font-size:12px;padding:3px 6px}
+.features-label{margin:18px 0 10px;padding-top:14px}.feature{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px}.feature label{font-size:13px}.feature small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.feature .segments{margin:0;min-width:104px;flex:none}.feature .segments button{min-height:29px}.advanced-settings{margin-top:14px}.settings-section summary{min-height:42px;padding:8px 0;font-size:13px}.upgrade-option{min-height:42px;padding:5px 0}.upgrade-option input{width:16px;height:16px}.enemy-option{padding-top:10px}.enemy-option h2{font-size:13px;margin-bottom:8px}.actions{margin-top:17px}
+@media(max-width:760px){.app{padding:14px 18px 22px}.intro{margin:20px 0 17px}h1{font-size:23px}.layout{gap:18px}.settings{padding-top:0}.setting{margin:10px 0 8px}.enemy-setting{margin:13px 0 7px}.features-label{margin:14px 0 8px;padding-top:12px}.feature{margin-bottom:7px}.feature p{display:none}.advanced-settings{margin-top:12px}.settings-section summary{min-height:39px;padding:6px 0;font-size:12px}.feature .segments{min-width:96px}.feature .segments button{min-width:42px;min-height:28px}.actions{margin-top:14px}.actions .primary{min-height:44px;padding:8px 16px}.upgrade-option{min-height:38px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+/* Revision 6: remove the intro copy and keep map controls together. */
+.layout{margin-top:24px}.actions{display:flex;align-items:center;gap:8px}.actions .primary{width:auto;flex:1}.actions .secondary{min-height:48px;white-space:nowrap}
+@media(max-width:760px){.layout{margin-top:8px}.actions{display:flex;flex-direction:row;gap:8px}.actions .secondary{flex:0 0 auto;min-height:44px}.actions .primary{flex:1;width:auto;max-width:none;margin:0;min-height:44px}}
