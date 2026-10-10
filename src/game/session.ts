@@ -8,17 +8,20 @@ import type { AiConfigurations } from './ai/tick';
 import { createRules } from './rules';
 import { snapshotTerritories } from './features/snapshot';
 import type { SimulationState } from './types';
+import { createRiver, type River } from './river';
 
 export type SessionPhase = 'ready' | 'running' | 'paused';
 
-interface SessionOptions { initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'> }
+interface SessionOptions { initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; river?: River }
 
 // UI-independent lifecycle. Round outcomes remain separate from user pause/start state.
 export function createSession(territories: readonly Territory[], ai: AiConfig | AiConfigurations | null = DEFAULT_AI, rules?: RulesInput, options: SessionOptions = {}) {
   const opening = snapshotTerritories(territories);
+  const riverInput = options.river ?? options.initialState?.river;
+  const river = riverInput ? createRiver(riverInput, opening) : undefined;
   const resolvedRules = createRules(rules);
   const policy = ai ? ('decisionIntervalMs' in ai ? { ...ai } : Object.fromEntries(Object.entries(ai).map(([id, config]) => [id, config && { ...config }])) as Partial<Record<FactionId, AiConfig>>) : null;
-  let state = options.initialState ?? evaluateRound(createSimulation(opening, resolvedRules));
+  let state = options.initialState ?? evaluateRound(createSimulation(opening, resolvedRules, river));
   let phase: SessionPhase = options.initialState ? (options.initialPhase ?? 'paused') : 'ready';
   let hidden = false;
   let clock = createClock();
@@ -44,7 +47,7 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
       hidden = value; clock.reset();
     },
     restart() {
-      state = evaluateRound(createSimulation(opening, resolvedRules));
+      state = evaluateRound(createSimulation(opening, resolvedRules, river));
       phase = 'ready'; clock = createClock();
     },
     frame(timestampMs: number) {

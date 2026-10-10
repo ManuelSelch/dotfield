@@ -20,7 +20,7 @@ Baseline tuning is in `src/game/settings.ts`; geometry, batch size and simulatio
 
 ## Terrain routing foundation
 
-[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. Existing maps and gameplay remain unchanged. Bridge/pass travel, bent-route simulation and visuals are deferred to slice 2; terrain-aware dispatch safely rejects those routes until movement can follow them. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
+[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design: a river map with compact paired crossings, bank-clipped regions, manual staging, AI staging, preview legality, persistence and accessible hints. Existing maps and gameplay remain unchanged. Gatehouse, Factory, Artillery and Portal are later slices. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
 
 ## City regions and map generation
 

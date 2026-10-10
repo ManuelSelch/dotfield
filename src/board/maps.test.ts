@@ -6,14 +6,16 @@ import { createCityRegions } from './regions/geometry';
 import { hitTest } from './hitTest';
 
 describe('fixed map presets', () => {
-  it('keeps the original field and provides five distinct stable presets', () => {
-    expect(MAPS).toHaveLength(5);
+  it('keeps the original field and provides six distinct stable presets', () => {
+    expect(MAPS).toHaveLength(6);
     expect(MAPS[0].territories).toBe(TERRITORIES);
     expect(MAPS[3].territories).toHaveLength(21);
-    expect(new Set(MAPS.map(map => map.id)).size).toBe(5);
-    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(5);
+    expect(new Set(MAPS.map(map => map.id)).size).toBe(6);
+    expect(new Set(MAPS.map(map => JSON.stringify(map.territories.map(({ x, y }) => [x, y])))).size).toBe(6);
   });
-  for (let index = 0; index < MAPS.length; index++) {
+  // The approved bridge field has authored, asymmetric staging positions;
+  // preserve the original five maps' balance contract independently.
+  for (let index = 0; index < 5; index++) {
     it(`map ${index + 1} has equal armies and rotationally balanced positions/defenders`, () => {
       const cities = MAPS[index].territories;
       expect(cities.filter(city => city.owner === 'player').map(city => city.units)).toEqual([36]);

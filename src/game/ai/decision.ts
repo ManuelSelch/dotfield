@@ -1,3 +1,4 @@
+import { canRiverOrder } from '../river';
 import { dispatchUnits } from '../dispatch';
 import { availableUnits } from '../launch';
 import { orderDurationMs, remainingTravelBound } from '../route';
@@ -19,7 +20,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
     if (source.owner !== factionId || units < config.minDispatchUnits
       || state.transfers.some(t => t.sourceId === source.id && t.owner === factionId)) continue;
     for (const target of state.territories) {
-      if (source.id === target.id) continue;
+      if (!canRiverOrder(source, target, state.river)) continue;
       const relevantArrivals = state.transfers.filter(t => t.targetId === target.id || t.targetId === source.id)
         .map(t => remainingTravelBound(t, minimumMultiplier));
       const horizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner), minimumMultiplier), ...relevantArrivals)

@@ -1,9 +1,12 @@
 import type { Territory } from '../game/types';
 import { TERRITORIES } from './map';
+import { RIVER_MAP } from './riverMap';
+import type { River } from '../game/river';
 
 export interface FieldMap {
   readonly id: string;
   readonly territories: readonly Territory[];
+  readonly river?: River;
 }
 
 export const MAPS: readonly FieldMap[] = [
@@ -80,4 +83,5 @@ export const MAPS: readonly FieldMap[] = [
     { id: 'enemy-west', owner: 'enemy', units: 30, x: 70, y: 40 },
     { id: 'enemy-east', owner: 'enemy-2', units: 30, x: 290, y: 40 },
   ] },
+  RIVER_MAP,
 ];

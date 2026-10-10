@@ -7,12 +7,15 @@ import { drawBoard } from './drawBoard';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
+import { canRiverOrder, pairedCityId, type River } from '../game/river';
 
 interface BoardOptions {
   autoStart?: boolean;
   onPhase?: (phase: SessionPhase) => void;
+  onFeedback?: (message: string) => void;
   onSnapshot?: (state: SimulationState, phase: SessionPhase) => void;
   rules?: RulesInput;
+  river?: River;
   initialState?: SimulationState;
   initialPhase?: Exclude<SessionPhase, 'ready'>;
 }
@@ -27,7 +30,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
     : null;
   const session = createSession(territories, aiWorker ? null : ai, options.rules,
-    { initialState: options.initialState, initialPhase: options.initialPhase });
+    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
   let disposed = false;
@@ -42,17 +45,30 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   }
   const drag = bindBoardInput(canvas, () => !disposed && session.active
     ? state.territories : [],
-    (next) => { selection = next; redraw(); },
+    (next) => {
+      selection = next;
+      const source = state.territories.find(c => c.id === next?.sourceId);
+      const target = state.territories.find(c => c.id === next?.targetId);
+      const pair = source && pairedCityId(source.id, state.river);
+      options.onFeedback?.(state.river && source ? target && !canRiverOrder(source, target, state.river)
+        ? 'Cross only between the paired bridge cities.'
+        : pair ? `Cross to ${pair}, or send within this bank.` : 'Send within this bank; stage troops at a bridge city.' : '');
+      redraw();
+    },
     (source, target) => {
       if (disposed) return;
       session.setHidden(document.hidden);
       const next = session.dispatch(source, target);
-      if (next === state) return;
+      if (next === state) {
+        const from = state.territories.find(c => c.id === source), to = state.territories.find(c => c.id === target);
+        if (from && to && !canRiverOrder(from, to, state.river)) options.onFeedback?.('Cross only between the paired bridge cities.');
+        return;
+      }
       state = next;
       onState(state);
       options.onSnapshot?.(state, session.phase);
       redraw();
-    });
+    }, () => state.river);
 
   function requestAiDecisions() {
     if (!aiWorker || !session.active) return;

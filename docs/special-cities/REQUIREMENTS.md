@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: planning only; no gameplay implemented by this document. Confirmed decisions include one Gatehouse-controlled crossing plus one open crossing, current-owner benefits for every Factory, Artillery parameters, explicit Portal-to-Portal transport with a 2-second transit, and ownership-change queue handling. Remaining implementation assumptions are identified under Assumptions. This document does not authorize implementation.
+Status: slice 1 is implemented. Bridge-city mockup revision 3 is approved for implementation: compact river-only bridges without city icons, separate bank regions and manual paired-city staging replace automatic river detours. Implement the bridge feature now; Gatehouses, Factory changes, Artillery and Portals remain later slices.
 
 ## Scope
 
@@ -12,7 +12,7 @@ Status: planning only; no gameplay implemented by this document. Confirmed decis
 
 - Mountains that block direct movement and create passes.
 - Rivers that can only be crossed at explicitly defined bridges.
-- Automatic legal routing, with visible paths and no manual waypoint drawing required.
+- Straight same-bank orders and explicit cross-bank orders only between paired bridge cities. Players stage troops manually; no automatic river detours or onward forwarding.
 - Gatehouse cities controlling a bridge or mountain pass.
 - Artillery cities attacking stationary hostile city garrisons, distinct from Watchtowers attacking airborne troops.
 - Linked Portal cities offering explicit army transport when one faction controls both endpoints.
@@ -22,7 +22,7 @@ Status: planning only; no gameplay implemented by this document. Confirmed decis
 
 ### Out of Scope
 
-- Implementing gameplay as part of this documentation task.
+- Gatehouse, Factory, Artillery and Portal implementation in the bridge-only increment.
 - Defensive-stance controls, fortresses, radar, relays or transport hubs.
 - Currency, unlocks, upgrade levels, alliances or multiplayer.
 - Destructible terrain, bridge construction, procedural terrain generation or manual path drawing.
@@ -35,9 +35,9 @@ Status: planning only; no gameplay implemented by this document. Confirmed decis
 
 - R1. Mountains and rivers are gameplay barriers, not merely decoration. A route may not cross a mountain outside a pass or a river outside a bridge.
 - R2. Terrain and crossings are authored in logical field coordinates. Phone dimensions, Voronoi regions and pixel density must not change route legality or travel outcomes.
-- R3. Dragging source → target previews the actual legal route around barriers and through crossings. Longer paths take longer to travel under the same movement rules.
+- R3. River maps use straight same-bank travel and cross-bank travel only between the two endpoint cities of a bridge. Preview that straight route; mark other cross-bank orders invalid. Troops arriving at an endpoint stay there until a new explicit order. Preserve staggered five-unit batches, cadence and border geometry.
 - R4. An unreachable target is clearly indicated. Releasing an invalid order must not remove the source's existing launch queue or deduct troops.
-- R5. Terrain must create alternative approaches, not only a single mandatory corridor. A short exposed crossing and a longer less-exposed crossing are the preferred first example.
+- R5. The bridge increment adds a separate two-crossing river map matching the approved mockup; existing maps remain unchanged. Its two open paired crossings provide alternative staging approaches. The later Gatehouse scenario remains a separate increment.
 - R6. Path bends, crossings and any portal transit must use one authoritative movement model for rendering, per-dot collisions, Slow Zones, Watchtower targeting and AI forecasts. Collisions must not sweep through an obstacle or across a teleport gap.
 - R7. Existing cities along a route must not be silently captured or receive troops unless they are an explicit destination. Hostile Gatehouses are an explicit access restriction, described below.
 - R8. Existing maps without terrain retain their current direct routes, border launch/impact geometry and dispatch rules.
@@ -87,15 +87,15 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 
 ### 6. Integration and verification
 
-- R34. AI must issue only legal routes, account for actual travel time, and recognise Gatehouse access, Factory production, Artillery pressure and active Portal links. It receives no hidden bonuses or knowledge of future player orders.
+- R34. AI must issue only legal orders and account for actual travel time. On river maps it stages reinforcements at bridge cities and crosses explicitly; it cannot bypass the pairing rule. Later slices add Gatehouse, Factory, Artillery and Portal awareness. It receives no hidden bonuses or knowledge of future player orders.
 - R35. Pause, backgrounding and mid-round save/restore preserve terrain, route/progress state, ownership, pair identities and feature timers. Restart and Play again restore the original compiled map/setup and reset the round, not current ownership or progress. Closed time grants no growth or shots.
-- R36. Map previews, route previews, board markers and accessible descriptions must communicate barriers, crossing access, special-city function and Portal activation. Keep existing whole-region touch targets and readable counters.
+- R36. River map previews and the board show muted straight river gaps and compact river-only bridge decks, with no separate bridge-city icons. Regions and whole-region input are clipped independently to each bank; the river itself is not a city target. Selection highlights the paired endpoint; invalid cross-bank drags show a red dashed guide and accessible feedback. Preserve readable counters. Later slices communicate access and special-city functions.
 - R37. Add pure-simulation tests for route legality, ownership changes, bent-path collisions, feature interactions, deterministic forecasts and persistence. Browser tests must cover actual drag routing and readability at small phone sizes.
 - R38. Human playtesting must check alternative openings, stalemate risk, AI competence and round duration. Symmetry and automated tests alone do not prove enjoyable balance.
 
 ## Assumptions
 
-- Automatic non-Portal routing chooses the shortest legal travel-time route, with stable tie-breaking. Players choose a different approach through staging-city orders rather than a route-selection UI.
+- River routing is confirmed manual bridge-city staging, not shortest-path automatic detours. Mountain routing remains deferred; existing slice-1 route-query APIs are retained without integrating bent-path physics in this increment.
 - Gatehouses restrict access but do not gain extra defence in the initial design.
 - Artillery range is measured between city centres. Idle shots are not banked; nearest-target ties use stable city IDs. These are proposed implementation defaults, not additional user-confirmed decisions.
 - Portal links require no resource or unlock beyond owning both endpoints. Existing group size and launch cadence are retained for explicit transport; the confirmed 2-second transit applies independently to each launched batch.
@@ -109,9 +109,9 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 
 Description: Define authored barriers/crossings and deterministic legal-route queries, including unreachable targets and compatibility with terrain-free maps. Verify bridge-only river traversal, mountain detours, path lengths, stable ties and invalid-order queue preservation with unit tests. No Gatehouse ownership restrictions yet.
 
-### 2. Routed movement and presentation
+### 2. Bridge-city movement and presentation
 
-Description: Following slice 1, integrate route progress and path bends into shared movement, dot geometry, collision sweeps, Slow Zones, Watchtowers, AI travel estimates and persistence. Draw terrain and real drag previews. Verify live/forecast agreement, no obstacle-crossing sweeps, saved-route restoration and phone input in browser tests before adding special access rules.
+Description: Following slice 1 and approved mockup revision 3, add a selectable two-open-bridge river map, validated immutable bank/pair metadata, straight same-bank orders and explicit paired-city crossings. Keep shared existing straight movement, dots, collisions, Slow Zones and Watchtowers; validate formation clearance instead of adding path bends. Integrate AI staging, persistence/restart, independently bank-clipped regions, compact bridges, preview legality and accessible input feedback. Verify queue preservation, real staggered movement, collisions/forecast parity, save/restore and phone-sized drag/keyboard tests. No Gatehouse or Factory changes; mountain detours remain deferred.
 
 ### 3. Gatehouse control
 

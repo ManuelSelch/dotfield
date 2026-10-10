@@ -2,14 +2,15 @@ import type { Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { bindDrag } from './bindDrag';
 import { bindKeyboard } from './bindKeyboard';
+import type { River } from '../game/river';
 
 export function bindBoardInput(canvas: HTMLCanvasElement, getTerritories: () => readonly Territory[],
-  onSelection: (selection: DragSelection | null) => void, onDispatch: (source: string, target: string) => void) {
+  onSelection: (selection: DragSelection | null) => void, onDispatch: (source: string, target: string) => void, getRiver: () => River | undefined = () => undefined) {
   let pointer: ReturnType<typeof bindDrag> | undefined;
   const keyboard = bindKeyboard(canvas.parentElement ?? canvas, canvas, getTerritories,
     next => { if (next) pointer?.cancel(); onSelection(next); }, onDispatch);
   pointer = bindDrag(canvas, getTerritories,
-    next => { if (next) keyboard.cancel(); onSelection(next); }, onDispatch);
+    next => { if (next) keyboard.cancel(); onSelection(next); }, onDispatch, getRiver);
   return {
     cancel() { pointer!.cancel(); keyboard.cancel(); },
     dispose() { pointer!.dispose(); keyboard.dispose(); },

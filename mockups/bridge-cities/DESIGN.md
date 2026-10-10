@@ -2,7 +2,7 @@
 
 ## Goal and revision
 
-Revision 3 — in review, not approved for production. The user liked the staging flow and requested removing redundant bridge-city icons. After seeing longer decks, the user requested restoring the smaller river-only bridges; icons remain removed. Approval to replace the production plan is still required.
+Revision 3 — approved for production. The user liked the staging flow and requested removing redundant bridge-city icons. After seeing longer decks, the user requested restoring the smaller river-only bridges; icons remain removed. User approved this revision with “looks good. implement it”, replacing automatic river detours with explicit bridge-city staging.
 
 ## Proposed design and interaction
 
@@ -27,6 +27,6 @@ Revision 3 — in review, not approved for production. The user liked the stagin
 
 ## Approval and references
 
-Not approved for production. The user requested icon removal and subsequently restoring smaller river-only bridges. Review revision 3 and ask for explicit production approval or further revisions.
+Approved revision 3. Evidence: after requesting smaller river-only bridges with no city icons, the user said “looks good. implement it”. Production must preserve compact decks, separate bank regions, straight same-bank routes and explicit paired-city crossings. Fake batch/count behaviour is not approved as a change to production rules.
 
 Polygonal comparison is preserved at `/terrain-routes/?state=river`. Both previews reuse the same project mockups Vite workspace/server. Preserve both designs; after final approval, verify and stop the owned server before production changes.

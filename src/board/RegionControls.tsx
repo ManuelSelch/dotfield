@@ -1,6 +1,7 @@
 import type { SimulationState } from '../game/types';
 import { OWNER_LABELS } from './TerritoryDetails';
 import { featureLabels } from './featureLabels';
+import { pairedCityId } from '../game/river';
 
 export function RegionControls({ state, disabled = false }: { state: SimulationState; disabled?: boolean }) {
   return (
@@ -15,7 +16,7 @@ export function RegionControls({ state, disabled = false }: { state: SimulationS
         {state.territories.map(node => (
           <button key={node.id} type="button" data-city-id={node.id} className="sr-only pointer-events-none"
             disabled={disabled || state.roundStatus !== 'playing'} aria-describedby="region-keyboard-help"
-            aria-label={`Select ${node.id} region: ${OWNER_LABELS[node.owner] ?? `Faction ${node.owner}`}, ${node.units} units${featureLabels(node)}`}>
+            aria-label={`Select ${node.id} region: ${OWNER_LABELS[node.owner] ?? `Faction ${node.owner}`}, ${node.units} units${featureLabels(node)}${pairedCityId(node.id, state.river) ? `; bridge linked to ${pairedCityId(node.id, state.river)}` : ''}`}>
             {node.id}
           </button>
         ))}

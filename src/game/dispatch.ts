@@ -4,6 +4,7 @@ import type { Faction, SimulationState, Transfer } from './types';
 import { createRoute } from './route';
 import { planTerrainRoute } from './terrain/routes';
 import type { Terrain } from './terrain/types';
+import { canRiverOrder } from './river';
 
 export function dispatchUnits(state: SimulationState, sourceId: string, targetId: string, faction: Faction = 'player',
   terrain?: Terrain): SimulationState {
@@ -12,6 +13,7 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const target = state.territories.find((node) => node.id === targetId);
   if (!source || !target || source === target || source.owner !== faction || source.units < 2) return state;
 
+  if (!canRiverOrder(source, target, state.river)) return state;
   const rules = getFactionRules(state, faction);
   const route = createRoute(source, target, rules);
   if (terrain) {

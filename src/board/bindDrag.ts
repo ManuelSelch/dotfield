@@ -1,17 +1,19 @@
 import type { Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { hitTest } from './hitTest';
+import type { River } from '../game/river';
 
 export function bindDrag(
   canvas: HTMLCanvasElement, getTerritories: () => readonly Territory[],
   onSelection: (selection: DragSelection | null) => void,
   onDispatch: (source: string, target: string) => void,
+  getRiver: () => River | undefined = () => undefined,
 ) {
   let active: { pointerId: number; sourceId: string } | null = null;
   function selection(event: PointerEvent): DragSelection {
     const bounds = canvas.getBoundingClientRect();
     const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-    const target = hitTest(getTerritories(), bounds.width, bounds.height, point);
+    const target = hitTest(getTerritories(), bounds.width, bounds.height, point, getRiver());
     return { sourceId: active!.sourceId, targetId: target === active!.sourceId ? null : target, point };
   }
   function cancel() {
@@ -24,7 +26,7 @@ export function bindDrag(
     if (active || !event.isPrimary || event.button !== 0 || document.hidden) return;
     const bounds = canvas.getBoundingClientRect();
     const sourceId = hitTest(getTerritories(), bounds.width, bounds.height,
-      { x: event.clientX - bounds.left, y: event.clientY - bounds.top });
+      { x: event.clientX - bounds.left, y: event.clientY - bounds.top }, getRiver());
     const source = getTerritories().find((node) => node.id === sourceId);
     if (!source || source.owner !== 'player' || source.units < 2) return;
     active = { sourceId: source.id, pointerId: event.pointerId };

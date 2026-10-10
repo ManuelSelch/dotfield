@@ -1,10 +1,12 @@
 import type { RulesInput, SimulationState, Territory } from './types';
 import { BASE_FACTION_RULES, createRules, getFactionRules } from './rules';
 import { snapshotTerritories } from './features/snapshot';
+import { createRiver, type River } from './river';
 
 export function createSimulation(
   territories: readonly Territory[],
   rules?: RulesInput,
+  river?: River,
 ): SimulationState {
   const factionIds = [...new Set(['player', ...territories.map(city => city.owner)
     .filter((owner): owner is string => owner !== 'neutral')])];
@@ -20,6 +22,7 @@ export function createSimulation(
   }
 
   return {
+    ...(river ? { river: createRiver(river, opening) } : {}),
     roundStatus: 'playing',
     aiNextDecisionMs: null,
     aiDecisionDeadlines: {},
