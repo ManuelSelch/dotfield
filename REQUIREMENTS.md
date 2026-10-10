@@ -2,6 +2,8 @@
 
 Status: mobile board, simulation, AI, pause/replay, five-map home, Industry/Factory/Watchtower, multi-faction combat, and independent per-enemy AI behavior/rules/upgrades are implemented. The fifth Crossfire map contains two AI enemies. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
 
+Desktop layout and mouse-control improvements are planned separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
+
 ## 1. Purpose
 
 A small personal strategy game for a few minutes of play when bored. Preserve the satisfying core of State.io: circles accumulate units, the player sends units to capture other circles, and timing and expansion choices matter.
