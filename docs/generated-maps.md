@@ -6,6 +6,7 @@ The approved revision 4 in `mockups/random-map/` replaces carousel map selection
 
 - Total cities: 6–24, including one starting city for the player and each of 1–4 enemies.
 - Map Industry: On adds 1–4 neutral Factories (rounded total cities / 6, capped by neutral count). Off omits neutral Factories. This differs from the faction Industry upgrade, which increases that faction's production by 25%.
+- City/enemy/feature titles stay visible; explanatory helper captions and the derived faction/neutral count line are omitted.
 - River & bridges: On creates a horizontal river with exactly two aligned, disjoint, paired-city crossings. Off permits ordinary direct orders. Manual bank staging is unchanged.
 - Your upgrades and Enemy settings are initially collapsed. Enabled counts appear in summaries. Each enemy has independent Balanced/Aggressive/Defensive behavior and Industry, Factory, Slow Zone, Watchtower and Capture shield selections.
 - Hidden enemy selections are remembered if their count is increased again, but only active factions are compiled into a round.
