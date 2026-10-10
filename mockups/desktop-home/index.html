@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — Desktop Home preview</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header><h1><span aria-hidden="true"></span>dotfield</h1></header>
+    <section class="home" aria-labelledby="home-title">
+      <h2 id="home-title">Choose your field.</h2>
+      <div class="home-body">
+        <section class="map-panel" aria-label="Map selection">
+          <div class="selector">
+            <button class="arrow previous" type="button" aria-label="Previous map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg></button>
+            <div class="map-space"><div class="map-frame"><svg id="map" viewBox="0 0 360 480" role="img"></svg></div></div>
+            <button class="arrow next" type="button" aria-label="Next map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></button>
+          </div>
+          <div class="dots" aria-hidden="true"></div>
+        </section>
+        <section class="setup" aria-label="Round setup">
+          <div class="settings">
+            <div id="player-upgrades" role="group" aria-label="Your upgrades"></div>
+            <details id="enemy-settings"><summary>Enemy settings</summary><div id="enemies"></div></details>
+          </div>
+          <button id="play" class="play" type="button">Play</button>
+          <span id="preview-status" role="status" class="sr-only"></span>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
