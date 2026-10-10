@@ -42,4 +42,5 @@ select { min-width: 0; border: 1px solid #c8d0c7; background: white; border-radi
   .home-body { grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); grid-template-rows: minmax(0, 1fr); gap: 40px; }
   .map-frame { height: min(100cqh, calc(100cqw * 4 / 3)); }
   .setup { width: 100%; height: 100%; max-height: none; }
+  .settings { align-self: center; max-height: 100%; }
 }
