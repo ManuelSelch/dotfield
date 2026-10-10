@@ -2,10 +2,10 @@
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Capture shield · Dotfield mockup</title><link rel="stylesheet" href="./styles.css"></head>
 <body><main>
-<header><p class="eyebrow">DOTFIELD · DESIGN PREVIEW 01</p><h1>Capture shield</h1><p>Three charges. A small foothold after capture.</p></header>
+<header><p class="eyebrow">DOTFIELD · DESIGN PREVIEW 01</p><h1>Capture shield</h1><p>Three charges. Each blocks a whole batch of five troops.</p></header>
 <section class="demo" aria-labelledby="demo-title"><div class="section-head"><h2 id="demo-title">Try an incoming attack</h2><span id="charges">3 / 3 charges</span></div>
 <svg id="battle" viewBox="0 0 360 180" role="img" aria-label="Player city with three shield charges"><path class="region" d="M0 0H222L245 75 204 180H0Z"/><path class="boundary" d="M222 0L245 75 204 180"/><path class="route" d="M288 91H125"/><g id="incoming"></g><g id="city"></g><g transform="translate(305 91)"><circle r="17" fill="#bd624e"/><text class="counter" y="-2">20</text><rect x="-2" y="8" width="4" height="4" fill="white"/></g></svg>
-<p id="status" role="status" aria-live="polite">Freshly captured · garrison 12 · shield 3</p><div class="buttons"><button id="hit">Send 1 attacker</button><button id="batch">Send 5 attackers</button><button id="reset" class="secondary">Recapture / reset</button></div><p class="hint">Attacks consume shields first, then garrison. Reset simulates a fresh capture.</p></section>
+<p id="status" role="status" aria-live="polite">Freshly captured · garrison 12 · shield 3</p><div class="buttons"><button id="hit">Send 1 batch</button><button id="batch">Send 3 batches</button><button id="reset" class="secondary">Recapture / reset</button></div><p class="hint">One arc blocks one batch (5 troops). After three blocked batches, attacks damage the garrison. Reset simulates a fresh capture.</p></section>
 <section class="examples" aria-labelledby="examples-title"><h2 id="examples-title">At a glance</h2><div class="tiles" id="tiles"></div></section>
 <footer>No range bubble. No extra unit number. Protection stays close to the city.<br>Mockup only · combat and badges are illustrative.</footer>
 </main><script type="module" src="./main.js"></script></body></html>

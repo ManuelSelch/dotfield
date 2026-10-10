@@ -32,7 +32,11 @@ function attack(count) {
   setBusy(true);
   const token = ++generation;
   const incoming = document.querySelector('#incoming');
-  incoming.innerHTML = Array.from({ length: count }, (_, i) => `<circle class="troop" cx="${270 + (i % 3) * 10}" cy="${91 + (Math.floor(i / 3) - .5) * 10}" r="3.8"/>`).join('');
+  incoming.innerHTML = Array.from({ length: count * 5 }, (_, i) => {
+    const batch = Math.floor(i / 5);
+    const slot = i % 5;
+    return `<circle class="troop" cx="${260 + batch * 30 + (slot % 2) * 10}" cy="${81 + Math.floor(slot / 2) * 10}" r="3.8"/>`;
+  }).join('');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const start = performance.now();
   const duration = reduced ? 0 : 650;
@@ -44,17 +48,18 @@ function attack(count) {
     const absorbed = Math.min(charges, count);
     const spent = Array.from({ length: absorbed }, (_, i) => charges - 1 - i);
     charges -= absorbed;
-    units = Math.max(0, units - (count - absorbed));
+    const damage = Math.min(units, (count - absorbed) * 5);
+    units -= damage;
     incoming.innerHTML = '';
     incoming.removeAttribute('transform');
     render(spent);
-    document.querySelector('#status').textContent = `${absorbed} absorbed · ${count - absorbed} garrison lost · ${units} units remain${charges ? '' : ' · shield depleted'}`;
+    document.querySelector('#status').textContent = `${absorbed} ${absorbed === 1 ? 'batch' : 'batches'} blocked (${absorbed * 5} troops) · ${damage} garrison lost · ${units} units remain${charges ? '' : ' · shield depleted'}`;
     timer = setTimeout(() => { render(); setBusy(false); }, reduced ? 0 : 650);
   }
   requestAnimationFrame(step);
 }
 document.querySelector('#hit').onclick = () => attack(1);
-document.querySelector('#batch').onclick = () => attack(5);
+document.querySelector('#batch').onclick = () => attack(3);
 document.querySelector('#reset').onclick = () => {
   generation++; clearTimeout(timer); setBusy(false); charges = 3; units = 12;
   document.querySelector('#incoming').innerHTML = '';
@@ -63,7 +68,7 @@ document.querySelector('#reset').onclick = () => {
 };
 const examples = [
   ['Fresh capture', '3 charges', 3, teal, ''],
-  ['One hit taken', '2 charges', 2, teal, ''],
+  ['One batch blocked', '2 charges', 2, teal, ''],
   ['Depleted', 'No ring', 0, teal, ''],
   ['Factory', 'Shield + badge', 3, teal, 'factory'],
   ['Watchtower', 'Shield + badge', 3, teal, 'tower'],
