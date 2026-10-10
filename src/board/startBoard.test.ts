@@ -159,7 +159,7 @@ describe('board lifecycle adapter', () => {
     const [_, getTerritories, __, dispatch] = vi.mocked(bindDrag).mock.lastCall!;
     dispatch('source', 'target');
     board.frame(0);
-    board.frame(1800);
+    board.frame(2000); // Smaller city borders make the first flight slightly longer.
     const ended = board.onCounts.mock.lastCall![0];
     expect(ended.roundStatus).toBe('victory');
     expect(board.onSnapshot).toHaveBeenLastCalledWith(ended, 'running', true);

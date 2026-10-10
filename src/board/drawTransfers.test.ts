@@ -30,7 +30,7 @@ describe('batch spreading and convergence', () => {
     }
   });
 
-  it.each([[0, 0], [0.15, 24], [0.3, 48]])('spreads after launch at progress %s to width %s', (progress, width) => {
+  it.each([[0, 0], [0.15, 20], [0.3, 40]])('spreads after launch at progress %s to width %s', (progress, width) => {
     const { arc } = render(progress);
     expect(arc.mock.calls).toHaveLength(5);
     expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(width);
@@ -39,14 +39,14 @@ describe('batch spreading and convergence', () => {
   it.each([0.5, 0.8])('keeps normal spacing at progress %s', progress => {
     const { arc } = render(progress);
     expect(arc.mock.calls).toHaveLength(5);
-    expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(48);
+    expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(40);
   });
 
-  it.each([[0.9, 24], [1, 0]])('converges at progress %s to a row width of %s', (progress, width) => {
+  it.each([[0.9, 20], [1, 0]])('converges at progress %s to a row width of %s', (progress, width) => {
     const { state, arc } = render(progress);
     expect(arc.mock.calls).toHaveLength(5);
     expect(arc.mock.calls[4][1] - arc.mock.calls[0][1]).toBeCloseTo(width);
-    expect(arc.mock.calls.every(call => call[2] === 4.8)).toBe(true);
+    expect(arc.mock.calls.every(call => call[2] === 3.8)).toBe(true);
     expect(state.territories[1]).toMatchObject({ owner: 'neutral', units: 20 });
     expect(state.transfers[0].units).toBe(5);
   });

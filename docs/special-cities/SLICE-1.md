@@ -14,7 +14,7 @@ Implemented foundation for [the special-city plan](REQUIREMENTS.md), not playabl
 - Shortest-distance visibility graph through obstacle corners and crossing endpoints, using the issuing faction's constant base speed. Coordinate ordering and stable crossing IDs resolve equal paths independently of definition-array order.
 - Barrier interiors cannot be crossed by ordinary edges. Bridges and passes are explicit bidirectional edges through their referenced barrier.
 - Barriers touching the logical field edge cannot be bypassed through a zero-width boundary gap or outside the field.
-- Paths may follow an obstacle boundary. City launch/impact points intersect the actual radius-21 circles, including when a bend lies inside a city circle.
+- Paths may follow an obstacle boundary. City launch/impact points intersect the actual city circles (now radius 17; originally 21), including when a bend lies inside a city circle.
 - No ownership restrictions or Portal shortcuts are applied in this slice.
 
 ## Deliberate boundaries

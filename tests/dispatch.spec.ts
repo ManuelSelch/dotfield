@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { fieldPoints } from './helpers/fieldPoints';
-import { BATCH_INTERVAL_MS } from '../src/game/settings';
+import { BATCH_INTERVAL_MS, TERRITORY_RADIUS, TRAVEL_SPEED } from '../src/game/settings';
+
+const firstArrivalMs = Math.ceil((200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000) + 100;
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
@@ -32,7 +34,7 @@ test('drag sends all but one and reduces the target as each real batch arrives',
   await page.screenshot({ path: 'test-results/units-travelling.png' });
   const centre = page.getByRole('listitem').filter({ hasText: /^centre:/ });
   await expect(centre).toHaveText('centre: Neutral, 20 units.');
-  await page.clock.runFor(4100); // 4050ms: first batch hit the border, six still in flight.
+  await page.clock.runFor(firstArrivalMs - 550); // First batch has hit the border; six remain in flight.
   await expect(centre).toHaveText('centre: Neutral, 15 units.');
   await expect(transfers.getByRole('listitem')).toHaveCount(6);
   await page.screenshot({ path: 'test-results/first-batch-arrived.png' });
@@ -77,7 +79,7 @@ test('replacement drags redirect queued troops and leave old airborne groups tra
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 26 units.');
   await expect(transfers.getByRole('listitem').filter({ hasText: 'south → centre' })).toHaveCount(1);
   await expect(transfers.getByRole('listitem').filter({ hasText: 'south → north' })).toHaveCount(6);
-  await page.clock.runFor(4700);
+  await page.clock.runFor(firstArrivalMs);
   await expect(page.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText('centre: Neutral, 15 units.');
 });
 
