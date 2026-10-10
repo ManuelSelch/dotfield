@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createSimulation } from './state';
 import { clearSavedGame, readSavedGame, writeSavedGame, SAVED_GAME_KEY } from './persistence';
 import { TERRITORIES } from '../board/map';
+import { createSession } from './session';
+import { getTerritoryGrowthRate } from './features/growthRate';
 
 function storage() {
   const values = new Map<string, string>();
@@ -19,6 +21,22 @@ describe('round persistence', () => {
     const state = createSimulation(TERRITORIES);
     writeSavedGame({ state, territories: TERRITORIES, ai: {}, phase: 'running' }, target);
     expect(readSavedGame(target)).toEqual({ state, territories: TERRITORIES, ai: {}, phase: 'running' });
+  });
+
+  it.each([undefined, 'player'])('restores captured Factory benefits and resets ownership on replay (legacy beneficiary %s)', beneficiaryId => {
+    const target = storage();
+    const territories = [{ id: 'home', owner: 'player', x: 80, y: 90, units: 36,
+      features: [{ id: 'plant', kind: 'factory' as const, productionMultiplier: 2, ...(beneficiaryId ? { beneficiaryId } : {}) }] },
+      { id: 'foe', owner: 'enemy', x: 80, y: 290, units: 36 }];
+    const initial = createSimulation(territories);
+    const state = { ...initial, territories: initial.territories.map(city => city.id === 'home' ? { ...city, owner: 'enemy' } : city) };
+    writeSavedGame({ state, territories, ai: null, phase: 'paused' }, target);
+    const saved = readSavedGame(target)!;
+    const session = createSession(saved.territories, saved.ai, saved.state.rules, { initialState: saved.state, initialPhase: saved.phase });
+    expect(getTerritoryGrowthRate(session.state, session.state.territories[0])).toBe(2);
+    session.restart();
+    expect(session.state.territories[0].owner).toBe('player');
+    expect(getTerritoryGrowthRate(session.state, session.state.territories[0])).toBe(2);
   });
 
   it('storage failures are nonfatal for reads, writes and clearing', () => {

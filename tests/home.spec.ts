@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const mapCounts = [13, 11, 9, 21, 23, 10];
+const mapCounts = [13, 11, 9, 21, 23, 10, 8];
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
   test(`home uses visual arrow selection and supports every map at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -26,11 +26,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
       await page.getByRole('button', { name: /^Select south region: You/ }).focus();
+      const targetId = index < 5 ? 'centre' : index === 5 ? 'west-south' : 'west-north';
+      await page.keyboard.press('Enter'); await page.getByRole('button', { name: new RegExp(`^Select ${targetId} region:`) }).focus();
       await page.keyboard.press('Enter');
-      const target = index === 5 ? /^Select west-south region: You/ : /^Select centre region: Neutral/;
-      await page.getByRole('button', { name: target }).focus();
-      await page.keyboard.press('Enter');
-      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText(index === 5 ? 'south → west-south' : 'south → centre');
+      await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText(`south → ${targetId}`);
       await page.clock.runFor(1100);
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Restart', exact: true }).click();

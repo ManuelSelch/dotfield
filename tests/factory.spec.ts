@@ -34,7 +34,9 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
         const enemyUnits = mapIndex === 4 ? 31 : 37;
         await expect(city(enemyId)).toHaveText(`${enemyId}: Opponent, ${enemyUnits} units.`);
         for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'neutral')) {
-          await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.`);
+          const factory = node.features?.find(feature => feature.kind === 'factory');
+          const label = factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : '';
+          await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.${label}`);
         }
         for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'player' && node.id !== 'south')) {
           await expect(city(node.id)).toContainText(`You, ${node.units + Math.floor(1.7 * (stack ? 1.25 : 1))} units.`);
@@ -57,11 +59,12 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'Play', exact: true }).tap();
     await page.clock.runFor(1700); await expect(city('south')).toHaveText('south: You, 37 units.');
     expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
+    await page.getByRole('button', { name: 'Pause', exact: true }).tap();
     await page.reload();
     await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toHaveCount(0);
     await expect(city('south')).toHaveText('south: You, 37 units.');
-    await page.getByRole('button', { name: 'Pause', exact: true }).tap();
+    await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Home', exact: true }).tap();
     await expect(factory).not.toBeChecked();
     await expect(industry).not.toBeChecked();

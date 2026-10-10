@@ -38,12 +38,17 @@ describe('city upgrade indicators', () => {
     expect(ctx.moveTo).toHaveBeenCalledTimes(2);
     expect(ctx.translate.mock.calls.map(call => call[0] > host.x)).toEqual([true, false]);
   });
-  it('keeps a captured factory visible but dimmed and removes the Industry chevron', () => {
+  it('keeps a captured factory active and removes the former owner’s Industry chevron', () => {
     const state = seed(['factory', 'industry']);
     const ctx = render({ ...state, territories: state.territories.map(city => ({ ...city, owner: 'enemy' })) });
-    expect(ctx.arc).toHaveBeenCalledOnce(); expect(ctx.globalAlpha).toBe(0.45);
+    expect(ctx.arc).toHaveBeenCalledOnce(); expect(ctx.globalAlpha).toBe(1);
     expect(ctx.closePath).toHaveBeenCalledOnce(); expect(ctx.restore).toHaveBeenCalledOnce();
     const restored = render(state); expect(restored.arc).toHaveBeenCalledTimes(2);
+  });
+  it('dims neutral factories until captured', () => {
+    const state = seed(['factory']);
+    const ctx = render({ ...state, territories: state.territories.map(city => ({ ...city, owner: 'neutral' })) });
+    expect(ctx.globalAlpha).toBe(0.45);
   });
   it('shows the Industry chevron on newly captured cities, never on neutrals', () => {
     const state = seed(['industry']);

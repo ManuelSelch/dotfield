@@ -37,8 +37,8 @@ for (const viewport of [
       await assertHome(page, viewport.width >= 900 && viewport.height >= 600);
       if (i < MAPS.length - 1) await page.getByRole('button', { name: 'Next map' }).click();
     }
-    // Return from the last (river) map to the two-enemy Crossfire map.
-    await page.getByRole('button', { name: 'Previous map' }).click();
+    // Return from the last map to the two-enemy Crossfire map (preview 5).
+    for (let i = MAPS.length; i > 5; i--) await page.getByRole('button', { name: 'Previous map' }).click();
     await expect(page.getByRole('img', { name: 'Map 5 preview' })).toBeVisible();
     await page.locator('details summary').click();
     await assertHome(page, viewport.width >= 900 && viewport.height >= 600);
@@ -72,8 +72,8 @@ test('resizing preserves map, independent choices and keyboard navigation throug
   await page.goto('/');
   await page.getByRole('button', { name: 'Previous map' }).focus();
   await page.keyboard.press('ArrowLeft');
-  await expect(page.getByRole('img', { name: 'Map 6 preview' })).toBeVisible();
-  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByRole('img', { name: `Map ${MAPS.length} preview` })).toBeVisible();
+  for (let i = MAPS.length; i > 5; i--) await page.keyboard.press('ArrowLeft');
   const player = page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' });
   await player.check();
   await page.locator('details summary').click();

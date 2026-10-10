@@ -19,6 +19,7 @@ const makeState = (industry = false) => {
 
 describe('Factory city feature', () => {
   it.each(MAPS)('attaches only to the starting player city on $id, never mutating the map', map => {
+    const original = JSON.stringify(map.territories);
     const setup = compileRoundSetup(map.territories, { player: ['factory', 'factory'] });
     const state = advanceGrowth(createSimulation(setup.territories, setup.rules), 4000);
     const enemyStart = map.territories.find(city => city.owner === 'enemy')!;
@@ -26,7 +27,7 @@ describe('Factory city feature', () => {
     for (const city of map.territories.filter(c => c.owner === 'neutral')) expect(units(state, city.id)).toBe(city.units);
     for (const city of map.territories.filter(c => c.owner === 'player' && c.id !== 'south')) expect(units(state, city.id)).toBe(city.units + 4);
     expect(setup.territories.find(n => n.id === 'south')!.features).toHaveLength(1);
-    expect(map.territories.every(n => n.features === undefined)).toBe(true);
+    expect(JSON.stringify(map.territories)).toBe(original);
     expect(setup.rules.factions.player.unitsPerSecond).toBe(1);
   });
   it('stacks with Industry independently of selection order, leaving other player cities at 1.25', () => {
@@ -45,7 +46,7 @@ describe('Factory city feature', () => {
     expect(setup.territories[0].features).toHaveLength(1);
     expect(() => compileRoundSetup([setup.territories[1]], { player: ['factory'] })).toThrow();
   });
-  it('stays on capture but is inactive for the enemy; recapture restores the bonus', () => {
+  it('transfers its bonus on capture and recapture, resetting fractional growth', () => {
     let state = advanceGrowth(makeState(true), 100);
     const feature = state.territories.find(n => n.id === 'south')!.features;
     const enemy = dispatchUnits(state, 'north', 'south', 'enemy').transfers[0];
@@ -53,10 +54,27 @@ describe('Factory city feature', () => {
     state = resolveCombat({ ...state, arrivals: [{ ...enemy, units: garrison + 1 }], transfers: [] });
     const captured = state.territories.find(n => n.id === 'south')!;
     expect(captured.features).toEqual(feature); expect(captured.growthRemainder).toBe(0);
-    expect(getTerritoryGrowthRate(state, captured)).toBe(1);
-    state = advanceGrowth(state, 4000); expect(units(state)).toBe(5);
-    state = resolveCombat({ ...state, arrivals: [{ ...enemy, owner: 'player', units: 6 }] });
+    expect(getTerritoryGrowthRate(state, captured)).toBe(2);
+    state = advanceGrowth(state, 4000); expect(units(state)).toBe(9);
+    state = resolveCombat({ ...state, arrivals: [{ ...enemy, owner: 'player', units: 10 }] });
     state = advanceGrowth(state, 4000); expect(units(state)).toBe(11);
+  });
+  it('accepts map-authored factories without a beneficiary and benefits every current owner', () => {
+    const host: Territory = { id: 'plant', owner: 'neutral', units: 14, x: 80, y: 190,
+      features: [{ id: 'plant:factory', kind: 'factory', productionMultiplier: 2 }] };
+    const state = createSimulation([host, { id: 'home', owner: 'player', units: 36, x: 80, y: 290 },
+      { id: 'foe', owner: 'enemy-2', units: 36, x: 80, y: 90 }]);
+    expect(getTerritoryGrowthRate(state, host)).toBe(0);
+    for (const owner of ['player', 'enemy-2']) expect(getTerritoryGrowthRate(state, { ...host, owner })).toBe(2);
+  });
+  it('does not duplicate an authored spawn Factory when its upgrade is selected', () => {
+    const host: Territory = { id: 'home', owner: 'player', units: 48, x: 80, y: 190,
+      features: [{ id: 'home:factory', kind: 'factory', productionMultiplier: 2 }] };
+    const setup = compileRoundSetup([host, { id: 'foe', owner: 'enemy', units: 36, x: 80, y: 90 }], { player: ['industry', 'factory'] });
+    expect(setup.territories[0].features).toEqual(host.features);
+    const state = createSimulation(setup.territories, setup.rules);
+    expect(getTerritoryGrowthRate(state, state.territories[0])).toBe(2.5);
+    expect(advanceGrowth(state, 4000).territories[0].units).toBe(50);
   });
   it('keeps neutral features inactive', () => {
     const state = makeState(); const host = state.territories.find(n => n.id === 'south')!;

@@ -28,7 +28,7 @@ export const UPGRADES = {
     effects: [{ kind: 'multiply-stat', stat: 'unitsPerSecond', multiplier: 1.25 }],
   },
   factory: {
-    id: 'factory', name: 'Factory', description: '2× starting-city production · You only',
+    id: 'factory', name: 'Factory', description: '2× starting-city production · Follows ownership',
     effects: [{ kind: 'attach-starting-feature', feature: { kind: 'factory', productionMultiplier: 2 } }],
   },
   'slow-zone': {

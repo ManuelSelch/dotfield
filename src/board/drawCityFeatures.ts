@@ -19,7 +19,7 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
       ctx.translate(x, y); ctx.scale(radius / 7, radius / 7); draw(ctx); ctx.restore();
     }
     for (const feature of city.features ?? []) {
-      if (feature.kind === 'factory') badge(1, city.owner === feature.beneficiaryId, drawFactoryIcon);
+      if (feature.kind === 'factory') badge(1, city.owner !== 'neutral', drawFactoryIcon);
       if (feature.kind === 'slow-zone') {
         const range = feature.radius * city.radius / TERRITORY_RADIUS;
         ctx.save(); ctx.globalAlpha = 0.09;

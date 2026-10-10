@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: slice 1 is implemented. Bridge-city mockup revision 3 is approved for implementation: compact river-only bridges without city icons, separate bank regions and manual paired-city staging replace automatic river detours. Implement the bridge feature now; Gatehouses, Factory changes, Artillery and Portals remain later slices.
+Status: slices 1, 2 and 4 are implemented. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing bridge-map layout remains unchanged. Artillery and Portals remain later slices.
 
 ## Scope
 
@@ -80,9 +80,9 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 - R27. Maps may author a Factory on a neutral city. Every Factory boosts production for whichever non-neutral faction currently owns it; while neutral it produces no troops.
 - R28. Use one feature name and icon: Factory. The Factory upgrade makes the selecting faction's spawn city a Factory, while a map may also contain its own Factories. Change the existing upgrade's original-beneficiary behaviour so capture transfers its production benefit to the new owner, including enemies; recapture transfers it back.
 - R29. Retain the existing Factory's 2× local production multiplier, stacking with the current owner's Industry rate, subject to the global automatic-production cap of 50. Changing ownership retains the normal fractional-growth reset rule.
-- R30. First scenario: a river separates the starting areas, with exactly two crossings. One crossing is a shorter, Gatehouse-controlled approach; the other is an open but longer flank. Both factions can initially approach the neutral Gatehouse.
+- R30. Factory scenario: a river separates the starting areas, with exactly two open crossings. A neutral Factory at one bridge endpoint is reachable by equally long legal opening attacks from both starting cities. The other crossing offers an alternative flank; no Gatehouse or access lock.
 - R31. Place the neutral Factory near the contested approaches, with comparable initial access costs for both factions. It must not be reachable only by the already-winning side or make one opening obviously mandatory.
-- R32. The map must support at least these choices: rush the Factory for production; secure the Gatehouse for access; take the open crossing to flank an opponent committed elsewhere.
+- R32. The map must support at least these choices: rush the Factory for production; expand into ordinary neutral cities; take the second open crossing to flank an opponent committed elsewhere.
 - R33. Artillery and Portal pairs are introduced on later maps rather than crowding this first scenario. A mountain-pass map can reuse the route and Gatehouse rules.
 
 ### 6. Integration and verification
@@ -113,13 +113,13 @@ Description: Define authored barriers/crossings and deterministic legal-route qu
 
 Description: Following slice 1 and approved mockup revision 3, add a selectable two-open-bridge river map, validated immutable bank/pair metadata, straight same-bank orders and explicit paired-city crossings. Keep shared existing straight movement, dots, collisions, Slow Zones and Watchtowers; validate formation clearance instead of adding path bends. Integrate AI staging, persistence/restart, independently bank-clipped regions, compact bridges, preview legality and accessible input feedback. Verify queue preservation, real staggered movement, collisions/forecast parity, save/restore and phone-sized drag/keyboard tests. No Gatehouse or Factory changes; mountain detours remain deferred.
 
-### 3. Gatehouse control
+### 3. Gatehouse control — skipped for now
 
 Description: Following slice 2, attach cities to crossings and make routing faction-aware, applying the confirmed finish-launched/cancel-blocked-queue policy. Keep Gatehouses attackable from both approaches; expose access in previews and accessibility. Verify neutral locks, capture/recapture, multiple factions, queue handling and AI legal orders.
 
 ### 4. River map and contested Factory
 
-Description: Following slice 3, change all Factories, including existing starting-city upgrades, to benefit their current owner. Use one Factory name/icon, prevent duplicate attachment bonuses and account for old saved Factory definitions. Add the river scenario with two crossings, one Gatehouse and one neutral Factory. Verify capture bonuses, Industry/cap interactions, replay/save behaviour and several viable openings through human playtesting.
+Description: Following slice 2 (slice 3 skipped), change all Factories, including existing starting-city upgrades, to benefit their current owner. Use one Factory name/icon, prevent duplicate attachment bonuses and account for old saved Factory definitions. Add a separate river scenario with two open crossings and one neutral Factory, preserving existing maps. Verify capture bonuses, Industry/cap interactions, AI production value, replay/save behaviour and comparable initial attack costs. Human playtesting remains required for balance and viable openings.
 
 ### 5. Artillery city
 

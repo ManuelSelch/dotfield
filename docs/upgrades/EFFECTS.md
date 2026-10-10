@@ -9,7 +9,7 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 | Quick march | Troops move 20% faster. | Faster attacks and defensive reinforcement; still vulnerable to collisions. | Proposed |
 | Rapid deployment | Launch groups every 450 ms instead of 600 ms. | Commits armies sooner, but also empties the source sooner. | Proposed |
 | Watchtower | Starting city automatically destroys up to four nearby hostile airborne dots per second, within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented |
-| Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with Industry, inactive for captors |
+| Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | A randomly selected city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented |
 | Capture shield | Each newly captured city absorbs its first three incoming enemy units without losing garrison. | Helps establish a foothold; shield does not regenerate. | Proposed; recapture policy unresolved |
 
@@ -24,9 +24,9 @@ Pre-game effects, without currency, purchases, levels or unlocks. The player and
 
 ## Factory scope
 
-- Off by default; attaches one Factory to the selecting faction's starting city. No Factory is added to enemy cities or later captures.
+- Off by default; attaches one Factory to the selecting faction's starting city. Maps may also author neutral Factories. Selecting the upgrade on an existing Factory does not add another multiplier or badge.
 - Factory alone doubles production at its host; Factory + Industry multiplies that faction's base production by 2.5. Other cities receive only Industry's 1.25× rate when enabled.
-- The Factory stays attached after capture, but is inactive for other factions or neutrals. Recapturing it restores the original beneficiary's bonus; existing capture rules reset fractional growth.
+- The Factory stays attached after capture and benefits its current owner, including any AI faction. Neutral Factories do not produce. Recapture transfers the bonus back; existing capture rules reset fractional growth. Legacy saved beneficiary IDs remain readable but no longer restrict the bonus.
 - Restart/Play again recreate the same seed/bonus without stacking another Factory. Home selection is memory-only and reload clears it.
 - Factory is a typed immutable territory feature, not a faction-wide config change. Its rate is used by both real simulation and AI forecasts.
 
