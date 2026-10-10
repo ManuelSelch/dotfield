@@ -1,0 +1,22 @@
+.home-screen { min-height: 0; flex: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) 44px; gap: 12px; }
+.home-body { min-height: 0; display: grid; grid-template-rows: minmax(110px, 1fr) minmax(0, auto); gap: 12px; }
+.home-map-panel { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) 8px; gap: 12px; }
+.home-map-selector { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 0; }
+.home-map-selector > button { flex: none; }
+.home-map-space { min-height: 0; min-width: 0; height: 100%; flex: 1; container-type: size; display: grid; place-items: center; }
+.home-map-frame { box-sizing: content-box; height: min(calc(100cqh - 4px), calc((100cqw - 4px) * 4 / 3), calc(276px * 4 / 3)); aspect-ratio: 3 / 4; overflow: hidden; border-radius: 20px; border: 2px solid #267c72; background: var(--color-field); }
+.home-setup { min-height: 0; max-height: min(44svh, 254px); display: grid; grid-template-rows: minmax(0, 1fr); }
+.home-settings { overflow-y: auto; min-height: 0; padding-right: 3px; scrollbar-width: thin; overscroll-behavior: contain; }
+.home-play { width: 100%; justify-self: center; }
+
+/* Match the approved desktop preview; short windows retain the compact layout.
+   Scope shell widening to Home so battlefield sizing remains independent. */
+@media (min-width: 900px) and (min-height: 600px) {
+  .app-shell.app-shell--home { max-width: 1088px; }
+  .home-screen { gap: 16px; }
+  .home-body { grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); grid-template-rows: minmax(0, 1fr); gap: 40px; }
+  .home-map-frame { height: min(calc(100cqh - 4px), calc((100cqw - 4px) * 4 / 3)); }
+  .home-setup { width: 100%; height: 100%; max-height: none; }
+  .home-settings { align-self: center; max-height: 100%; }
+  .home-play { width: 360px; max-width: 100%; }
+}
