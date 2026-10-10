@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dotfield — Bridge cities review</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header><h1><span aria-hidden="true"></span>dotfield</h1>
+      <button id="pause" class="pause" aria-label="Pause preview" title="Pause preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12" /></svg></button>
+    </header>
+    <nav class="scenarios" aria-label="Review states, not production controls">
+      <a href="?state=opening" data-state="opening">Opening</a>
+      <a href="?state=staged" data-state="staged">Across the bridge</a>
+    </nav>
+    <div class="board"><svg id="field" viewBox="0 0 360 480" role="group" aria-label="Two river banks with paired bridge cities. Drag between cities; cross only between a bridge's endpoints.">
+      <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L7 3.5L0 7" fill="#267c72" /></marker></defs>
+      <g id="regions"></g><g id="terrain"></g><g id="route"></g><g id="troops"></g><g id="cities"></g>
+    </svg></div>
+    <p id="hint" role="status" aria-live="polite">Stage troops at a bridge city · send across</p>
+    <footer>Mockup · simplified troop counts <button id="reset">Reset</button></footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
