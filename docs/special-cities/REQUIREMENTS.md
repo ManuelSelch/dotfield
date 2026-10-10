@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: planning only; no gameplay implemented by this document. Confirmed decisions include one Gatehouse-controlled crossing plus one open crossing, current-owner benefits for every Factory, Artillery parameters, and explicit Portal-to-Portal transport. Remaining details are identified under Assumptions and Open Questions. This document does not authorize implementation.
+Status: planning only; no gameplay implemented by this document. Confirmed decisions include one Gatehouse-controlled crossing plus one open crossing, current-owner benefits for every Factory, Artillery parameters, explicit Portal-to-Portal transport with a 2-second transit, and ownership-change queue handling. Remaining implementation assumptions are identified under Assumptions. This document does not authorize implementation.
 
 ## Scope
 
@@ -49,7 +49,7 @@ Status: planning only; no gameplay implemented by this document. Confirmed decis
 - R11. Capturing the Gatehouse opens the crossing to the captor and closes it to other factions for new orders. Ownership and access are determined independently for every faction, not by player/enemy labels.
 - R12. The map must allow both sides to attack the Gatehouse without first crossing its locked route. No circular requirement such as “cross the bridge to capture the city that unlocks the bridge” is allowed.
 - R13. Gatehouses use ordinary city combat unless a separate defensive bonus is approved. Their tactical value comes from access control, not an assumed armour bonus.
-- R14. Recommended simple policy, pending confirmation: already-launched troops finish their committed route after Gatehouse capture, without automatic kills. Cancel unlaunched batches whose route becomes unavailable, retaining their troops at the source; new orders use current crossing access. No disappearance, duplication or instantaneous relocation is allowed.
+- R14. Already-launched troops finish their committed route after Gatehouse capture, without automatic kills. Cancel unlaunched batches whose route becomes unavailable, retaining their troops at the source; new orders use current crossing access. No disappearance, duplication or instantaneous relocation is allowed.
 
 Tactical purpose: hold a shorter attack route, deny an enemy flank, or bypass a strong Gatehouse using the second crossing.
 
@@ -70,7 +70,7 @@ Tactical purpose: pressure a defended crossing and force the opponent to attack,
 - R22. A faction may use the Portal link only while it owns both endpoints. Mixed or neutral ownership leaves the link inactive for new transport orders.
 - R23. Explicitly drag Portal A → its paired Portal B to transport A's troops to B, leaving one behind. Show a distinct portal-link preview. Ordinary routing must not silently use Portals, and arriving reinforcements at A must not teleport automatically.
 - R24. Portal transit skips intervening terrain; troops neither collide nor get shot at in the skipped space. Arrival reinforces B or resolves normal hostile combat according to B's owner at arrival. A subsequent attack from B requires a normal order; non-Portal travel retains normal feature interactions.
-- R25. Capture disables new transport orders for the former controller, but troops that have already entered transit finish. Unlaunched-batch handling and transit delay remain open; no committed transit is automatically destroyed by ownership changes.
+- R25. Each launched Portal batch spends 2,000 ms in transit. Losing ownership of either endpoint disables new transport orders and cancels unlaunched batches, leaving their troops at the source if it is still owned. Troops that have already entered transit finish; arrival resolves against B's current owner. Capturing the source retains normal garrison/capture rules, without refunds to the former owner. No committed transit is automatically destroyed by ownership changes.
 - R26. Portal use must not duplicate troops, create routing loops, reset stable dot identities, or permit arbitrary teleport destinations.
 
 Tactical purpose: invest in two separated positions to gain mobility, reinforce distant fronts, and threaten an enemy rear. The opponent can break that advantage by capturing either endpoint.
@@ -96,9 +96,9 @@ Tactical purpose: invest in two separated positions to gain mobility, reinforce 
 ## Assumptions
 
 - Automatic non-Portal routing chooses the shortest legal travel-time route, with stable tie-breaking. Players choose a different approach through staging-city orders rather than a route-selection UI.
-- Gatehouses restrict access but do not gain extra defence in the initial design. The finish-launched/cancel-blocked-queue policy in R14 is recommended but not explicitly confirmed.
-- Artillery range is measured between city centres. Idle shots are not banked; nearest-target ties use stable city IDs. These timing/geometry details require confirmation before implementation.
-- Portal links require no resource or unlock beyond owning both endpoints. Existing group size and launch cadence are retained for explicit transport, with transit delay still open.
+- Gatehouses restrict access but do not gain extra defence in the initial design.
+- Artillery range is measured between city centres. Idle shots are not banked; nearest-target ties use stable city IDs. These are proposed implementation defaults, not additional user-confirmed decisions.
+- Portal links require no resource or unlock beyond owning both endpoints. Existing group size and launch cadence are retained for explicit transport; the confirmed 2-second transit applies independently to each launched batch.
 - A city receives at most one Factory multiplier even if its authored Factory and a selected spawn Factory upgrade coincide; no duplicate bonus or badge.
 - The first implementation should use fixed authored terrain and limited scenarios, not a general map editor.
 - Current implementation has direct straight-line routes and Factory, Watchtower and Slow Zone features, but no terrain, Gatehouse, Artillery or Portal feature. Route bends require simulation changes, not just a visual overlay.
@@ -115,7 +115,7 @@ Description: Following slice 1, integrate route progress and path bends into sha
 
 ### 3. Gatehouse control
 
-Description: Following slice 2 and confirmation of the launched/queued access-change policy, attach cities to crossings and make routing faction-aware. Keep Gatehouses attackable from both approaches; expose access in previews and accessibility. Verify neutral locks, capture/recapture, multiple factions, queue handling and AI legal orders.
+Description: Following slice 2, attach cities to crossings and make routing faction-aware, applying the confirmed finish-launched/cancel-blocked-queue policy. Keep Gatehouses attackable from both approaches; expose access in previews and accessibility. Verify neutral locks, capture/recapture, multiple factions, queue handling and AI legal orders.
 
 ### 4. River map and contested Factory
 
@@ -123,13 +123,12 @@ Description: Following slice 3, change all Factories, including existing startin
 
 ### 5. Artillery city
 
-Description: Following slice 4, implement nearest-hostile-garrison targeting at range 90, one defender per 2,000 ms, excluding neutral targets and mountain-blocked shots. Include shared world stepping, feature timers, shot feedback, persistence and AI forecasts; confirm remaining timing/geometry assumptions first. Add a focused siege scenario, preferably a mountain pass. Verify no artillery-only capture, pause behaviour, ownership changes, target rules and counterplay.
+Description: Following slice 4, implement nearest-hostile-garrison targeting at range 90, one defender per 2,000 ms, excluding neutral targets and mountain-blocked shots. Include shared world stepping, feature timers, shot feedback, persistence and AI forecasts; verify the stated timing/geometry defaults. Add a focused siege scenario, preferably a mountain pass. Verify no artillery-only capture, pause behaviour, ownership changes, target rules and counterplay.
 
 ### 6. Portal pair
 
-Description: Following slice 4 and confirmed transit delay/queue rules, add paired endpoints and explicit A → B transport to live simulation, forecasts, previews and saves. Add a dedicated flanking scenario; verify no automatic forwarding or route shortcutting, no skipped-space collisions, no duplication/loops, mixed-owner inactivity and committed arrivals at captured endpoints. AI must explicitly order Portal transfers. Artillery is not a prerequisite.
+Description: Following slice 4, add paired endpoints and explicit A → B transport with a 2-second transit per launched batch to live simulation, forecasts, previews and saves. Cancel unlaunched batches when either endpoint is lost, while allowing entered troops to finish. Add a dedicated flanking scenario; verify no automatic forwarding or route shortcutting, no skipped-space collisions, no duplication/loops, mixed-owner inactivity and committed arrivals at captured endpoints. AI must explicitly order Portal transfers. Artillery is not a prerequisite.
 
 ## Open Questions
 
-1. Confirm the Gatehouse recommendation: launched troops finish their route, while blocked unlaunched batches are cancelled and remain at their source?
-2. What Portal transit delay should be used, and should loss of endpoint ownership cancel unlaunched Portal batches while allowing entered troops to finish?
+None.
