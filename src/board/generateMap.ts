@@ -13,12 +13,14 @@ export interface MapSettings {
   readonly river: boolean;
   readonly mountains: boolean;
   readonly artillery: boolean;
+  readonly watchtower: boolean;
+  readonly slowZone: boolean;
 }
 export interface GeneratedMap extends FieldMap {
   readonly seed: number;
   readonly settings: MapSettings;
 }
-export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true, mountains: true, artillery: false });
+export const DEFAULT_MAP_SETTINGS: MapSettings = Object.freeze({ cities: 14, enemies: 2, industry: true, river: true, mountains: true, artillery: false, watchtower: false, slowZone: false });
 export const enemyIds = (count: number) => Array.from({ length: count }, (_, i) => i === 0 ? 'enemy' : `enemy-${i + 1}`);
 const MOUNTAIN_RANGE = { id: 'mountain-range', kind: 'mountain' as const,
   bounds: { minX: 140, minY: 270, maxX: 220, maxY: 370 } };
@@ -29,7 +31,8 @@ export function isMapSettings(value: unknown): value is MapSettings {
   return Number.isInteger(settings.cities) && settings.cities >= 6 && settings.cities <= 24
     && Number.isInteger(settings.enemies) && settings.enemies >= 1 && settings.enemies <= 4
     && typeof settings.industry === 'boolean' && typeof settings.river === 'boolean'
-    && typeof settings.mountains === 'boolean' && typeof settings.artillery === 'boolean';
+    && typeof settings.mountains === 'boolean' && typeof settings.artillery === 'boolean' && typeof settings.watchtower === 'boolean'
+    && typeof settings.slowZone === 'boolean';
 }
 
 // Bounded, reproducible randomness; no simulation or browser dependency.
@@ -59,7 +62,7 @@ function chooseArtilleryMountain(gun: Territory, territories: readonly Territory
   }));
   if (!candidates.length) throw new Error('Could not place Artillery ridge clear of generated cities.');
   const hostile = territories.filter(city => city.owner !== 'neutral' && city.owner !== gun.owner
-    && Math.hypot(city.x - gun.x, city.y - gun.y) <= 90);
+    && Math.hypot(city.x - gun.x, city.y - gun.y) <= 110);
   return candidates.sort((a, b) => {
     const blocked = (barrier: typeof a) => hostile.filter(city => entersInterior(gun, city, barrier.bounds)).length;
     const scoreA = blocked(a) * 1000 - Math.hypot((a.bounds.minX + a.bounds.maxX) / 2 - gun.x, (a.bounds.minY + a.bounds.maxY) / 2 - gun.y);
@@ -114,17 +117,27 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
     const index = starts.indexOf(city);
     return index < 0 ? city : { ...city, owner: factions[index], units: 36 };
   });
+  if (settings.watchtower) {
+    const host = territories[Math.floor(random() * territories.length)];
+    territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
+      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }] } : city);
+  }
+  if (settings.slowZone) {
+    const host = territories[Math.floor(random() * territories.length)];
+    territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
+      { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] } : city);
+  }
   const artilleryCity = settings.artillery ? territories.filter(city => city.owner === 'neutral')
     .sort((a, b) => Math.hypot(a.x - 180, a.y - 240) - Math.hypot(b.x - 180, b.y - 240))[0] : undefined;
   if (artilleryCity) territories = territories.map(city => city === artilleryCity ? { ...city, units: 14,
-    features: [{ id: `${city.id}:artillery`, kind: 'artillery', range: 90, fireIntervalMs: 2000 }] } : city);
+    features: [...(city.features ?? []), { id: `${city.id}:artillery`, kind: 'artillery', range: 110, fireIntervalMs: 2000 }] } : city);
   if (settings.industry) {
     const neutral = territories.filter(city => city.owner === 'neutral' && city.id !== artilleryCity?.id);
     const factoryCount = Math.min(neutral.length, Math.max(1, Math.round(settings.cities / 6)));
     for (let i = 0; i < factoryCount; i++) {
       const host = neutral.splice(Math.floor(random() * neutral.length), 1)[0];
       territories = territories.map(city => city === host ? { ...city, units: 14,
-        features: [{ id: `${city.id}:factory`, kind: 'factory', productionMultiplier: 2 }] } : city);
+        features: [...(city.features ?? []), { id: `${city.id}:factory`, kind: 'factory', productionMultiplier: 2 }] } : city);
     }
   }
   const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: [0, 3].map(column => ({

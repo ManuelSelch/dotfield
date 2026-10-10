@@ -20,11 +20,7 @@ export interface RoundSetup {
 // The UI (and later progression) supplies IDs; the simulation receives only resolved rules.
 export function compileRoundSetup(territories: readonly Territory[], selection: UpgradeSelection,
   baseline?: SimulationRules,
-  placementOrBehaviors: number | Readonly<Partial<Record<FactionId, AiBehavior>>> = 0,
-  behaviorInput: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}, river?: River, terrain?: Terrain): RoundSetup {
-  const placementChoice = typeof placementOrBehaviors === 'number' ? placementOrBehaviors : 0;
-  const behaviors = typeof placementOrBehaviors === 'number' ? behaviorInput : placementOrBehaviors;
-  if (!Number.isFinite(placementChoice) || placementChoice < 0 || placementChoice >= 1) throw new RangeError('Placement choice must be in [0, 1).');
+  behaviors: Readonly<Partial<Record<FactionId, AiBehavior>>> = {}, river?: River, terrain?: Terrain): RoundSetup {
   const factionIds = [...new Set(['player', ...territories.map(city => city.owner)
     .filter((id): id is string => id !== 'neutral')])];
   const baseRules = baseline ?? createRules({ factions: Object.fromEntries(factionIds.map(id => [id, { ...BASE_FACTION_RULES }])) });
@@ -47,10 +43,9 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
         } else if (effect.kind === 'capture-shield') {
           rules.captureShieldBatches = effect.batches;
         } else {
-          const host = effect.kind === 'attach-random-feature'
-            ? seed[Math.floor(placementChoice * seed.length)] : seed.find(city => city.owner === id);
+          const host = seed.find(city => city.owner === id);
           if (!host) throw new RangeError(`No eligible city for faction ${id}.`);
-          if (effect.feature.kind === 'factory' && host.features?.some(feature => feature.kind === 'factory')) continue;
+          if (host.features?.some(feature => feature.kind === 'factory')) continue;
           const feature = { ...effect.feature, id: `${host.id}:${effect.feature.kind}:${id}` };
           seed = seed.map(city => city === host ? { ...city, features: [...(city.features ?? []), feature] } : city);
         }

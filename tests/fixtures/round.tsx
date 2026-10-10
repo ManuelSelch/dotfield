@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { MantineProvider } from '@mantine/core';
 import { FieldCanvas } from '../../src/board/FieldCanvas';
 import { TERRITORIES } from '../../src/board/map';
+import { seededRandom } from '../../src/board/generateMap';
 import { RIVER_MAP } from '../../src/board/riverMap';
 import { FACTORY_MAP } from '../../src/board/factoryMap';
 import { ARTILLERY_MAP } from '../../src/board/artilleryMap';
@@ -32,18 +33,23 @@ const territories = shieldBattle ? [
   units: node.id === 'south' ? 20 : node.id === 'centre' ? 1 : node.units,
 }));
 
+const watchtowerHostIndex = Math.floor(seededRandom(19)() * territories.length);
+const fieldFeatures = territories.map((city, index) => {
+  const features = [...(city.features ?? [])];
+  if (params.has('watchtower') && index === watchtowerHostIndex) features.push({ id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 });
+  if (params.has('slow-zone') && index === 6) features.push({ id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 });
+  return features.length ? { ...city, features } : city;
+});
 const restored = params.has('siege') ? readSavedGame() : null;
 const baseline = params.has('no-growth') ? { factions: Object.fromEntries(['player', 'enemy'].map(id => [id,
   { unitsPerSecond: 0, travelSpeed: 35, batchIntervalMs: 600 }])) } : undefined;
-const setup = compileRoundSetup(territories, { player: [
+const setup = compileRoundSetup(fieldFeatures, { player: [
   ...(shieldBattle || params.has('capture-shield') ? ['capture-shield' as const] : []),
   ...(params.has('industry') ? ['industry' as const] : []),
   ...(params.has('factory') ? ['factory' as const] : []),
-  ...(params.has('watchtower') ? ['watchtower' as const] : []),
-  ...(params.has('slow-zone') ? ['slow-zone' as const] : []),
 ] }, shieldBattle ? createRules({ factions: {
   player: { ...BASE_FACTION_RULES, unitsPerSecond: 0 }, enemy: { ...BASE_FACTION_RULES, unitsPerSecond: 0 },
-} }) : baseline, 0, {}, riverMap?.river, riverMap?.terrain);
+} }) : baseline, {}, riverMap?.river, riverMap?.terrain);
 
 // Seed a completed capture through real combat, then fly four real five-dot hostile batches.
 const initialState = shieldBattle ? dispatchUnits(resolveCombat({

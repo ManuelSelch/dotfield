@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { generateMap, enemyIds, newMapSeed, seededRandom } from './board/generateMap';
+import { generateMap, enemyIds, newMapSeed } from './board/generateMap';
 import { HomeScreen } from './ui/HomeScreen';
 import { FieldCanvas } from './board/FieldCanvas';
 import { ConnectionBadge } from './ui/ConnectionBadge';
@@ -38,9 +38,17 @@ export function App({ updates }: { updates: AppUpdates }) {
     const active = ['player', ...enemyIds(value.map.enemies)];
     const upgrades = Object.fromEntries(Object.entries(value.upgrades).filter(([id]) => active.includes(id)));
     const behaviors = Object.fromEntries(Object.entries(value.aiBehaviors).filter(([id]) => active.includes(id)));
-    const compiled = compileRoundSetup(map.territories, upgrades, undefined, seededRandom(map.seed)(), behaviors, map.river, map.terrain);
+    const compiled = compileRoundSetup(map.territories, upgrades, undefined, behaviors, map.river, map.terrain);
     clearSavedGame(); setSaved(null);
     setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
+  }
+  function startPreviewGame(preferences: MatchPreferences) {
+    const active = ['player', ...enemyIds(preferences.map.enemies)];
+    const upgrades = Object.fromEntries(Object.entries(preferences.upgrades).filter(([id]) => active.includes(id)));
+    const behaviors = Object.fromEntries(Object.entries(preferences.aiBehaviors).filter(([id]) => active.includes(id)));
+    const compiled = compileRoundSetup(preview.territories, upgrades, undefined, behaviors, preview.river, preview.terrain);
+    clearSavedGame(); setSaved(null);
+    setSetup({ ...compiled, generated: { seed: preview.seed, preferences } });
   }
   return <>
     <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
@@ -52,7 +60,7 @@ export function App({ updates }: { updates: AppUpdates }) {
               initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame}
               onNewMap={() => play(setup.generated?.preferences ?? preferences)} />
           </section> : <HomeScreen map={preview} preferences={preferences} onChange={changePreferences}
-            onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => play()} />}
+            onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => startPreviewGame(preferences)} />}
         </div>
       </div>
     </main>

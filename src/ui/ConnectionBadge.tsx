@@ -14,10 +14,11 @@ export function ConnectionBadge({ updates, playing }: { updates: AppUpdates; pla
   return (
     <div className={`connection-badge connection-badge--${kind}`}>
       <span role="status" aria-live="polite" title={hint}>
-        <span className="connection-badge__dot" aria-hidden="true" />{label}
+        <span className="connection-badge__dot" aria-hidden="true" />
+        {state.ready && !playing && !state.applying ? <span className="sr-only">{label}</span> : label}
       </span>
       {state.ready && !playing && !state.applying && (
-        <button type="button" onClick={() => void updates.applyUpdate()} title="Apply downloaded update and reload the app">Update now</button>
+        <button className="connection-badge__action" type="button" aria-label="Update now" onClick={() => void updates.applyUpdate()} title="Apply downloaded update and reload the app">Update</button>
       )}
     </div>
   );

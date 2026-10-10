@@ -42,6 +42,8 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
             <span>{map.settings.industry ? 'Industry' : 'No industry'}</span><span>{map.river ? `${map.river.bridges.length} bridges` : 'No river'}</span>
             <span>{map.settings.artillery ? 'Artillery' : 'No artillery'}</span>
             <span>{map.settings.mountains ? 'Mountain range' : 'No mountains'}</span>
+            <span>{map.settings.watchtower ? 'Watchtower' : 'No Watchtower'}</span>
+            <span>{map.settings.slowZone ? 'Slow Zone' : 'No Slow Zone'}</span>
           </div>
         </section>
       </div>
