@@ -12,6 +12,13 @@ describe('basic enemy policy', () => {
     const game = state(node('base', 'enemy', 20, 0), node('neutral', 'neutral', 6, 120), node('player', 'player', 80, 300));
     expect(chooseOrder(game)).toMatchObject({ sourceId: 'base', targetId: 'neutral', kind: 'expand' });
   });
+  it('prefers a capturable Factory to an otherwise equivalent neutral city', () => {
+    const game = createSimulation([node('base', 'enemy', 30, 180, 240),
+      node('ordinary', 'neutral', 6, 80, 240),
+      { ...node('plant', 'neutral', 6, 280, 240), features: [{ id: 'plant:factory', kind: 'factory', productionMultiplier: 2 }] },
+      node('player', 'player', 80, 180, 440)]);
+    expect(chooseOrder(game)).toMatchObject({ targetId: 'plant', kind: 'expand' });
+  });
   it('attacks a vulnerable player while ahead', () => {
     expect(chooseOrder(state(node('base', 'enemy', 30, 0), node('player', 'player', 5, 120))))
       .toMatchObject({ sourceId: 'base', targetId: 'player', kind: 'attack' });

@@ -3,7 +3,8 @@ import type { FactionId } from '../types';
 export interface FactoryFeature {
   readonly id: string;
   readonly kind: 'factory';
-  readonly beneficiaryId: FactionId;
+  // Legacy saves may include the original beneficiary; production now follows ownership.
+  readonly beneficiaryId?: FactionId;
   readonly productionMultiplier: number;
 }
 

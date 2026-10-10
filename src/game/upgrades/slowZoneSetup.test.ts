@@ -20,7 +20,7 @@ describe('Slow Zone setup and lifecycle', () => {
       const hosts = setup.territories.filter(c => c.features?.some(f => f.kind === 'slow-zone'));
       expect(hosts).toHaveLength(1);
       expect(hosts[0].id).toBe(map.territories[i].id);
-      expect(hosts[0].features).toEqual([{ id: `${hosts[0].id}:slow-zone:player`, kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 }]);
+      expect(hosts[0].features).toEqual([...(map.territories[i].features ?? []), { id: `${hosts[0].id}:slow-zone:player`, kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 }]);
       expect(Object.isFrozen(hosts[0].features![0])).toBe(true);
       expect(setup.rules).toEqual(base);
     }

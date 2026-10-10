@@ -1,4 +1,6 @@
 import { riverDistance } from '../river';
+import { getTerritoryGrowthRate } from '../features/growthRate';
+import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
 import type { AiConfig } from './config';
 
@@ -21,6 +23,10 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     if (before.owner === factionId) return null; // Existing troops already secure this region.
     kind = target.owner === 'neutral' ? 'expand' : 'attack';
     score = kind === 'expand' ? config.expansionScore : config.attackScore;
+    // Value the extra production from a capturable Factory over a short horizon.
+    // Forecast success and source safety still gate the order; no resource bonus.
+    const extraProduction = getTerritoryGrowthRate(proposed, after) - getFactionRules(state, factionId).unitsPerSecond;
+    score += Math.max(0, extraProduction) * 10;
   } else {
     kind = 'reinforce';
     const threatened = state.transfers.some(t => t.targetId === target.id && t.owner !== factionId);
