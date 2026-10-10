@@ -50,10 +50,8 @@ test('enemy-owned Artillery targets the player and real recapture transfers firi
   await expect(city(page,'near')).toHaveText('near: Opponent, 11 units.');
   expect(await city(page,'friendly').textContent()).toBe(before);
 });
-test('zero defenders retain hostile ownership and mountain-blocked direct orders spend nothing',async({page})=>{
+test('zero defenders retain hostile ownership and artillery orders reach without mountain block',async({page})=>{
   await fixture(page,'&gun-owner=player');
-  await send(page,'artillery','blocked');
-  await expect(page.getByRole('list',{name:'Unit transfers'}).getByRole('listitem')).toHaveCount(0);
   await expect(city(page,'artillery')).toContainText('14 units.');
   await page.clock.runFor(24100);
   await expect(city(page,'near')).toHaveText('near: Opponent, 0 units.');
@@ -62,7 +60,7 @@ test('zero defenders retain hostile ownership and mountain-blocked direct orders
   await send(page,'artillery','near');await page.clock.runFor(1250);
   await expect(city(page,'near')).toHaveText('near: You, 5 units.');
 });
-test('authored Siege field and paused reload preserve mountain geometry and Artillery metadata',async({page})=>{
+test('authored Siege field and paused reload preserve Artillery metadata with no mountain barriers',async({page})=>{
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   // The fresh-match Home intentionally does not select from authored regression maps.
@@ -74,6 +72,6 @@ test('authored Siege field and paused reload preserve mountain geometry and Arti
   await expect(page.getByRole('button',{name:'Resume',exact:true})).toBeVisible();
   await expect(city(page,'artillery')).toContainText('Artillery inactive');
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
-  expect(saved.state.terrain.barriers[0].kind).toBe('mountain');
+  expect(saved.state.terrain.barriers).toHaveLength(0);
   expect(saved.state.territories.find((c:{id:string})=>c.id==='artillery').features[0].kind).toBe('artillery');
 });

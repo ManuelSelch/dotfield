@@ -40,7 +40,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(slowZone.getByRole('button', { name: 'Off', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveCount(0);
     await artillery.getByRole('button', { name: 'On', exact: true }).click();
-    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
+    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '110');
     await expect(preview.locator('[aria-label="Artillery"]')).toHaveCount(1);
     await artillery.getByRole('button', { name: 'Off', exact: true }).click();
     await watchtower.getByRole('button', { name: 'On', exact: true }).click();
@@ -62,7 +62,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('group', { name: 'River and bridges' }).getByRole('button', { name: 'Off', exact: true }).click();
     await page.getByRole('group', { name: 'Map industry' }).getByRole('button', { name: 'Off', exact: true }).click();
     await artillery.getByRole('button', { name: 'On', exact: true }).click();
-    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '90');
+    await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '110');
     await page.getByText('Your upgrades', { exact: true }).click();
     const playerUpgrades = page.getByRole('group', { name: 'Your upgrades' });
     await expect(playerUpgrades.getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);

@@ -63,7 +63,7 @@ function chooseArtilleryMountain(gun: Territory, territories: readonly Territory
   }));
   if (!candidates.length) throw new Error('Could not place Artillery ridge clear of generated cities.');
   const hostile = territories.filter(city => city.owner !== 'neutral' && city.owner !== gun.owner
-    && Math.hypot(city.x - gun.x, city.y - gun.y) <= 90);
+    && Math.hypot(city.x - gun.x, city.y - gun.y) <= 110);
   return candidates.sort((a, b) => {
     const blocked = (barrier: typeof a) => hostile.filter(city => entersInterior(gun, city, barrier.bounds)).length;
     const scoreA = blocked(a) * 1000 - Math.hypot((a.bounds.minX + a.bounds.maxX) / 2 - gun.x, (a.bounds.minY + a.bounds.maxY) / 2 - gun.y);
@@ -131,7 +131,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const artilleryCity = settings.artillery ? territories.filter(city => city.owner === 'neutral')
     .sort((a, b) => Math.hypot(a.x - 180, a.y - 240) - Math.hypot(b.x - 180, b.y - 240))[0] : undefined;
   if (artilleryCity) territories = territories.map(city => city === artilleryCity ? { ...city, units: 14,
-    features: [...(city.features ?? []), { id: `${city.id}:artillery`, kind: 'artillery', range: 90, fireIntervalMs: 2000 }] } : city);
+    features: [...(city.features ?? []), { id: `${city.id}:artillery`, kind: 'artillery', range: 110, fireIntervalMs: 2000 }] } : city);
   if (settings.industry) {
     const neutral = territories.filter(city => city.owner === 'neutral' && city.id !== artilleryCity?.id);
     const factoryCount = Math.min(neutral.length, Math.max(1, Math.round(settings.cities / 6)));
