@@ -2,12 +2,12 @@
 
 ## Goal and revision
 
-Revision 1 — in review, not approved. The user requested trying a simpler alternative to polygonal river pathfinding. This is an isolated proposal, not approval to replace the production plan.
+Revision 3 — in review, not approved for production. The user liked the staging flow and requested removing redundant bridge-city icons. After seeing longer decks, the user requested restoring the smaller river-only bridges; icons remain removed. Approval to replace the production plan is still required.
 
 ## Proposed design and interaction
 
 - Two separate banks retain the existing polygonal city-region style. Regions are generated independently within each bank and terminate at a straight blue-grey river gap.
-- Two broad, flat bridge decks connect aligned pairs of cities, with small bridge symbols beside those four cities. Each deck is 64 field units wide so a displayed five-dot formation fits.
+- Two compact, flat bridge decks span only the river and a small overlap onto each bank, restoring the original 64×38-field-unit size. They do not extend to the city-circle borders. No separate bridge-city icons; the visible bridge and the selection-only paired-city ring communicate the connection. The 64-unit deck width accommodates the displayed five-dot formation.
 - Within a bank, any normal city-to-city order remains a straight route.
 - Across banks, only explicit orders between the two endpoints of the same bridge are legal. The source must be player-owned; the destination may be friendly, neutral or hostile and receives normal reinforcement/attack.
 - A dashed ring identifies a selected bridge city's counterpart. Invalid cross-bank targets show a red dashed guide and an explanatory hint; no automatic detour or order forwarding occurs.
@@ -27,6 +27,6 @@ Revision 1 — in review, not approved. The user requested trying a simpler alte
 
 ## Approval and references
 
-Not approved. User said “try it”, authorizing this mockup rather than production work. Ask for explicit approval or further revisions.
+Not approved for production. The user requested icon removal and subsequently restoring smaller river-only bridges. Review revision 3 and ask for explicit production approval or further revisions.
 
 Polygonal comparison is preserved at `/terrain-routes/?state=river`. Both previews reuse the same project mockups Vite workspace/server. Preserve both designs; after final approval, verify and stop the owned server before production changes.

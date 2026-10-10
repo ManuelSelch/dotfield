@@ -74,7 +74,6 @@ function update() {
     if (source?.pair === city.id) node('circle', { r: 27, class: 'paired-ring' }, g);
     node('circle', { r: 21, class: 'core' }, g);
     node('text', { x: 0, y: 0 }, g).textContent = city.count;
-    if (city.pair) node('path', { d: 'M21-27v12M33-27v12M21-23h12M21-19h12', class: 'bridge-symbol' }, g);
   }
   document.querySelector('#route').replaceChildren();
   if (source && target && source !== target) {
