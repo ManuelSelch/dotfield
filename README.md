@@ -4,7 +4,7 @@ A small personal territory-conquest game, built one milestone at a time.
 
 ## Current milestone: multi-enemy map and configurable home screen
 
-Choose among seven maps on the home screen using left/right arrows, then press **Play**. The fifth Crossfire map contains one player and two independent AI enemies. Each enemy can select its own Balanced, Aggressive or Defensive behavior and Industry, Factory or Watchtower effects. Selection is visual only: one static map preview at a time, with no map names or descriptions. Nothing simulates before Play. Settings remain in memory and reset on reload. Slow zones, progression and alliances/teams are out of scope.
+Choose among eight maps on the home screen using left/right arrows, then press **Play**. The fifth Crossfire map contains one player and two independent AI enemies. Each enemy can select its own Balanced, Aggressive or Defensive behavior and Industry, Factory or Watchtower effects. Selection is visual only: one static map preview at a time, with no map names or descriptions. Nothing simulates before Play. Settings remain in memory and reset on reload. Slow zones, progression and alliances/teams are out of scope.
 
 The original field has one player, one opponent and eleven neutral cities. City radius is 14 board units; troop radius/spacing are 3/8. Counters scale from 14 logical units with an 11-pixel minimum; compact feature badges keep dense fields readable. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
 
@@ -26,7 +26,7 @@ The approved design is preserved in `mockups/desktop-battlefield/`. `tests/deskt
 
 ## Terrain routing foundation
 
-[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design: a river map with compact paired crossings, bank-clipped regions, manual staging, AI staging, preview legality, persistence and accessible hints. [Slice 4](docs/special-cities/SLICE-4.md) adds a separate contested-Factory river map (seventh preview) and current-owner production bonuses for all Factories. Existing map layouts remain unchanged. Gatehouse is skipped for now; Artillery and Portal remain later slices. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
+[Special-city slice 1](docs/special-cities/SLICE-1.md) adds validated logical-field barriers/crossings and pure shortest legal-route queries. [Slice 2](docs/special-cities/SLICE-2.md) implements the approved bridge-city design: a river map with compact paired crossings, bank-clipped regions, manual staging, AI staging, preview legality, persistence and accessible hints. [Slice 4](docs/special-cities/SLICE-4.md) adds a separate contested-Factory river map (seventh preview) and current-owner production bonuses for all Factories. [Slice 5](docs/special-cities/SLICE-5.md) adds the eighth Siege map: a contested Artillery city, persistent 90-unit range and brief shot/loss feedback. The gun removes one defender from the nearest hostile garrison every two seconds, cannot capture alone, and follows its current owner. Mountains block shots and direct troop orders; stage around them explicitly. Existing map layouts remain unchanged. Gatehouse is skipped for now; Portal is next. See the [terrain and special-city plan](docs/special-cities/REQUIREMENTS.md).
 
 ## City regions and map generation
 
@@ -107,7 +107,7 @@ Small modules are grouped by feature.
 - `src/game/types.ts`, `state.ts`: independent state model and fresh-session creation.
 - `src/game/settings.ts`, `rules.ts`, `growth.ts`: tuning defaults, validated faction rules and pure elapsed-time growth.
 - `src/game/upgrades/`: typed stat/starting-feature effect catalog and pure round-setup compiler; no progression dependencies.
-- `src/game/features/`: typed Factory definitions, immutable nested snapshots and per-territory production calculation.
+- `src/game/features/`: typed city features, immutable snapshots, local production and deterministic Watchtower/Artillery firing.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
 - `src/game/dispatch.ts`, `launch.ts`, `route.ts`, `travel.ts`, `combat.ts`: shared faction orders, reservations, staggered launches, border travel and arrival resolution.
 - `src/game/movement.ts`, `dots.ts`: shared board-space movement, eased formations and stable dot slots.

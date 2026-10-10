@@ -20,7 +20,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       for (let mapIndex = 0; mapIndex < 5; mapIndex++) {
         while (currentMap !== mapIndex) {
           await page.getByRole('button', { name: 'Next map' }).click();
-          currentMap = (currentMap + 1) % 7;
+          currentMap = (currentMap + 1) % 8;
         }
         await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
         await page.screenshot({ path: `test-results/factory-home-${viewport.width}.png` });

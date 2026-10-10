@@ -1,0 +1,17 @@
+@import '../terrain-routes/styles.css';
+h1 small { font-size: 12px; font-weight: 400; color: #6b776e; margin-left: 6px; }
+.app { max-width: 560px; }
+.city text { font-size: 14px; }
+.controls { display:flex; justify-content:center; gap:6px; flex-shrink:0; }
+.controls button { border:1px solid #dce2d8; background:#fcfcfa; color:#267c72; border-radius:18px; min-height:34px; padding:6px 12px; font-size:12px; cursor:pointer; }
+.controls button:disabled { opacity:.45; cursor:default; }
+#hint { min-height:32px; line-height:16px; display:grid; place-items:center; }
+.range { fill:#267c7209; stroke:#267c7266; stroke-width:1; stroke-dasharray:3 5; pointer-events:none; }
+.range.enemy { fill:#bd624e09; stroke:#bd624e66; }.range.neutral { fill:none; stroke:#87928a66; }
+.badge { fill:#fcfcfa; stroke:#267c72; stroke-width:1; }.enemy .badge { stroke:#bd624e; }.neutral .badge { stroke:#87928a; }
+.cannon { fill:none; stroke:#267c72; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }.enemy .cannon { stroke:#bd624e; }.neutral .cannon { stroke:#87928a; }
+.shot { stroke:#267c72; stroke-width:1.6; stroke-linecap:round; opacity:.8; }.shot.enemy { stroke:#bd624e; }
+.impact { fill:none; stroke:#bd624e; stroke-width:1.3; }.loss { fill:#bd624e; font:600 12px system-ui; text-anchor:middle; }
+.target-ring { fill:none; stroke:#bd624e88; stroke-width:1; stroke-dasharray:2 3; }
+.pause { font-size:22px; }
+@media(min-width:850px) { .app { width:540px; } }

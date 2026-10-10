@@ -1,6 +1,6 @@
 # Dotfield — Requirements and Plan
 
-Status: mobile board, simulation, AI, pause/replay, seven-map home (including open bridges and a contested Factory), Industry/Factory/Watchtower, multi-faction combat, and independent per-enemy AI behavior/rules/upgrades are implemented. The fifth Crossfire map contains two AI enemies. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
+Status: mobile board, simulation, AI, pause/replay, eight-map home (including open bridges, a contested Factory and a siege Artillery map), Industry/Factory/Watchtower, multi-faction combat, and independent per-enemy AI behavior/rules/upgrades are implemented. The fifth Crossfire map contains two AI enemies. Real-iPhone/duration playtesting and offline support remain outstanding; progression and slow zones are deferred.
 
 Desktop layout and mouse-control improvements are planned separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
@@ -147,6 +147,7 @@ These proposals are the planning baseline, not authorization to expand scope.
 - Enable effects before Play without currency, prices, rewards or unlocks. Player upgrades and each AI faction's upgrade effects are configured independently; all are in memory and reset on reload.
 - Industry increases production of every city owned by the faction that selected it by 25%; ownership at growth time determines the rate. Neutral growth remains unchanged.
 - Factory upgrades attach to the selecting faction's starting city; maps can author neutral Factories. Every Factory doubles its current non-neutral owner's local production, stacking with that owner's Industry (2.5 units/sec). Capture transfers the bonus, recapture transfers it back, and duplicate upgrades on authored Factories do not stack. See [special-city slice 4](docs/special-cities/SLICE-4.md).
+- Artillery is a map-authored capturable city feature: nearest hostile positive garrison within 90 units loses one defender every 2,000 ms; neutrals/friends are ignored, mountains block shots and rivers do not. Capture transfers control and resets cadence. It cannot capture alone or damage traveling troops. Siege is the eighth map; blocked mountain orders require explicit staging, not automatic detours. See [special-city slice 5](docs/special-cities/SLICE-5.md).
 - Show a factory silhouette on its host (dimmed while inactive) and one upward chevron on Industry-boosted cities. Use both icons when stacked; reserve double chevrons for a later improved Industry level. Do not obscure counts or change touch/combat geometry.
 - Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain selected effects without stacking them. Home allows changing selections; reload resets them.

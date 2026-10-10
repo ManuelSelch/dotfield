@@ -18,6 +18,7 @@ export function App() {
   const [setup, setSetup] = useState<RoundSetup | null>(() => saved ? {
     territories: saved.territories,
     river: saved.state.river,
+    terrain: saved.state.terrain,
     rules: saved.state.rules,
     ai: saved.ai ?? {},
   } : null);
@@ -34,13 +35,13 @@ export function App() {
           <div className={`app-shell${setup ? ' app-shell--playing' : ''}`}>
             <AppHeader />
             {setup ? <section className="flex min-h-0 flex-1 flex-col">
-              <FieldCanvas territories={setup.territories} river={setup.river} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
+              <FieldCanvas territories={setup.territories} river={setup.river} terrain={setup.terrain} rules={setup.rules} ai={setup.ai} initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
             </section> : <HomeScreen map={map} onSelect={setSelectedMapId} upgrades={upgrades} onUpgrades={setUpgrades}
               aiBehaviors={aiBehaviors} onAiBehaviors={setAiBehaviors}
               onPlay={() => {
                 clearSavedGame();
                 setSaved(null);
-                setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors, map.river));
+                setSetup(compileRoundSetup(map.territories, upgrades, undefined, Math.random(), aiBehaviors, map.river, map.terrain));
               }} />}
           </div>
         </div>

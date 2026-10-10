@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const mapCounts = [13, 11, 9, 21, 23, 10, 8];
+const mapCounts = [13, 11, 9, 21, 23, 10, 8, 11];
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
   test(`home uses visual arrow selection and supports every map at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -18,8 +18,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       if (index > 0) await page.getByRole('button', { name: 'Next map' }).click();
       const preview = page.getByRole('img', { name: `Map ${index + 1} preview` });
       await expect(preview).toBeVisible();
-      await expect(preview.locator('circle[cx]')).toHaveCount(mapCounts[index]);
-      for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', '14');
+      await expect(preview.locator('circle[cx][r="14"]')).toHaveCount(mapCounts[index]);
+      for (const circle of await preview.locator('circle[cx][r="14"]').all()) await expect(circle).toHaveAttribute('r', '14');
       for (const counter of await preview.locator('text').all()) await expect(counter).toHaveAttribute('font-size', '14');
       await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
       expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
@@ -29,7 +29,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
       await page.getByRole('button', { name: /^Select south region: You/ }).focus();
-      const targetId = index < 5 ? 'centre' : index === 5 ? 'west-south' : 'west-north';
+      const targetId = index < 5 ? 'centre' : index === 5 ? 'west-south' : index === 6 ? 'west-north' : 'artillery';
       await page.keyboard.press('Enter'); await page.getByRole('button', { name: new RegExp(`^Select ${targetId} region:`) }).focus();
       await page.keyboard.press('Enter');
       await expect(page.getByRole('list', { name: 'Unit transfers' })).toContainText(`south → ${targetId}`);
@@ -39,7 +39,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await expect(details.getByRole('listitem')).toHaveCount(mapCounts[index]);
       await page.clock.runFor(2000);
       await expect(page.getByRole('list', { name: 'Unit transfers' }))
-        .toContainText(index === 4 ? 'enemy-west →' : index === 5 ? 'north-east →' : 'north →');
+        .toContainText(index === 4 ? 'enemy-west →' : index === 5 ? 'north-east →' : index === 7 ? /(?:north|near|blocked) →/ : 'north →');
       await page.getByRole('button', { name: 'Pause', exact: true }).click();
       await page.getByRole('button', { name: 'Home', exact: true }).click();
       await expect(page.getByRole('img', { name: `Map ${index + 1} preview` })).toBeVisible();

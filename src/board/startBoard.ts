@@ -8,6 +8,8 @@ import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
 import { canRiverOrder, pairedCityId, type River } from '../game/river';
+import type { Terrain } from '../game/terrain/types';
+import { canDirectTerrainOrder } from '../game/terrain/directOrder';
 
 interface BoardOptions {
   autoStart?: boolean;
@@ -16,6 +18,7 @@ interface BoardOptions {
   onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void;
   rules?: RulesInput;
   river?: River;
+  terrain?: Terrain;
   initialState?: SimulationState;
   initialPhase?: Exclude<SessionPhase, 'ready'>;
 }
@@ -30,7 +33,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
     : null;
   const session = createSession(territories, aiWorker ? null : ai, options.rules,
-    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river });
+    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
   let disposed = false;
@@ -50,7 +53,8 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       const source = state.territories.find(c => c.id === next?.sourceId);
       const target = state.territories.find(c => c.id === next?.targetId);
       const pair = source && pairedCityId(source.id, state.river);
-      options.onFeedback?.(state.river && source ? target && !canRiverOrder(source, target, state.river)
+      options.onFeedback?.(source && target && source.id !== target.id && !canDirectTerrainOrder(source, target, state.terrain)
+        ? 'Mountains block direct orders. Stage troops around the ridge.' : state.river && source ? target && !canRiverOrder(source, target, state.river)
         ? 'Cross only between the paired bridge cities.'
         : pair ? `Cross to ${pair}, or send within this bank.` : 'Send within this bank; stage troops at a bridge city.' : '');
       redraw();
@@ -62,6 +66,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       if (next === state) {
         const from = state.territories.find(c => c.id === source), to = state.territories.find(c => c.id === target);
         if (from && to && !canRiverOrder(from, to, state.river)) options.onFeedback?.('Cross only between the paired bridge cities.');
+        else if (from && to && !canDirectTerrainOrder(from, to, state.terrain)) options.onFeedback?.('Mountains block direct orders. Stage troops around the ridge.');
         return;
       }
       state = next;
