@@ -41,6 +41,8 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
         if (effect.kind === 'multiply-stat') {
           if (!Number.isFinite(effect.multiplier) || effect.multiplier <= 0) throw new RangeError('Invalid stat multiplier.');
           rules[effect.stat] *= effect.multiplier;
+        } else if (effect.kind === 'capture-shield') {
+          rules.captureShieldBatches = effect.batches;
         } else {
           const host = effect.kind === 'attach-random-feature'
             ? seed[Math.floor(placementChoice * seed.length)] : seed.find(city => city.owner === id);

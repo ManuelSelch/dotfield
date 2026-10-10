@@ -27,6 +27,8 @@ export interface GrowthRules {
 export interface FactionRules extends GrowthRules {
   readonly travelSpeed: number;
   readonly batchIntervalMs: number;
+  // Optional in authored/legacy inputs; normalized to zero by createRules.
+  readonly captureShieldBatches?: number;
 }
 export interface SimulationRules {
   readonly factions: Readonly<Record<FactionId, FactionRules>>;
@@ -55,6 +57,12 @@ export interface Transfer {
 
 export type RoundStatus = 'playing' | 'victory' | 'defeat' | 'draw';
 
+export interface CaptureShieldState {
+  readonly remaining: number;
+  readonly blockedAt?: number;
+  readonly blockedFrom?: number;
+}
+
 export interface SimulationState {
   readonly river?: River;
   readonly roundStatus: RoundStatus;
@@ -67,4 +75,5 @@ export interface SimulationState {
   readonly arrivals: readonly Transfer[];
   readonly nextTransferId: number;
   readonly watchtowerElapsedMs: Readonly<Record<string, number>>;
+  readonly captureShields: Readonly<Record<string, CaptureShieldState>>;
 }

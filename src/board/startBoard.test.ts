@@ -157,6 +157,24 @@ describe('board lifecycle adapter', () => {
     board.stop();
   });
 
+  it('publishes charge-only changes and animates feedback without continuous React updates', () => {
+    const board = harness();
+    const before: SimulationState = board.onCounts.mock.lastCall![0];
+    const shielded = { ...before, captureShields: { south: { remaining: 2, blockedAt: 0, blockedFrom: 3 } } };
+    const spy = vi.spyOn(roundRules, 'advanceRound').mockReturnValueOnce(shielded);
+    board.frame(0);
+    expect(board.onCounts).toHaveBeenCalledTimes(2);
+    expect(drawBoard).toHaveBeenCalledTimes(2);
+    spy.mockReturnValueOnce({ ...shielded, elapsedMs: 100 });
+    board.frame(100);
+    expect(board.onCounts).toHaveBeenCalledTimes(2);
+    expect(drawBoard).toHaveBeenCalledTimes(3);
+    spy.mockReturnValueOnce({ ...shielded, elapsedMs: 650 });
+    board.frame(650); // Final redraw removes the fading arc even without troops in flight.
+    expect(drawBoard).toHaveBeenCalledTimes(4);
+    spy.mockRestore(); board.stop();
+  });
+
   it('pauses the AI decision deadline while hidden and excludes background catch-up', () => {
     const board = harness(TERRITORIES, DEFAULT_AI);
     board.frame(0);
