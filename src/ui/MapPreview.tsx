@@ -3,6 +3,7 @@ import type { FieldMap } from '../board/maps';
 import { createCityRegions } from '../board/regions/geometry';
 import { factionPalette } from '../board/palette';
 import { bridgeDecks } from '../game/river';
+import { TERRITORY_RADIUS } from '../game/settings';
 
 export function MapPreview({ map, index }: { map: FieldMap; index: number }) {
   const regions = useMemo(() => createCityRegions(map.territories, 360, 480, map.river), [map]);
@@ -25,7 +26,7 @@ export function MapPreview({ map, index }: { map: FieldMap; index: number }) {
     {map.territories.map(city => {
       const palette = factionPalette(city.owner);
       return <g key={city.id}>
-        <circle cx={city.x} cy={city.y} r="21" fill={palette.fill} stroke={palette.stroke} />
+        <circle cx={city.x} cy={city.y} r={TERRITORY_RADIUS} fill={palette.fill} stroke={palette.stroke} />
         <text x={city.x} y={city.y} textAnchor="middle" dominantBaseline="central" fill={palette.ink} fontSize="17" fontFamily="system-ui">{city.units}</text>
         {city.features?.some(feature => feature.kind === 'factory') && <g aria-label="Factory"
           transform={`translate(${city.x + 19} ${city.y - 19})`} opacity={city.owner === 'neutral' ? 0.45 : 1}>

@@ -30,7 +30,7 @@ for (const [width, height, dpr] of [[320, 568, 1], [430, 932, 3]]) {
       await page.clock.runFor(1400);
       await expect(transfers.getByRole('listitem')).toHaveCount(2);
       expect(await pixelAt(page, dotPosition(enemy, 0, await elapsed()))).toEqual([189, 98, 78]);
-      await page.clock.runFor(500);
+      await page.clock.runFor(Math.ceil(player.durationMs / 2 + 100) - 1400);
       await expect(transfers.getByRole('listitem')).toHaveCount(1);
       await expect(transfers).toContainText('4 units: player-source → enemy-source');
       const time = await elapsed();

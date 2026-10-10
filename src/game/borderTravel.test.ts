@@ -3,7 +3,7 @@ import { createSimulation } from './state';
 import { dispatchUnits } from './dispatch';
 import { advanceTravel } from './travel';
 import { resolveCombat } from './combat';
-import { TRAVEL_SPEED } from './settings';
+import { TRAVEL_SPEED, TERRITORY_RADIUS } from './settings';
 
 const nodes = [
   { id: 'source', owner: 'player' as const, units: 11, x: 0, y: 0 },
@@ -13,14 +13,14 @@ const nodes = [
 describe('border-to-border travel', () => {
   it('launches at the source edge and ends at the target edge', () => {
     const batch = dispatchUnits(createSimulation(nodes), 'source', 'target').transfers[0];
-    expect(batch.from).toEqual({ x: 21, y: 0 });
-    expect(batch.to).toEqual({ x: 179, y: 0 });
-    expect(batch.durationMs).toBeCloseTo(158 / TRAVEL_SPEED * 1000);
+    expect(batch.from).toEqual({ x: TERRITORY_RADIUS, y: 0 });
+    expect(batch.to).toEqual({ x: 200 - TERRITORY_RADIUS, y: 0 });
+    expect(batch.durationMs).toBeCloseTo((200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000);
   });
 
   it('applies combat at the border before a center-to-center flight would finish', () => {
     let state = dispatchUnits(createSimulation(nodes), 'source', 'target');
-    const borderHitMs = 158 / TRAVEL_SPEED * 1000;
+    const borderHitMs = (200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000;
     state = resolveCombat(advanceTravel(state, borderHitMs - 1));
     expect(state.territories[1].units).toBe(12);
     state = resolveCombat(advanceTravel(state, 1));
@@ -30,7 +30,7 @@ describe('border-to-border travel', () => {
 
   it.each([[180, 55], [177, 229], [-100, -100]])('uses the correct edges in direction %i,%i', (x, y) => {
     const batch = dispatchUnits(createSimulation([nodes[0], { ...nodes[1], x, y }]), 'source', 'target').transfers[0];
-    expect(Math.hypot(batch.from.x, batch.from.y)).toBeCloseTo(21);
-    expect(Math.hypot(batch.to.x - x, batch.to.y - y)).toBeCloseTo(21);
+    expect(Math.hypot(batch.from.x, batch.from.y)).toBeCloseTo(TERRITORY_RADIUS);
+    expect(Math.hypot(batch.to.x - x, batch.to.y - y)).toBeCloseTo(TERRITORY_RADIUS);
   });
 });

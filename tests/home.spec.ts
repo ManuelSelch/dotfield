@@ -18,6 +18,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       if (index > 0) await page.getByRole('button', { name: 'Next map' }).click();
       const preview = page.getByRole('img', { name: `Map ${index + 1} preview` });
       await expect(preview).toBeVisible();
+      await expect(preview.locator('circle[cx]')).toHaveCount(mapCounts[index]);
+      for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', '17');
       await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeInViewport();
       expect(await page.evaluate(() => ({ x: scrollX, y: scrollY }))).toEqual({ x: 0, y: 0 });
       await page.getByRole('button', { name: 'Play', exact: true }).click();

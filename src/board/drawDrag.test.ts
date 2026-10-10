@@ -20,9 +20,9 @@ it('previews paired bridge orders at city borders and marks forbidden cross-bank
     moveTo: vi.fn(), lineTo: vi.fn(), stroke: vi.fn(), arc: vi.fn(), strokeStyle: '', fillText: vi.fn() };
   drawDrag(ctx as unknown as CanvasRenderingContext2D, RIVER_MAP.territories,
     { sourceId: 'west-south', targetId: 'west-north', point: { x: 80, y: 190 } }, 360, 480, RIVER_MAP.river);
-  expect(ctx.moveTo).toHaveBeenCalledWith(80, 269);
-  expect(ctx.lineTo).toHaveBeenCalledWith(80, 211);
-  expect(ctx.arc).toHaveBeenCalledWith(80, 190, 27, 0, Math.PI * 2);
+  expect(ctx.moveTo).toHaveBeenCalledWith(80, 273);
+  expect(ctx.lineTo).toHaveBeenCalledWith(80, 207);
+  expect(ctx.arc).toHaveBeenCalledWith(80, 190, 23, 0, Math.PI * 2);
   drawDrag(ctx as unknown as CanvasRenderingContext2D, RIVER_MAP.territories,
     { sourceId: 'west-south', targetId: 'north', point: { x: 180, y: 50 } }, 360, 480, RIVER_MAP.river);
   expect(ctx.strokeStyle).toBe('#bd655f');

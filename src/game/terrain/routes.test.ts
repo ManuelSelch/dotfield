@@ -5,6 +5,7 @@ import { createRoute } from '../route';
 import { BASE_FACTION_RULES } from '../rules';
 import { dispatchUnits } from '../dispatch';
 import { createSimulation } from '../state';
+import { TERRITORY_RADIUS } from '../settings';
 
 const bounds = { minX: 0, minY: 0, maxX: 360, maxY: 480 };
 const river = { id: 'river', kind: 'river' as const, bounds: { minX: 0, minY: 220, maxX: 360, maxY: 260 } };
@@ -42,9 +43,9 @@ describe('terrain route queries', () => {
     const route = planTerrainRoute(south, north, riverField([80]))!;
     expect(route.crossingIds).toEqual(['bridge-80']);
     expect(route.points.slice(1, -1)).toEqual([{ x: 80, y: 260 }, { x: 80, y: 220 }]);
-    expect(route.distance).toBeCloseTo(2 * Math.hypot(100, 140) + 40 - 42);
+    expect(route.distance).toBeCloseTo(2 * Math.hypot(100, 140) + 40 - 2 * TERRITORY_RADIUS);
     expect(route.durationMs).toBeCloseTo(route.distance / 35 * 1000);
-    expect(route.distance).toBeGreaterThan(278);
+    expect(route.distance).toBeGreaterThan(320 - 2 * TERRITORY_RADIUS);
     expect(planTerrainRoute(north, south, riverField([80]))!.crossingIds).toEqual(['bridge-80']);
   });
 
@@ -66,7 +67,7 @@ describe('terrain route queries', () => {
       from: { x: 180, y: 200 }, to: { x: 180, y: 280 } };
     const shortcut = planTerrainRoute(south, north, createTerrain({ bounds, barriers: [mountain], crossings: [pass] }))!;
     expect(shortcut.crossingIds).toEqual(['pass']);
-    expect(shortcut.distance).toBeCloseTo(278);
+    expect(shortcut.distance).toBeCloseTo(320 - 2 * TERRITORY_RADIUS);
     expect(shortcut.distance).toBeLessThan(detour.distance);
   });
 
@@ -130,8 +131,8 @@ describe('terrain route queries', () => {
     const terrain = riverField([80]);
     const route = planTerrainRoute({ x: 85, y: 270 }, north, terrain)!;
     expect(route.points[0].x).toBe(80);
-    expect(route.points[0].y).toBeCloseTo(270 - Math.sqrt(21 ** 2 - 5 ** 2));
-    expect(Math.hypot(route.points[0].x - 85, route.points[0].y - 270)).toBeCloseTo(21);
+    expect(route.points[0].y).toBeCloseTo(270 - Math.sqrt(TERRITORY_RADIUS ** 2 - 5 ** 2));
+    expect(Math.hypot(route.points[0].x - 85, route.points[0].y - 270)).toBeCloseTo(TERRITORY_RADIUS);
     expect(route.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
   });
 });
