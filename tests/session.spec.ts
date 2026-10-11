@@ -38,7 +38,7 @@ test('starts immediately; pause freezes the board and survives backgrounding', a
 test('pause controls stay compact over the visible map and restart immediately starts a fresh round', async ({ page }) => {
   const { source, target } = await fieldPoints(page);
   for (let round = 0; round < 2; round++) {
-    await expect(page.getByRole('button', { name: 'Restart', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Restart', exact: true })).toBeVisible();
     await page.mouse.move(source.x, source.y); await page.mouse.down();
     await page.mouse.move(target.x, target.y); await page.mouse.up();
     await page.clock.runFor(1100);
@@ -46,7 +46,7 @@ test('pause controls stay compact over the visible map and restart immediately s
     await expect(pause.locator('svg')).toHaveCount(1);
     await expect(pause).toHaveText('');
     await pause.click();
-    await expect(page.getByRole('group', { name: 'Paused game controls' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Game controls' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'New map', exact: true })).toHaveCount(0);
     for (const label of ['Resume', 'Restart', 'Home']) {

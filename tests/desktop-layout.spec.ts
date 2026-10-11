@@ -50,7 +50,7 @@ for (const viewport of [
     await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
     await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
-    await expect(page.getByRole('group', { name: 'Paused game controls' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Game controls' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Paused' })).toHaveCount(0);
     for (const name of ['Resume', 'Restart', 'Home']) {
       const button = page.getByRole('button', { name, exact: true });

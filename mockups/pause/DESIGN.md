@@ -1,8 +1,8 @@
 # Pause controls mockup
 
 - Goal: keep the battlefield visible while paused and provide Pause/Resume, Restart, and Home.
-- Revision: 2
-- Layout: map remains visible with a subtle dim. Three circular icon-only controls sit together at bottom center. The first control toggles between Pause and Resume depending on match state; this mockup shows the paused state, so it displays Resume (play icon). The three-dot menu is removed.
+- Revision: 3
+- Layout: map remains visible. One circular icon-only control bar stays at the top center in both states: Pause when running, Resume when paused, followed by Restart and Home. The three-dot menu is removed.
 - Interactions: circular buttons have accessible labels and tooltips; clicks show placeholder feedback only. No actual game state/navigation or New Map action.
 - Limitations: illustrative map; production map remains visible, and existing game styling should guide implementation.
 - Review status: approved for implementation.
