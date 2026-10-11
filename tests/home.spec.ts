@@ -9,6 +9,32 @@ import { TERRITORY_RADIUS } from '../src/game/settings';
 async function saved(page: import('@playwright/test').Page) {
   return page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY);
 }
+
+test('repeated rerolls keep the maximum-density generated preview alive', async ({ page }) => {
+  await page.addInitScript(() => {
+    let seed = 0;
+    const original = Crypto.prototype.getRandomValues;
+    Crypto.prototype.getRandomValues = function <T extends ArrayBufferView>(array: T): T {
+      if (array instanceof Uint32Array && array.length === 1) {
+        array[0] = seed++;
+        return array;
+      }
+      return original.call(this, array) as T;
+    };
+  });
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('slider', { name: 'Total cities' }).fill('30');
+  const preview = page.getByRole('img', { name: 'Generated map preview' });
+  const reroll = page.getByRole('button', { name: 'Reroll' });
+  for (let i = 0; i < 30; i++) {
+    await reroll.click();
+    await expect(preview.locator('circle[cx]')).toHaveCount(30);
+    await expect(reroll).toBeVisible();
+  }
+  expect(errors).toEqual([]);
+});
 for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }, { width: 1280, height: 900 }]) {
   test(`generated setup, real upgrades and fixed mobile Play at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
