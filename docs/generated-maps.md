@@ -4,7 +4,7 @@ The approved revisions in `mockups/random-map/` replace carousel map selection. 
 
 ## Match setup
 
-- Total cities: 6–40, including one starting city for the player and each of 1–4 enemies.
+- Total cities: 6–30, including one starting city for the player and each of 1–4 enemies.
 - Map Industry: On adds 1–4 neutral Factories (rounded total cities / 6, capped by neutral count). Off omits neutral Factories. This differs from the faction Industry upgrade, which increases that faction's production by 25%.
 - Mountains: On by default. On adds a central ridge that blocks direct orders and Artillery shots; Off omits the central ridge. Cities are repositioned around the ridge when enabled, preserving legal city-to-city staging. The mountain has no text labels.
 - Artillery: Off by default. On adds exactly one neutral 14-defender Artillery city with 90-unit range and an additional small mountain ridge, clear of city circles and the central ridge, to create shot-blocking opportunities. Artillery selection persists with the other match settings and both ridges accompany the generated round/save.
@@ -12,7 +12,7 @@ The approved revisions in `mockups/random-map/` replace carousel map selection. 
 - Slow Zone: Off by default. On places one 90-unit, 50%-speed zone on a seeded random city; the host's current owner controls it, while a neutral host slows both sides.
 - Introductory Home title/subtitle and helper captions are omitted. Match settings remain directly labelled; segmented selectors are compact, with Reroll beside Play.
 - River & bridges: On creates a horizontal river with exactly two aligned, disjoint, paired-city crossings. It is independent of Mountains; each feature can be switched on or off. Manual bank staging is unchanged.
-- The fresh Home default is the approved larger 14-city field; the existing 6–40 city control remains.
+- The fresh Home default is the approved larger 14-city field; the existing 6–30 city control remains.
 - Your upgrades and Enemy settings are initially collapsed. Enabled counts appear in summaries. Each enemy has independent Balanced/Aggressive/Defensive behavior and Industry, Factory and Capture shield selections. Watchtower and Slow Zone are shared field settings, not faction upgrades.
 - Hidden enemy selections are remembered if their count is increased again, but only active factions are compiled into a round.
 - Settings are saved under `dotfield.match-preferences.v1`; missing, malformed or inaccessible storage falls back safely. Map-feature flags (Mountains, Artillery, Watchtower and Slow Zone) are required fields; older preference JSON without them falls back to defaults. No backend or progression.
@@ -20,7 +20,7 @@ The approved revisions in `mockups/random-map/` replace carousel map selection. 
 
 ## Generation and lifecycle
 
-`src/board/generateMap.ts` is a pure, seeded generator. A jittered 40-slot stratification bounds work and guarantees at least 58 logical units of city separation. When Mountains is On, interior slots shift around the central footprint; legal-order graph tests cover both Mountain states and ensure all generated cities remain reachable by manual staging. Farthest-point sampling spreads sparse fields and faction starts; every faction starts with 36 troops. River bridge pairs share an x coordinate, have formation/water clearance and 64-unit width, and are checked by the same `createRiver` validator used by simulation and saved rounds. Two bridge pairs ensure bank connectivity even at the smallest supported count. Artillery adds a second non-overlapping mountain ridge.
+`src/board/generateMap.ts` is a pure, seeded generator. A jittered stratification bounds generation and farthest-point sampling spreads cities; dense layouts support up to 30 cities. When Mountains is On, interior slots shift around the central footprint; legal-order graph tests cover both Mountain states and ensure all generated cities remain reachable by manual staging. Farthest-point sampling spreads sparse fields and faction starts; every faction starts with 36 troops. River bridge pairs share an x coordinate, have formation/water clearance and 64-unit width, and are checked by the same `createRiver` validator used by simulation and saved rounds. Two bridge pairs ensure bank connectivity even at the smallest supported count. Artillery adds a second non-overlapping mountain ridge.
 
 - Reroll changes the preview only.
 - Play generates another layout, using the selected settings; it does **not** play the preview.
