@@ -141,7 +141,7 @@ test('inactive enemy settings are retained but not compiled into smaller matches
   expect(Object.keys((await saved(page)).ai)).toEqual(['enemy']);
 });
 
-test('terminal New map preserves settings and upgrades, including a minimal four-enemy river field', async ({ page }) => {
+test('terminal result uses icon actions without detail text or a New map button', async ({ page }) => {
   const preferences = { ...defaultMatchPreferences(), map: { ...defaultMatchPreferences().map, cities: 6, enemies: 4, river: true, industry: true, artillery: false },
     upgrades: { player: ['factory' as const], 'enemy-4': ['industry' as const] } };
   const map = generateMap(preferences.map, 17);
@@ -152,17 +152,16 @@ test('terminal New map preserves settings and upgrades, including a minimal four
   await page.addInitScript(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Victory', exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'New map', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Victory', exact: true })).toHaveCount(0);
-  const next = await saved(page);
-  expect(next.generated.preferences).toEqual(preferences);
-  expect(next.generated.seed).not.toBe(17);
-  expect(next.territories).toHaveLength(6);
-  expect(next.state.river.bridges).toHaveLength(2);
-  expect(next.state.terrain.barriers[0].id).toBe('mountain-range');
-  expect(Object.keys(next.ai)).toHaveLength(4);
-  expect(next.state.rules.factions['enemy-4'].unitsPerSecond).toBe(1.25);
-  expect(next.territories.find((city: { owner: string }) => city.owner === 'player').features[0].kind).toBe('factory');
+  await expect(page.getByText('The field is yours.')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'New map', exact: true })).toHaveCount(0);
+  for (const label of ['Play again', 'Home']) {
+    const action = page.getByRole('button', { name: label, exact: true });
+    await expect(action).toBeVisible();
+    await expect(action).toHaveText('');
+    await expect(action.locator('svg')).toHaveCount(1);
+  }
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Match settings' })).toBeVisible();
 });
 
 test('Play uses the current preview map after reroll', async ({ page }) => {

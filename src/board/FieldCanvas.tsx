@@ -14,9 +14,9 @@ import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; onNewMap?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
+interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
-export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, onNewMap, rules, river, terrain, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, river, terrain, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
   const { state, phase } = session;
@@ -42,7 +42,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </p>}
         {state.roundStatus === 'playing' && <SessionControls phase={phase}
           onPause={session.pause} onResume={session.resume} onRestart={session.restart} onHome={onHome} />}
-        <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} onNewMap={onNewMap} />
+        <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
       <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />
       <TransferDetails state={state} />

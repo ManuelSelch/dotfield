@@ -33,15 +33,6 @@ export function App({ updates }: { updates: AppUpdates }) {
     lastSeed.current = seed === lastSeed.current ? (seed + 1) >>> 0 : seed;
     return lastSeed.current;
   }
-  function play(value = preferences) {
-    const map = generateMap(value.map, nextSeed());
-    const active = ['player', ...enemyIds(value.map.enemies)];
-    const upgrades = Object.fromEntries(Object.entries(value.upgrades).filter(([id]) => active.includes(id)));
-    const behaviors = Object.fromEntries(Object.entries(value.aiBehaviors).filter(([id]) => active.includes(id)));
-    const compiled = compileRoundSetup(map.territories, upgrades, undefined, behaviors, map.river, map.terrain);
-    clearSavedGame(); setSaved(null);
-    setSetup({ ...compiled, generated: { seed: map.seed, preferences: value } });
-  }
   function startPreviewGame(preferences: MatchPreferences) {
     const active = ['player', ...enemyIds(preferences.map.enemies)];
     const upgrades = Object.fromEntries(Object.entries(preferences.upgrades).filter(([id]) => active.includes(id)));
@@ -57,8 +48,7 @@ export function App({ updates }: { updates: AppUpdates }) {
           <AppHeader><ConnectionBadge updates={updates} playing={!!setup} /></AppHeader>
           {setup ? <section className="flex min-h-0 flex-1 flex-col">
             <FieldCanvas key={setup.generated?.seed ?? 'restored'} territories={setup.territories} river={setup.river} terrain={setup.terrain} rules={setup.rules} ai={setup.ai}
-              initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame}
-              onNewMap={() => play(setup.generated?.preferences ?? preferences)} />
+              initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
           </section> : <HomeScreen map={preview} preferences={preferences} onChange={changePreferences}
             onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => startPreviewGame(preferences)} />}
         </div>
