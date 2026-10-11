@@ -36,7 +36,7 @@ const territories = shieldBattle ? [
 const watchtowerHostIndex = Math.floor(seededRandom(19)() * territories.length);
 const fieldFeatures = territories.map((city, index) => {
   const features = [...(city.features ?? [])];
-  if (params.has('watchtower') && index === watchtowerHostIndex) features.push({ id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 });
+  if (params.has('watchtower') && index === watchtowerHostIndex) features.push({ id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 });
   if (params.has('slow-zone') && index === 6) features.push({ id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 });
   return features.length ? { ...city, features } : city;
 });

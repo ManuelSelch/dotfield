@@ -29,7 +29,7 @@ describe('Slow Zone setup and lifecycle', () => {
   });
   it('keeps field features independent from faction upgrades', () => {
     const authored = MAPS[0].territories.map((city, i) => city.owner === 'player'
-      ? { ...city, features: [{ id: 'start:watchtower', kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }] }
+      ? { ...city, features: [{ id: 'start:watchtower', kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 }] }
       : i === 6 ? { ...city, features: [{ id: 'zone:slow-zone', kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] } : city);
     const a = compileRoundSetup(authored, { player: ['factory', 'industry'] }, base);
     const b = compileRoundSetup(authored, { player: ['industry', 'factory'] }, base);

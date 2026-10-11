@@ -98,7 +98,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (settings.watchtower) {
     const host = territories[Math.floor(random() * territories.length)];
     territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
-      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }] } : city);
+      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 }] } : city);
   }
   if (settings.slowZone) {
     const host = territories[Math.floor(random() * territories.length)];

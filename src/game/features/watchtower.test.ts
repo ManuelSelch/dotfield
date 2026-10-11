@@ -4,7 +4,7 @@ import { createSimulation } from '../state';
 import { forecastBattle } from '../ai/forecast';
 import type { SimulationState, Transfer } from '../types';
 
-const tower = { id: 'tower', kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 };
+const tower = { id: 'tower', kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 };
 function armed(owner: 'player' | 'enemy' = 'player') {
   const attacker = owner === 'player' ? 'enemy' : 'player';
   const state = createSimulation([
@@ -18,7 +18,7 @@ function armed(owner: 'player' | 'enemy' = 'player') {
 }
 
 describe('Watchtower', () => {
-  it.each([[0, 1000], [72, 0], [Infinity, 1000]])('rejects invalid tower range/cadence %s %s', (range, fireIntervalMs) => {
+  it.each([[0, 1000], [110, 0], [Infinity, 1000]])('rejects invalid tower range/cadence %s %s', (range, fireIntervalMs) => {
     expect(() => createSimulation([
       { id: 'home', owner: 'player', x: 100, y: 100, units: 10,
         features: [{ ...tower, range, fireIntervalMs }] },

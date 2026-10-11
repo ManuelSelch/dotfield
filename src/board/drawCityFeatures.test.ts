@@ -79,7 +79,7 @@ describe('city upgrade indicators', () => {
     expect(render().arc).not.toHaveBeenCalled();
   });
   it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
-    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 72, fireIntervalMs: 250 }]); const ctx = render(state);
+    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 110, fireIntervalMs: 250 }]); const ctx = render(state);
     // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
     expect(ctx.arc).toHaveBeenCalledTimes(2);
     const radii = ctx.arc.mock.calls.map(call => call[2]);
@@ -95,7 +95,7 @@ describe('city upgrade indicators', () => {
   });
   it('keeps four upgrade markers distinct when all effects share a city', () => {
     const ctx = render(seed(['factory', 'industry'], [
-      { id: 'tower', kind: 'watchtower', range: 72, fireIntervalMs: 250 },
+      { id: 'tower', kind: 'watchtower', range: 110, fireIntervalMs: 250 },
       { id: 'zone', kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 },
     ]));
     expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([

@@ -98,10 +98,10 @@ describe('Slow Zone movement', () => {
   it('uses slowed positions for Watchtower kills and shared forecasts', () => {
     const state = field('player');
     const armed = { ...state, territories: state.territories.map(c => c.id === 'z' ? { ...c,
-      features: [...(c.features ?? []), { id: 'tower', kind: 'watchtower' as const, range: 72, fireIntervalMs: 250 }] } : c),
+      features: [...(c.features ?? []), { id: 'tower', kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 }] } : c),
       transfers: [{ ...state.transfers[0], owner: 'enemy' as const, units: 5, formationSize: 5, dotSlots: [0, 1, 2, 3, 4] }] };
     const result = advanceWorldStep(armed, 2000);
-    expect(result.transfers[0].units).toBeLessThan(5);
+    expect(result.transfers[0]?.units ?? 0).toBeLessThan(5);
     expect(forecastBattle(armed, 2000).transfers).toEqual(result.transfers);
   });
   it.each([30, 60, 120])('has identical movement at %s rendering FPS', fps => {
