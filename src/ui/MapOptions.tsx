@@ -19,16 +19,17 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
       {[1, 2, 3, 4].map(value => <button type="button" key={value} aria-pressed={settings.enemies === value} onClick={() => onChange({ ...settings, enemies: value })}>{value}</button>)}
     </div>
     <div className="home-section-label home-features-label">On the field</div>
-    {([{ id: 'industry', name: 'Industry', aria: 'Map industry' },
-      { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
-      { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
-      { id: 'artillery', name: 'Artillery', aria: 'Artillery' },
-      { id: 'watchtower', name: 'Watchtower', aria: 'Watchtower' },
-      { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <div className="home-feature" key={feature.id}>
-      <div><span className="home-label">{feature.name}</span></div>
-      <div className="home-segments" role="group" aria-label={feature.aria}>
-        {[false, true].map(value => <button type="button" key={String(value)} aria-pressed={settings[feature.id] === value} onClick={() => onChange({ ...settings, [feature.id]: value })}>{value ? 'On' : 'Off'}</button>)}
-      </div>
-    </div>)}
+    <div className="home-feature-toggles">
+      {([{ id: 'industry', name: 'Industry', aria: 'Map industry' },
+        { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
+        { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
+        { id: 'artillery', name: 'Artillery', aria: 'Artillery' },
+        { id: 'watchtower', name: 'Watchtower', aria: 'Watchtower' },
+        { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <button
+        className="home-feature-toggle" type="button" key={feature.id} aria-label={feature.aria}
+        aria-pressed={settings[feature.id]} onClick={() => onChange({ ...settings, [feature.id]: !settings[feature.id] })}>
+        {feature.name}
+      </button>)}
+    </div>
   </>;
 }

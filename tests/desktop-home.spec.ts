@@ -34,7 +34,7 @@ for (const viewport of [
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
     await page.getByText('Enemy settings', { exact: true }).click();
     await expect(page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);
-    await page.getByRole('group', { name: 'Watchtower' }).getByRole('button', { name: 'On', exact: true }).click();
+    await page.getByRole('button', { name: 'Watchtower' }).click();
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Reroll' }).scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: 'Reroll' }).click();
