@@ -22,8 +22,10 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
   const { state, phase } = session;
-  const connectedIds = connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river);
-  const playerDefenseTier = state.rules.factions.player?.connectedDefense ? connectedDefenseTierForSize(connectedIds.size) : 0;
+  const networkEnabled = state.rules.factions.player?.connectedDefense ?? false;
+  const connectedIds = networkEnabled
+    ? connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river) : new Set<string>();
+  const playerDefenseTier = networkEnabled ? connectedDefenseTierForSize(connectedIds.size) : 0;
   const shieldCapacities = connectedDefenseCapacities(state);
 
   return (
@@ -37,7 +39,10 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </canvas>
         <RegionControls state={state} disabled={phase !== 'running'} shieldCapacities={shieldCapacities} />
         <p id="connected-territory-help" className="sr-only">
-          {connectedIds.size ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city through shared borders between neighboring territories.` : 'No cities are currently connected to your starting city through neighboring territory borders.'}
+          {networkEnabled ? connectedIds.size
+            ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city through shared borders between neighboring territories.`
+            : 'No cities are currently connected to your starting city through neighboring territory borders.'
+            : 'The connected-territory border highlight is shown only while Defensive Network is enabled.'}
           {playerDefenseTier ? ` Each connected city can store up to ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'} and recharges one every 10 seconds. Each shield blocks one hostile troop-arrival batch. The numbered badge shows capacity; shield arcs show current charges.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least two connected cities before shields recharge.' : ''}
         </p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">

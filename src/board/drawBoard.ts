@@ -48,7 +48,7 @@ export function drawBoard(
     || connectivity.rules !== state.rules) {
     const networks = new Map<string, ReadonlySet<string>>();
     for (const factionId of Object.keys(state.rules.factions)) {
-      if (factionId === 'player' || state.rules.factions[factionId].connectedDefense) {
+      if (state.rules.factions[factionId].connectedDefense) {
         networks.set(factionId, connectedTerritoryIds(state.territories, factionId,
           state.homeCityIds?.[factionId], state.river));
       }
