@@ -54,6 +54,9 @@ test('pause controls stay compact over the visible map and restart immediately s
       const control = page.getByRole('button', { name: label, exact: true });
       await expect(control).toHaveText('');
       await expect(control).toHaveAttribute('title', label);
+      const background = await control.evaluate(el => getComputedStyle(el).backgroundColor);
+      await control.hover();
+      await expect.poll(() => control.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(background);
     }
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
