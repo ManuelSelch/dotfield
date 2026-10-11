@@ -31,7 +31,7 @@ export function SessionControls({ phase, onPause, onResume, onRestart, onHome }:
   const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => setTarget(document.getElementById('game-controls-slot')), []);
   if (!target) return null;
-  return createPortal(<Group className="rounded-full border border-ink/15 bg-field/80 p-0.5 shadow-sm" gap={1} wrap="nowrap" role="group" aria-label="Game controls">
+  return createPortal(<Group className="rounded-full border border-ink/15 bg-field/80 p-1.5 shadow-sm" gap={1} wrap="nowrap" role="group" aria-label="Game controls">
     <ActionIcon data-autofocus={paused || undefined} variant="filled" color="#267c72" radius="xl" size={28} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
       {paused ? <PlayIcon /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>}
     </ActionIcon>
