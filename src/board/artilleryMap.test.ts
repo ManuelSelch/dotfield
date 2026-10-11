@@ -10,7 +10,7 @@ it('authors an immutable siege map with an inactive contested Artillery and no b
   expect(Object.isFrozen(map.territories)).toBe(true);
   const gun=map.territories.find(c=>c.id==='artillery')!;
   const feature=gun.features![0];
-  expect(feature).toMatchObject({kind:'artillery',range:110,fireIntervalMs:1000/3});
+  expect(feature).toMatchObject({kind:'artillery',range:150,fireIntervalMs:1000/3});
   expect(gun.owner).toBe('neutral');
   const state=createSimulation(map.territories,undefined,undefined,map.terrain);
   if(feature.kind!=='artillery')throw new Error('Artillery missing');

@@ -9,7 +9,7 @@ import { createClock } from '../clock';
 import { trajectory } from '../trajectory';
 import type { Owner, SimulationState, Transfer } from '../types';
 
-const zone = { id: 'zone', kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 };
+const zone = { id: 'zone', kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 };
 function field(owner: Owner = 'neutral'): SimulationState {
   const state = createSimulation([
     { id: 'p', owner: 'player', units: 10, x: -21, y: 100 },

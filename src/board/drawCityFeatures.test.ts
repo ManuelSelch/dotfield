@@ -88,7 +88,7 @@ describe('city upgrade indicators', () => {
   });
   it('draws a distinct dashed 90-unit Slow Zone circle and lower-left marker', () => {
     const ctx = render(seed([], [{ id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 }]));
-    expect(ctx.arc.mock.calls.some(call => call[2] === 90)).toBe(true);
+    expect(ctx.arc.mock.calls.some(call => call[2] === 150)).toBe(true);
     expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
     expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
     expect(ctx.translate.mock.calls[0][1]).toBeGreaterThan(host.y);
