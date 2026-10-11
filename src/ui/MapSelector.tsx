@@ -1,4 +1,5 @@
 import { ActionIcon } from '@mantine/core';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import { MAPS, type FieldMap } from '../board/maps';
 import { MapPreview } from './MapPreview';
 
@@ -28,7 +29,6 @@ export function MapSelector({ map, onSelect }: { map: FieldMap; onSelect: (id: s
 }
 
 function Chevron({ direction }: { direction: 'left' | 'right' }) {
-  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[22px] w-[22px] fill-none stroke-current stroke-2">
-    {direction === 'left' ? <path d="m15 18-6-6 6-6" /> : <path d="m9 18 6-6-6-6" />}
-  </svg>;
+  const Icon = direction === 'left' ? IconChevronLeft : IconChevronRight;
+  return <Icon size={22} stroke={2} aria-hidden="true" />;
 }
