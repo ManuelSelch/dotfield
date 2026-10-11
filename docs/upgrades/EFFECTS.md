@@ -12,6 +12,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | On the field: a seeded random city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented as a field setting |
 | Capture shield | Each newly captured city blocks its first three hostile arriving batches without losing garrison (normally 15 troops). | Helps establish a foothold; no regeneration. Qualifying recapture grants three fresh charges. | Implemented; independently selectable for every faction |
+| Defensive Network | Cities connected to the faction's starting city gain +10%, +20%, or +30% effective defense at network sizes 2–3, 4–6, or 7+. | Makes every connected city harder for enemy troops to capture; the bonus updates immediately when ownership breaks or restores a legal connection. | Implemented; independently selectable for every faction |
 
 ## Industry scope
 
@@ -49,6 +50,22 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Fire resolution is part of the shared fixed-step physical simulation used in live rounds and forecasts. A tower kill removes one dot/slot, not an entire dispatched group.
 - The radius uses fixed 360×480 field coordinates and scales with the board. The coverage circle is visual only; it does not change touch regions, launch boundaries or collision geometry.
 
+## Defensive Network scope
+
+- Off by default and independently selectable for the player and each AI faction.
+- A network includes same-owner cities reachable from the faction's original starting city through a chain of currently owned legal direct orders. River bridges and mountain-blocked routes use the same legality rules as troop orders. Neutral/enemy cities cannot serve as links.
+- Network tiers count every connected owned city, including cities with zero garrison: 2–3 cities grant one shield (+10% defense), 4–6 grant two (+20%), and 7 or more grant three (+30%). A singleton home receives no tier. Bonuses do not stack beyond three shields.
+- The bonus affects only city defense against hostile arriving troops; it does not affect artillery, outgoing attacks, garrison size, production, movement or capture shields. Effective defense strength is:
+
+  $$
+  garrison + round(garrison × tierBonus)
+  $$
+
+  If attackers exhaust the actual garrison but not the effective defense strength, the city remains owned at zero units; a later attack can finish the capture.
+- Tiers are computed from current ownership for each combat. Losing the starting city disconnects the network; capturing a route link removes bonuses from cities beyond it. Recapturing the home/link restores connected bonuses. Live combat and AI forecasts use the same shared combat path.
+- The player's connected group has a strong outer-perimeter outline. Connected cities of any faction with the upgrade show one, two or three compact shield markers; the board's accessible description explains the player's current tier.
+- Approved visual reference: [Defensive Network mockup revision 3](../../mockups/defensive-network/DESIGN.md).
+
 ## Capture shield scope
 
 - Off by default and independently selectable for the player and each AI faction. Compiles into that faction's capture bonus, not a permanent building.
@@ -65,7 +82,8 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Factory: a small vector factory silhouette (sawtooth roof and chimney) at the upper-right edge, dimmed while inactive. No letter F or emoji.
 - Industry: one upward chevron at the upper-left of every city owned by a faction with a production rate above baseline. It marks cities owned by any faction whose resolved production rate exceeds baseline.
 - Losing ownership removes the player's Industry chevron. Factory alone does not add one; combined Factory + Industry shows separate factory and single-chevron badges.
+- Defensive Network: a compact owner-coloured pill at the lower edge of every connected owned city contains one, two or three shield silhouettes for the current group tier. A larger connected group increases each connected city's defensive strength; badges are presentation only and do not change counters, touch regions, launch boundaries or collision geometry.
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
 - Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
-See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, Watchtower, Slow Zone and Capture shield are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.
+See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, Watchtower, Slow Zone, Capture shield and Defensive Network are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.

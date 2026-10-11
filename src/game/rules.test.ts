@@ -43,6 +43,10 @@ describe('per-faction rules', () => {
     expect(() => createSimulation(TERRITORIES, { factions: {} })).toThrow();
     expect(() => getFactionRules(createSimulation(TERRITORIES), 'unknown')).toThrow();
   });
+  it('normalizes Defensive Network to off by default and rejects invalid flags', () => {
+    expect(rulesFor().factions.player.connectedDefense).toBe(false);
+    expect(() => rulesFor({ connectedDefense: 'yes' as unknown as boolean })).toThrow(RangeError);
+  });
   it.each([{ unitsPerSecond: -1 }, { unitsPerSecond: Infinity }, { travelSpeed: 0 },
     { travelSpeed: NaN }, { batchIntervalMs: 0 }])('rejects invalid resolved values %s', override => {
     expect(() => rulesFor(override)).toThrow(RangeError);

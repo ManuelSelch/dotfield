@@ -14,6 +14,7 @@ import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
+import { CONNECTED_DEFENSE_BONUSES, connectedDefenseTierForSize } from '../game/connectedDefense';
 
 interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
@@ -22,6 +23,8 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
   const { state, phase } = session;
   const connectedIds = connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river, state.terrain);
+  const playerDefenseTier = state.rules.factions.player?.connectedDefense ? connectedDefenseTierForSize(connectedIds.size) : 0;
+  const defenseBonusPercent = Math.round(CONNECTED_DEFENSE_BONUSES[playerDefenseTier] * 100);
 
   return (
     <>
@@ -35,6 +38,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <RegionControls state={state} disabled={phase !== 'running'} />
         <p id="connected-territory-help" className="sr-only">
           {connectedIds.size ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city by currently legal routes.` : 'No cities are currently connected to your starting city by currently legal routes.'}
+          {playerDefenseTier ? ` Each connected city has ${defenseBonusPercent}% stronger defense against enemy troops, shown by ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'}.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least two connected cities to grant a bonus.' : ''}
         </p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}

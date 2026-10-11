@@ -25,7 +25,7 @@ describe('board layer order', () => {
   it('draws city circles behind troops and counters above them', () => {
     const context = { setTransform: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn() };
     const canvas = { width: 0, height: 0, getContext: () => context } as unknown as HTMLCanvasElement;
-    const state = { territories: [], transfers: [], captureShields: {} };
+    const state = { territories: [], transfers: [], captureShields: {}, rules: { factions: { player: { connectedDefense: false } } } };
 
     drawBoard(canvas, state as never, 320, 480, 1);
 

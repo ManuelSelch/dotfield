@@ -10,11 +10,11 @@
   <main class="app">
     <header><h1><span class="brand-dot" aria-hidden="true"></span>dotfield</h1><span class="round">UPGRADE PREVIEW</span></header>
     <section class="title"><div><p class="eyebrow">DEFENSIVE NETWORK</p><h2>Your cities hold together.</h2><p class="intro">A connected territory is stronger when enemy troops attack.</p></div></section>
-    <section class="status" aria-live="polite"><span class="status-mark" aria-hidden="true">⌂</span><div><strong id="tier">Network defense · +20%</strong><span id="count">6 cities connected to your capital</span></div><span class="info" title="Connected by legal routes through cities you own">i</span></section>
+    <section class="status" aria-live="polite"><span class="status-mark" aria-hidden="true">⌂</span><div><strong id="tier">3 shields · +30% defense</strong><span id="count">7 cities connected to your starting city</span></div><span class="info" title="Connected by legal routes through cities you own">i</span></section>
     <section class="field" aria-label="Illustration of a connected defensive network">
       <svg id="board" viewBox="0 0 360 440" role="img" aria-labelledby="map-title map-desc">
         <title id="map-title">Your connected cities form a defensive network</title>
-        <desc id="map-desc">Green city borders show your connected territory. Red cities belong to the enemy. A river can only be crossed at marked bridges.</desc>
+        <desc id="map-desc">A teal outer border shows your connected territory. Each connected city carries one, two, or three shield symbols based on group size. Red cities belong to the enemy. A river can only be crossed at marked bridges.</desc>
         <rect width="360" height="440" rx="18" fill="#eef1e9" />
         <g id="regions"></g>
         <path class="river" d="M0 217 C68 202 126 229 181 214 C241 198 298 231 360 211 L360 238 C292 254 242 224 180 240 C117 257 63 230 0 244Z" />
@@ -23,7 +23,7 @@
         <g id="routes"></g><g id="cities"></g>
       </svg>
     </section>
-    <footer><div class="legend"><span><i class="friendly"></i>Your connected territory</span><span><i class="frontline"></i>Frontline</span><span><i class="foe"></i>Enemy</span></div><p>Connected = a legal route through continuously owned cities back to your starting city.</p></footer>
+    <footer><div class="legend"><span><i class="friendly"></i>Connected territory</span><span><b class="shield-sample" aria-hidden="true">⬟⬟⬟</b>Defense tier on each city</span><span><i class="foe"></i>Enemy</span></div><p>Shield tier is shared by all cities connected to your starting city through currently owned legal routes.</p></footer>
   </main>
   <script type="module" src="./main.js"></script>
 </body>

@@ -6,6 +6,7 @@ export const BASE_FACTION_RULES: FactionRules = Object.freeze({
   travelSpeed: TRAVEL_SPEED,
   batchIntervalMs: BATCH_INTERVAL_MS,
   captureShieldBatches: 0,
+  connectedDefense: false,
 });
 
 // Normalize the legacy shared-growth API; snapshot every faction independently.
@@ -15,13 +16,15 @@ export function createRules(input: RulesInput = GROWTH_RULES): SimulationRules {
   };
   const entries = Object.entries(factions).map(([id, rules]) => {
     const captureShieldBatches = rules.captureShieldBatches ?? 0;
+    const connectedDefense = rules.connectedDefense ?? false;
     if (!id || !Number.isFinite(rules.unitsPerSecond) || rules.unitsPerSecond < 0
       || !Number.isFinite(rules.travelSpeed) || rules.travelSpeed <= 0
       || !Number.isFinite(rules.batchIntervalMs) || rules.batchIntervalMs <= 0
-      || !Number.isInteger(captureShieldBatches) || captureShieldBatches < 0 || captureShieldBatches > 3) {
+      || !Number.isInteger(captureShieldBatches) || captureShieldBatches < 0 || captureShieldBatches > 3
+      || typeof connectedDefense !== 'boolean') {
       throw new RangeError(`Invalid rules for faction ${id}.`);
     }
-    return [id, Object.freeze({ ...rules, captureShieldBatches })] as const;
+    return [id, Object.freeze({ ...rules, captureShieldBatches, connectedDefense })] as const;
   });
   return Object.freeze({ factions: Object.freeze(Object.fromEntries(entries)) });
 }

@@ -25,6 +25,14 @@ export function drawArtilleryIcon(ctx: CanvasRenderingContext2D) {
   ctx.moveTo(-1.4, 2.8); ctx.lineTo(-1.4, 4.2); ctx.moveTo(2.8, 2.8); ctx.lineTo(2.8, 4.2); ctx.stroke();
 }
 
+export function drawDefenseShieldsIcon(ctx: CanvasRenderingContext2D, level: 1 | 2 | 3) {
+  for (let i = 0; i < level; i++) {
+    const x = (i - (level - 1) / 2) * 3.2;
+    ctx.beginPath(); ctx.moveTo(x, -4.5); ctx.lineTo(x + 2.4, -3.5); ctx.lineTo(x + 2, 0.5);
+    ctx.lineTo(x, 2.5); ctx.lineTo(x - 2, 0.5); ctx.lineTo(x - 2.4, -3.5); ctx.closePath(); ctx.fill();
+  }
+}
+
 export function drawChevronIcon(ctx: CanvasRenderingContext2D, level: 1 | 2 = 1) {
   ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.beginPath();

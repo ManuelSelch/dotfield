@@ -9,8 +9,8 @@ const host: Territory = { id: 'host', owner: 'player', units: 36, x: 100, y: 100
 const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 300 };
 const context = () => ({ save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), arc: vi.fn(),
   fill: vi.fn(), stroke: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
-  closePath: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
-const seed = (upgrades: ('factory' | 'industry')[] = [], fieldFeatures: NonNullable<Territory['features']> = []) => {
+  closePath: vi.fn(), roundRect: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
+const seed = (upgrades: ('factory' | 'industry' | 'defensive-network')[] = [], fieldFeatures: NonNullable<Territory['features']> = []) => {
   const setup = compileRoundSetup([{ ...host, features: fieldFeatures }, enemy], { player: upgrades });
   return createSimulation(setup.territories, setup.rules);
 };
@@ -75,8 +75,29 @@ describe('city upgrade indicators', () => {
     const stacked = render(createSimulation([{ ...city, features: [...city.features, { id: 'plant', kind: 'factory', productionMultiplier: 2 }] }, enemy]));
     expect(new Set(stacked.translate.mock.calls.map(call => call.join(','))).size).toBe(2);
   });
-  it('adds no indicators when no upgrades are active', () => {
-    expect(render().arc).not.toHaveBeenCalled();
+  it('shows the tier shield markers on every city in an upgraded connected network', () => {
+    const territories: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 50, y: 100 },
+      { id: 'a', owner: 'player', units: 10, x: 130, y: 100 },
+      { id: 'b', owner: 'player', units: 10, x: 210, y: 100 },
+      { id: 'c', owner: 'player', units: 10, x: 290, y: 100 },
+      enemy,
+    ];
+    const setup = compileRoundSetup(territories, { player: ['defensive-network'] });
+    const ctx = render(createSimulation(setup.territories, setup.rules));
+    expect(ctx.roundRect).toHaveBeenCalledTimes(4);
+    expect(ctx.closePath).toHaveBeenCalledTimes(8); // Two shield silhouettes per connected city (4-city tier).
+  });
+
+  it('adds no indicators when no upgrades are active, even for a large connected group', () => {
+    const territories: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 50, y: 100 },
+      { id: 'a', owner: 'player', units: 10, x: 130, y: 100 },
+      { id: 'b', owner: 'player', units: 10, x: 210, y: 100 },
+      { id: 'c', owner: 'player', units: 10, x: 290, y: 100 },
+      enemy,
+    ];
+    expect(render(createSimulation(territories)).arc).not.toHaveBeenCalled();
   });
   it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
     const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 150, fireIntervalMs: 250 }]); const ctx = render(state);
