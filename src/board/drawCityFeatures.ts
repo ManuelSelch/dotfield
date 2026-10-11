@@ -2,7 +2,7 @@ import type { SimulationState } from '../game/types';
 import { BASE_FACTION_RULES, getFactionRules } from '../game/rules';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
-import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon, drawArtilleryIcon, drawDefenseShieldsIcon } from './upgradeIcons';
+import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon, drawArtilleryIcon, drawDefenseShieldIcon } from './upgradeIcons';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
 import { connectedDefenseTierForSize } from '../game/connectedDefense';
 import { TERRITORY_RADIUS } from '../game/settings';
@@ -55,14 +55,13 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
       ? networks.get(city.owner) : undefined;
     const defenseTier = connectedIds ? connectedDefenseTierForSize(connectedIds.size) : 0;
     if (defenseTier > 0 && connectedIds?.has(city.id)) {
-      const badgeWidth = 3 + defenseTier * 4.2, badgeHeight = 8;
-      const x = Math.max(1, Math.min(width - badgeWidth - 1, city.x - badgeWidth / 2));
-      const y = Math.max(1, Math.min(height - badgeHeight - 1, city.y + city.radius * 0.48));
+      const iconSize = Math.max(12, Math.min(18, city.radius * 0.9));
+      const centerX = Math.max(iconSize / 2 + 1, Math.min(width - iconSize / 2 - 1, city.x));
+      const centerY = Math.max(iconSize / 2 + 1, Math.min(height - iconSize / 2 - 1, city.y + city.radius * 0.85));
       const palette = factionPalette(city.owner);
-      ctx.save(); ctx.fillStyle = palette.fill; ctx.strokeStyle = palette.ink; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.roundRect(x, y, badgeWidth, badgeHeight, badgeHeight / 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.translate(x + badgeWidth / 2, y + badgeHeight / 2 + 1);
-      ctx.scale(0.8, 0.8); drawDefenseShieldsIcon(ctx, defenseTier as 1 | 2 | 3); ctx.restore();
+      ctx.save(); ctx.fillStyle = palette.fill; ctx.strokeStyle = palette.ink;
+      ctx.translate(centerX - iconSize / 2, centerY - iconSize / 2); ctx.scale(iconSize / 24, iconSize / 24);
+      drawDefenseShieldIcon(ctx, defenseTier as 1 | 2 | 3, palette.ink); ctx.restore();
     }
   }
 }

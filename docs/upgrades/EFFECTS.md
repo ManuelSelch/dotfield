@@ -82,7 +82,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Factory: a small vector factory silhouette (sawtooth roof and chimney) at the upper-right edge, dimmed while inactive. No letter F or emoji.
 - Industry: one upward chevron at the upper-left of every city owned by a faction with a production rate above baseline. It marks cities owned by any faction whose resolved production rate exceeds baseline.
 - Losing ownership removes the player's Industry chevron. Factory alone does not add one; combined Factory + Industry shows separate factory and single-chevron badges.
-- Defensive Network: a compact owner-coloured pill at the lower edge of every connected owned city contains one, two or three shield silhouettes for the current group tier. A larger connected group increases each connected city's defensive strength; badges are presentation only and do not change counters, touch regions, launch boundaries or collision geometry.
+- Defensive Network: one owner-coloured Tabler Shield silhouette with a centered 1/2/3 tier numeral marks every connected city. A larger connected group increases each connected city's defensive strength; markers are presentation only and do not change counters, touch regions, launch boundaries or collision geometry.
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
 - Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
