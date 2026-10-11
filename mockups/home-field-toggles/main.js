@@ -1,0 +1,1 @@
+const features=document.querySelector('#features');features.addEventListener('click',event=>{const button=event.target.closest('.feature');if(!button)return;const active=button.classList.toggle('active');button.setAttribute('aria-pressed',String(active));});

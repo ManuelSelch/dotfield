@@ -99,6 +99,16 @@
 .home-play-slot .home-reroll { flex: none; min-height: 44px; padding-inline: 12px; white-space: nowrap; }
 .home-play-slot .home-play { flex: 1; width: auto; max-width: none; min-height: 44px; margin: 0; }
 .home-play-arrow { margin-left: 8px; }
+
+/* Compact, directly toggleable field-feature pills. */
+.home-feature-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.home-feature-toggle { min-height: 36px; padding: 7px 13px; border: 1px solid #d4ddd7; border-radius: 99px; background: #fff; color: #526158; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
+.home-feature-toggle[aria-pressed="true"] { border-color: #267c72; background: #e1efeb; color: #1e6a61; }
+.home-feature-toggle:focus-visible { outline: 3px solid #86bfb2; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .home-feature-toggles { gap: 7px; }
+  .home-feature-toggle { min-height: 34px; padding: 7px 11px; }
+}
 @media (max-width: 760px) {
   .home-body { margin-top: 8px; gap: 18px; }
   .home-setting { margin: 10px 0 8px; }

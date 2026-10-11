@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dotfield field options mockup</title><link rel="stylesheet" href="./styles.css"></head>
+<body>
+  <main class="app">
+    <header><span class="brand"><i></i> dotfield</span><button class="reroll" type="button">↻ Reroll</button></header>
+    <div class="layout">
+      <section class="settings" aria-label="Match settings">
+        <div class="eyebrow">Your match</div>
+        <div class="count-row"><span>Cities</span><div class="stepper"><button aria-label="Fewer cities">−</button><output id="cities">14</output><button aria-label="More cities">+</button></div></div>
+        <input aria-label="Total cities" type="range" min="6" max="24" value="14">
+        <div class="range-labels"><span>6 · compact</span><span>24 · expansive</span></div>
+        <div class="count-row enemies"><span>Enemies</span><div class="enemy-count" role="group" aria-label="Number of enemies"><button>1</button><button class="selected">2</button><button>3</button><button>4</button></div></div>
+        <div class="eyebrow field-label">On the field</div>
+        <div class="features" id="features">
+          <button class="feature active" aria-pressed="true">Industry</button>
+          <button class="feature active" aria-pressed="true">River &amp; bridges</button>
+          <button class="feature active" aria-pressed="true">Mountains</button>
+          <button class="feature" aria-pressed="false">Artillery</button>
+          <button class="feature" aria-pressed="false">Watchtower</button>
+          <button class="feature" aria-pressed="false">Slow Zone</button>
+        </div>
+        <div class="actions"><button class="play">Play <span>↗</span></button></div>
+      </section>
+      <section class="preview"><div class="eyebrow">Preview</div><div class="map"><svg viewBox="0 0 300 400" role="img" aria-label="Illustrative field preview"><path d="M0 180 Q75 165 150 188T300 175V225Q220 238 150 216T0 230Z" fill="#c5d9d5"/><path d="M127 192l13-32 20 8 18-24 24 8 16 35-18 19-21-7-17 13-20-9z" fill="#aeb9a8"/><g fill="#267c72"><circle cx="45" cy="70" r="15"/><circle cx="220" cy="72" r="15"/><circle cx="50" cy="320" r="15"/><circle cx="242" cy="319" r="15"/></g><g fill="#bd624e"><circle cx="145" cy="94" r="15"/><circle cx="154" cy="296" r="15"/></g><g fill="#87938a"><circle cx="79" cy="145" r="12"/><circle cx="222" cy="257" r="12"/></g><g fill="white" text-anchor="middle" font-family="system-ui" font-size="10"><text x="45" y="74">36</text><text x="220" y="76">36</text><text x="50" y="324">36</text><text x="242" y="323">36</text><text x="145" y="98">8</text><text x="154" y="300">8</text></g><path d="M136 185h30" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></div></section>
+    </div>
+  </main><script src="./main.js"></script>
+</body></html>

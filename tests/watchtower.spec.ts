@@ -7,7 +7,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
     await page.goto('/');
-    const towerOption = page.getByRole('group', { name: 'Watchtower' }).getByRole('button', { name: 'On', exact: true });
+    const towerOption = page.getByRole('button', { name: 'Watchtower' });
     await expect(towerOption).toHaveAttribute('aria-pressed', 'false');
     await towerOption.scrollIntoViewIfNeeded();
     await towerOption.tap(); await page.getByRole('button', { name: 'Play', exact: true }).tap();
