@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const settings = { cities: 12, enemies: 2, industry: 'on', river: 'on', artillery: 'off' };
+const settings = { cities: 14, enemies: 2, industry: 'on', river: 'on', mountains: new URLSearchParams(location.search).get('mountains') === 'off' ? 'off' : 'on', artillery: 'off' };
 const colors = ['#267c72', '#bd624e', '#a28b46', '#727bad', '#947188'];
 let seed = 107, match;
 const upgrades = [
@@ -47,6 +47,7 @@ function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let
 function makeMap() {
   const random = rng(++seed);
   const river = settings.river === 'on', industry = settings.industry === 'on';
+  const mountains = settings.mountains === 'on';
   const cities = [], count = settings.cities;
   // Jittered rows are illustrative, not a production balance algorithm.
   const rows = Math.ceil(count / 3), columns = Math.ceil(count / rows);
@@ -54,7 +55,9 @@ function makeMap() {
     const row = Math.floor(i / columns), col = i % columns;
     let y = 42 + row * (396 / Math.max(1, rows - 1)) + (random() - .5) * 17;
     if (river && Math.abs(y - 240) < 43) y = y < 240 ? 195 : 285;
-    cities.push({ x: 52 + col * (256 / Math.max(1, columns - 1)) + (random() - .5) * 28, y, faction: -1, factory: false, artillery: false });
+    let x = 52 + col * (256 / Math.max(1, columns - 1)) + (random() - .5) * 28;
+    if (mountains && y >= 260 && y <= 380 && x >= 125 && x <= 235) x = (row % 2 ? 110 : 250) + (random() - .5) * 10;
+    cities.push({ x, y, faction: -1, factory: false, artillery: false });
   }
   const targets = [[.15,.88],[.85,.12],[.12,.12],[.88,.88],[.5,.5]];
   for (let f = 0; f <= settings.enemies; f++) {
@@ -79,7 +82,7 @@ function makeMap() {
       if (index >= 0 && !bridges.some(b=>b.a===north[index])) bridges.push({a:north[index],b:south[index]});
     }
   }
-  return { cities, river, industry, artillery: settings.artillery === 'on', bridges, enemies: settings.enemies, seed };
+  return { cities, river, industry, mountains, artillery: settings.artillery === 'on', bridges, enemies: settings.enemies, seed };
 }
 function clip(poly, nx, ny, limit) {
   const out=[];
@@ -109,6 +112,7 @@ function draw(map, target) {
     html+='<rect y="226" width="360" height="28" fill="#aec8cb"/>';
     for(const b of map.bridges){const x=(b.a.x+b.b.x)/2;html+=`<rect x="${x-17}" y="222" width="34" height="36" rx="3" fill="#ddd8bf" stroke="#87988a" stroke-width="1.5"/><path d="M${x-12} 224v32 M${x+12} 224v32" stroke="#9aa38d"/>`;}
   }
+  if(map.mountains)html+='<rect x="140" y="270" width="80" height="100" fill="#d5d8cd" stroke="#a8afa0"/><path d="M143 348l13-31 11 16 16-46 15 41 13-30 7 50v14h-75z" fill="#c3c9bb" stroke="#a8afa0"/><path d="M178 299l5-12 6 12 5 10-7-4-4 4z M196 314l4-8 4 8 3 5-4-2-3 2z" fill="#eef0e8" stroke="#a8afa0"/>';
   for(const c of map.cities){
     const color=c.faction<0?'#9aa78e':colors[c.faction];
     html+=`<circle cx="${c.x}" cy="${c.y}" r="17" fill="${color}"/><text x="${c.x}" y="${c.y+4}" text-anchor="middle" fill="white" font-family="system-ui" font-size="11" font-weight="600">${c.faction<0?(c.artillery?14:c.factory?14:8):36}</text>`;
@@ -117,17 +121,19 @@ function draw(map, target) {
   }
   target.innerHTML=html;
 }
-function description(map){return `${map.cities.length} cities · ${map.enemies} enemies · ${map.industry?'Industry':'No industry'} · ${map.river?map.bridges.length+' bridges':'No river'} · ${map.artillery?'Artillery':'No artillery'}`;}
+function description(map){return `${map.cities.length} cities · ${map.enemies} enemies · ${map.industry?'Industry':'No industry'} · ${map.river?map.bridges.length+' bridges':'No river'} · ${map.mountains?'Mountains':'No mountains'} · ${map.artillery?'Artillery':'No artillery'}`;}
 function preview(){const map=makeMap();draw(map,$('map'));$('summary').innerHTML=description(map).split(' · ').map(text=>`<span>${text}</span>`).join('');}
 function refresh(){
   $('cities').value=settings.cities;$('city-value').value=settings.cities;
   $('cities-down').disabled=settings.cities<=6;$('cities-up').disabled=settings.cities>=24;
   $('starting-note').textContent=`You + ${settings.enemies} ${settings.enemies===1?'enemy':'enemies'} · ${settings.cities-settings.enemies-1} neutral cities`;
+  for(const key of ['industry','river','mountains','artillery']) for(const button of $(key).querySelectorAll('button'))
+    button.setAttribute('aria-pressed',String(button.dataset.value===settings[key]));
   preview();
 }
 $('cities').addEventListener('input',e=>{settings.cities=Number(e.target.value);refresh();});
 for(const [id,delta] of [['cities-down',-1],['cities-up',1]])$(id).onclick=()=>{settings.cities=Math.min(24,Math.max(6,settings.cities+delta));refresh();};
-for(const key of ['enemies','industry','river','artillery'])$(key).addEventListener('click',e=>{
+for(const key of ['enemies','industry','river','mountains','artillery'])$(key).addEventListener('click',e=>{
   const button=e.target.closest('button');if(!button)return;
   settings[key]=key==='enemies'?Number(button.dataset.value):button.dataset.value;
   if (key === 'enemies') renderEnemies();

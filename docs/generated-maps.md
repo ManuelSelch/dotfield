@@ -6,19 +6,21 @@ The approved revisions in `mockups/random-map/` replace carousel map selection. 
 
 - Total cities: 6–24, including one starting city for the player and each of 1–4 enemies.
 - Map Industry: On adds 1–4 neutral Factories (rounded total cities / 6, capped by neutral count). Off omits neutral Factories. This differs from the faction Industry upgrade, which increases that faction's production by 25%.
-- Every field includes a central mountain ridge. Direct orders and Artillery shots through it are blocked; use city-to-city staging around its flanks. The mountain has no text labels.
+- Mountains: On by default. On adds a central ridge that blocks direct orders and Artillery shots; Off omits the central ridge. Cities are repositioned around the ridge when enabled, preserving legal city-to-city staging. The mountain has no text labels.
 - Artillery: Off by default. On adds exactly one neutral 14-defender Artillery city with 90-unit range and an additional small mountain ridge, clear of city circles and the central ridge, to create shot-blocking opportunities. Artillery selection persists with the other match settings and both ridges accompany the generated round/save.
+- Watchtower: Off by default. On places one Watchtower on a seeded-random city from the full field; its current owner controls it, and a neutral Watchtower is inactive until captured.
+- Slow Zone: Off by default. On places one 90-unit, 50%-speed zone on a seeded random city; the host's current owner controls it, while a neutral host slows both sides.
 - Introductory Home title/subtitle and helper captions are omitted. Match settings remain directly labelled; segmented selectors are compact, with Reroll beside Play.
-- River & bridges: On creates a horizontal river with exactly two aligned, disjoint, paired-city crossings. Off leaves the central mountain in place. Manual bank staging is unchanged.
+- River & bridges: On creates a horizontal river with exactly two aligned, disjoint, paired-city crossings. It is independent of Mountains; each feature can be switched on or off. Manual bank staging is unchanged.
 - The fresh Home default is the approved larger 14-city field; the existing 6–24 city control remains.
-- Your upgrades and Enemy settings are initially collapsed. Enabled counts appear in summaries. Each enemy has independent Balanced/Aggressive/Defensive behavior and Industry, Factory, Slow Zone, Watchtower and Capture shield selections.
+- Your upgrades and Enemy settings are initially collapsed. Enabled counts appear in summaries. Each enemy has independent Balanced/Aggressive/Defensive behavior and Industry, Factory and Capture shield selections. Watchtower and Slow Zone are shared field settings, not faction upgrades.
 - Hidden enemy selections are remembered if their count is increased again, but only active factions are compiled into a round.
-- Settings are saved under `dotfield.match-preferences.v1`; missing, malformed or inaccessible storage falls back safely. Artillery is now a required map preference; existing preference JSON that lacks this field is considered invalid and falls back to defaults. No backend or progression.
-- Home does not run simulation or AI. The preview shows generated map features, not starting-city upgrade effects.
+- Settings are saved under `dotfield.match-preferences.v1`; missing, malformed or inaccessible storage falls back safely. Map-feature flags (Mountains, Artillery, Watchtower and Slow Zone) are required fields; older preference JSON without them falls back to defaults. No backend or progression.
+- Home does not run simulation or AI. The preview shows generated field features, including Watchtower and Slow Zone coverage.
 
 ## Generation and lifecycle
 
-`src/board/generateMap.ts` is a pure, seeded generator. A jittered 24-slot stratification bounds work and guarantees at least 58 logical units of city separation. Interior slots shift around a fixed central mountain footprint; legal-order graph tests ensure all generated cities remain reachable by manual staging. Farthest-point sampling spreads sparse fields and faction starts; every faction starts with 36 troops. River bridge pairs share an x coordinate, have formation/water clearance and 64-unit width, and are checked by the same `createRiver` validator used by simulation and saved rounds. Two bridge pairs ensure bank connectivity even at the smallest supported count. Artillery adds a second non-overlapping mountain ridge.
+`src/board/generateMap.ts` is a pure, seeded generator. A jittered 24-slot stratification bounds work and guarantees at least 58 logical units of city separation. When Mountains is On, interior slots shift around the central footprint; legal-order graph tests cover both Mountain states and ensure all generated cities remain reachable by manual staging. Farthest-point sampling spreads sparse fields and faction starts; every faction starts with 36 troops. River bridge pairs share an x coordinate, have formation/water clearance and 64-unit width, and are checked by the same `createRiver` validator used by simulation and saved rounds. Two bridge pairs ensure bank connectivity even at the smallest supported count. Artillery adds a second non-overlapping mountain ridge.
 
 - Reroll changes the preview only.
 - Play generates another layout, using the selected settings; it does **not** play the preview.

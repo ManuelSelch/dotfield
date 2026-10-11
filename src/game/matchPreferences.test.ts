@@ -9,20 +9,24 @@ describe('match preferences', () => {
     expect(readMatchPreferences({ getItem: () => { throw Error('blocked'); } })).toEqual(defaultMatchPreferences());
   });
   it('remembers map options, player upgrades and inactive enemy settings', () => {
-    const value = { map: { ...DEFAULT_MAP_SETTINGS, cities: 24, enemies: 1, artillery: true },
-      upgrades: { player: ['industry' as const], 'enemy-4': ['watchtower' as const] },
+    const value = { map: { ...DEFAULT_MAP_SETTINGS, cities: 24, enemies: 1, mountains: false, artillery: true, watchtower: true, slowZone: true },
+      upgrades: { player: ['industry' as const], 'enemy-4': ['factory' as const] },
       aiBehaviors: { enemy: 'aggressive' as const, 'enemy-4': 'defensive' as const } };
     let raw = '';
     writeMatchPreferences(value, { setItem: (key, data) => { expect(key).toBe(MATCH_PREFERENCES_KEY); raw = data; } });
     expect(readMatchPreferences({ getItem: () => raw })).toEqual(value);
     expect(() => writeMatchPreferences(value, { setItem: () => { throw Error('full'); } })).not.toThrow();
   });
-  it('rejects saved map settings without the required Artillery flag', () => {
+  it('rejects saved map settings without the required field-feature flags', () => {
     const defaults = defaultMatchPreferences();
-    const { artillery: _omitted, ...oldMap } = defaults.map;
+    const { watchtower: _omitted, ...oldMap } = defaults.map;
     const oldPreferences = { ...defaults, map: oldMap };
     expect(isMatchPreferences(oldPreferences)).toBe(false);
     expect(readMatchPreferences({ getItem: () => JSON.stringify(oldPreferences) })).toEqual(defaults);
+    const { mountains: _mountains, ...withoutMountains } = defaults.map;
+    const olderPreferences = { ...defaults, map: withoutMountains };
+    expect(isMatchPreferences(olderPreferences)).toBe(false);
+    expect(readMatchPreferences({ getItem: () => JSON.stringify(olderPreferences) })).toEqual(defaults);
   });
   it('rejects unknown factions, upgrades, behaviors and malformed selections', () => {
     const base = defaultMatchPreferences();

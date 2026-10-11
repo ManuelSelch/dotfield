@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { advanceWorldStep } from '../worldStep';
 import { createSimulation } from '../state';
-import { compileRoundSetup } from '../upgrades/compile';
 import { forecastBattle } from '../ai/forecast';
 import type { SimulationState, Transfer } from '../types';
 
@@ -26,13 +25,13 @@ describe('Watchtower', () => {
       { id: 'away', owner: 'enemy', x: 200, y: 100, units: 10 },
     ])).toThrow();
   });
-  it('attaches once to the starting player city and retains fixed coverage/cadence', () => {
-    const setup = compileRoundSetup([
-      { id: 'start', owner: 'player', x: 100, y: 100, units: 10 },
+  it('retains authored towers as immutable city features', () => {
+    const state = createSimulation([
+      { id: 'start', owner: 'player', x: 100, y: 100, units: 10, features: [tower] },
       { id: 'foe', owner: 'enemy', x: 200, y: 100, units: 10 },
-    ], { player: ['watchtower', 'watchtower'] });
-    expect(setup.territories[0].features).toEqual([{ ...tower, id: 'start:watchtower:player' }]);
-    expect(setup.territories[1].features).toBeUndefined();
+    ]);
+    expect(state.territories[0].features).toEqual([tower]);
+    expect(state.territories[1].features).toBeUndefined();
   });
   it('destroys one in-range hostile dot every 250ms, preserving survivor slots', () => {
     let state = advanceWorldStep(armed(), 250);

@@ -8,7 +8,7 @@ import { SAVED_GAME_KEY } from '../../src/game/persistence';
 // persistence boundary. Production Home has no hidden legacy-map selector.
 export async function openAuthoredMatch(page: Page, mapIndex = 0, upgrades: UpgradeSelection = {}) {
   const map = MAPS[mapIndex];
-  const setup = compileRoundSetup(map.territories, upgrades, undefined, 0, {}, map.river);
+  const setup = compileRoundSetup(map.territories, upgrades, undefined, {}, map.river);
   const game = { territories: setup.territories, state: createSimulation(setup.territories, setup.rules, setup.river), ai: setup.ai, phase: 'running' };
   // Leave the prior App before writing: its pagehide flush must not overwrite
   // the next scenario. This fixture has no snapshot saver of its own.

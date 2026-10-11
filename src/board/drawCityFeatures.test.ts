@@ -10,8 +10,8 @@ const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 30
 const context = () => ({ save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), arc: vi.fn(),
   fill: vi.fn(), stroke: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
   closePath: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
-const seed = (upgrades: ('factory' | 'industry' | 'watchtower' | 'slow-zone')[] = []) => {
-  const setup = compileRoundSetup([host, enemy], { player: upgrades });
+const seed = (upgrades: ('factory' | 'industry')[] = [], fieldFeatures: NonNullable<Territory['features']> = []) => {
+  const setup = compileRoundSetup([{ ...host, features: fieldFeatures }, enemy], { player: upgrades });
   return createSimulation(setup.territories, setup.rules);
 };
 const render = (state = seed(), width = 360, height = 480) => {
@@ -78,8 +78,8 @@ describe('city upgrade indicators', () => {
   it('adds no indicators when no upgrades are active', () => {
     expect(render().arc).not.toHaveBeenCalled();
   });
-  it('draws the Watchtower coverage ring and tower silhouette at the starting city', () => {
-    const state = seed(['watchtower']); const ctx = render(state);
+  it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
+    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 72, fireIntervalMs: 250 }]); const ctx = render(state);
     // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
     expect(ctx.arc).toHaveBeenCalledTimes(2);
     const radii = ctx.arc.mock.calls.map(call => call[2]);
@@ -87,16 +87,19 @@ describe('city upgrade indicators', () => {
     expect(ctx.translate).toHaveBeenCalledOnce(); expect(ctx.fillText).not.toHaveBeenCalled();
   });
   it('draws a distinct dashed 90-unit Slow Zone circle and lower-left marker', () => {
-    const ctx = render(seed(['slow-zone']));
+    const ctx = render(seed([], [{ id: 'zone', kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 }]));
     expect(ctx.arc.mock.calls.some(call => call[2] === 90)).toBe(true);
     expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
     expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
     expect(ctx.translate.mock.calls[0][1]).toBeGreaterThan(host.y);
   });
   it('keeps four upgrade markers distinct when all effects share a city', () => {
-    const ctx = render(seed(['factory', 'industry', 'watchtower', 'slow-zone']));
+    const ctx = render(seed(['factory', 'industry'], [
+      { id: 'tower', kind: 'watchtower', range: 72, fireIntervalMs: 250 },
+      { id: 'zone', kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 },
+    ]));
     expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
-      [true, false], [false, true], [true, true], [false, false],
+      [true, true], [false, true], [true, false], [false, false],
     ]);
   });
   it('supports two stacked chevrons for a future level without enabling that level', () => {

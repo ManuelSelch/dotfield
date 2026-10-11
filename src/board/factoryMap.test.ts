@@ -23,7 +23,7 @@ describe('contested Factory river scenario', () => {
   });
   it('offers both factions equally long legal opening attacks on the Factory', () => {
     const field = map();
-    const setup = compileRoundSetup(field.territories, {}, undefined, 0, {}, field.river);
+    const setup = compileRoundSetup(field.territories, {}, undefined, {}, field.river);
     const state = createSimulation(setup.territories, setup.rules, setup.river);
     const enemy = dispatchUnits(state, 'north', 'west-north', 'enemy');
     const player = dispatchUnits(state, 'south', 'west-north');
@@ -36,7 +36,7 @@ describe('contested Factory river scenario', () => {
   });
   it.each(['player', 'enemy'])('captures the authored Factory with real batches for %s; forecasts and replay agree', owner => {
     const field = map();
-    const setup = compileRoundSetup(field.territories, { [owner]: ['industry'] }, undefined, 0, {}, field.river);
+    const setup = compileRoundSetup(field.territories, { [owner]: ['industry'] }, undefined, {}, field.river);
     const state = createSimulation(setup.territories, setup.rules, setup.river);
     const ordered = dispatchUnits(state, owner === 'player' ? 'south' : 'north', 'west-north', owner);
     const result = advanceRound(ordered, 8000);
