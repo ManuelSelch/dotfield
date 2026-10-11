@@ -2,7 +2,7 @@ import type { MapSettings } from '../board/generateMap';
 import { TogglePill } from './TogglePill';
 
 export function MapOptions({ settings, onChange }: { settings: MapSettings; onChange: (value: MapSettings) => void }) {
-  function cities(value: number) { onChange({ ...settings, cities: Math.min(40, Math.max(6, value)) }); }
+  function cities(value: number) { onChange({ ...settings, cities: Math.min(30, Math.max(6, value)) }); }
   return <>
     <div className="home-section-label">Your match</div>
     <div className="home-setting">
@@ -10,11 +10,11 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
       <div className="home-stepper">
         <button type="button" aria-label="Fewer cities" disabled={settings.cities === 6} onClick={() => cities(settings.cities - 1)}>−</button>
         <output htmlFor="city-count">{settings.cities}</output>
-        <button type="button" aria-label="More cities" disabled={settings.cities === 40} onClick={() => cities(settings.cities + 1)}>+</button>
+        <button type="button" aria-label="More cities" disabled={settings.cities === 30} onClick={() => cities(settings.cities + 1)}>+</button>
       </div>
     </div>
-    <input id="city-count" className="home-city-range" type="range" min={6} max={40} value={settings.cities} aria-label="Total cities" onChange={event => cities(Number(event.currentTarget.value))} />
-    <div className="home-range-labels"><span>6 · compact</span><span>40 · expansive</span></div>
+    <input id="city-count" className="home-city-range" type="range" min={6} max={30} value={settings.cities} aria-label="Total cities" onChange={event => cities(Number(event.currentTarget.value))} />
+    <div className="home-range-labels"><span>6 · compact</span><span>30 · expansive</span></div>
     <div className="home-setting home-enemy-setting"><div><span className="home-label">Enemies</span></div></div>
     <div className="home-segments" role="group" aria-label="Number of enemy factions">
       {[1, 2, 3, 4].map(value => <button type="button" key={value} aria-pressed={settings.enemies === value} onClick={() => onChange({ ...settings, enemies: value })}>{value}</button>)}

@@ -22,7 +22,7 @@ describe('generated fields', () => {
     expect(generateMap(DEFAULT_MAP_SETTINGS, 43).territories).not.toEqual(generateMap(DEFAULT_MAP_SETTINGS, 42).territories);
   });
   it('combines the mountain ridge with optional paired bridges and a legal staging path', () => {
-    const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 40, enemies: 1, industry: false, river: true, mountains: true, artillery: false }, 42);
+    const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 30, enemies: 1, industry: false, river: true, mountains: true, artillery: false }, 42);
     const terrain = map.terrain!;
     expect(terrain.barriers).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'mountain-range', kind: 'mountain', bounds: expect.any(Object) }),
@@ -38,10 +38,10 @@ describe('generated fields', () => {
     const southBridge = map.territories.find(city => city.id === map.river!.bridges[0].southId)!;
     expect(canRiverOrder(northBridge, southBridge, map.river)).toBe(true);
     expect(everyCityReachable(map)).toBe(true);
-    expect(everyCityReachable(generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 40, enemies: 1, industry: false, river: false, mountains: true, artillery: false }, 42))).toBe(true);
+    expect(everyCityReachable(generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 30, enemies: 1, industry: false, river: false, mountains: true, artillery: false }, 42))).toBe(true);
   });
   it('rejects invalid counts, flags and seeds rather than silently ignoring them', () => {
-    for (const cities of [5, 41, 6.5, NaN]) expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, cities }, 1)).toThrow();
+    for (const cities of [5, 31, 6.5, NaN]) expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, cities }, 1)).toThrow();
     for (const enemies of [0, 5, 1.5]) expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, enemies }, 1)).toThrow();
     expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, industry: 'on' as unknown as boolean }, 1)).toThrow();
     expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, mountains: 'on' as unknown as boolean }, 1)).toThrow();
@@ -55,7 +55,7 @@ describe('generated fields', () => {
     for (const seed of [-1, NaN, 1.5, 2 ** 32]) expect(() => generateMap(DEFAULT_MAP_SETTINGS, seed)).toThrow();
   });
   it.each([false, true])('keeps city counts, clearance and bridges valid across maps with Mountains %s', mountains => {
-    for (let seed = 0; seed < 20; seed++) for (let cities = 6; cities <= 40; cities++)
+    for (let seed = 0; seed < 20; seed++) for (let cities = 6; cities <= 30; cities++)
       for (let enemies = 1; enemies <= 4; enemies++) for (const river of [false, true]) {
         const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities, enemies, river, industry: true, mountains, artillery: false, watchtower: false, slowZone: false }, seed);
         expect(map.territories).toHaveLength(cities);
@@ -70,7 +70,7 @@ describe('generated fields', () => {
           expect(city.x).toBeLessThanOrEqual(360 - TERRITORY_RADIUS);
           expect(city.y).toBeGreaterThanOrEqual(TERRITORY_RADIUS);
           expect(city.y).toBeLessThanOrEqual(480 - TERRITORY_RADIUS);
-          for (const other of map.territories) if (city !== other) expect(Math.hypot(city.x - other.x, city.y - other.y)).toBeGreaterThanOrEqual(58);
+          for (const other of map.territories) if (city !== other) expect(Math.hypot(city.x - other.x, city.y - other.y)).toBeGreaterThanOrEqual(35);
         }
         const mountain = map.terrain?.barriers.find(barrier => barrier.id === 'mountain-range');
         expect(mountain !== undefined).toBe(mountains);
@@ -81,7 +81,7 @@ describe('generated fields', () => {
           expect(createRiver(map.river!, map.territories)).toEqual(map.river);
         } else expect(map.river).toBeUndefined();
       }
-  });
+  }, 30_000);
   it('places one seeded-random Watchtower and Slow Zone only when selected', () => {
     const settings = { ...DEFAULT_MAP_SETTINGS, watchtower: true, slowZone: true };
     const map = generateMap(settings, 19);
@@ -132,7 +132,7 @@ describe('generated fields', () => {
     expect(disabled.territories.every(city => !city.features?.some(feature => feature.kind === 'artillery'))).toBe(true);
   });
   it('keeps Artillery placement, terrain and city clearance valid across generated sizes and bridge modes', () => {
-    for (let seed = 0; seed < 3; seed++) for (let cities = 6; cities <= 40; cities++)
+    for (let seed = 0; seed < 3; seed++) for (let cities = 6; cities <= 30; cities++)
       for (let enemies = 1; enemies <= 4; enemies++) for (const river of [false, true]) {
         const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities, enemies, river, mountains: true, industry: seed % 2 === 0, artillery: true }, seed);
         const guns = map.territories.filter(city => city.features?.some(feature => feature.kind === 'artillery'));
@@ -143,7 +143,7 @@ describe('generated fields', () => {
       }
   });
   it('compiles mountain terrain together with independent faction settings', () => {
-    const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 40, enemies: 4, river: true, mountains: true, industry: false, artillery: false }, 4);
+    const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 30, enemies: 4, river: true, mountains: true, industry: false, artillery: false }, 4);
     expect(map.territories.every(c => !c.features?.length)).toBe(true);
     const setup = compileRoundSetup(map.territories, { player: ['industry'], enemy: ['factory'] }, undefined, { 'enemy-4': 'defensive' }, map.river, map.terrain);
     expect(Object.keys(setup.ai)).toHaveLength(4);

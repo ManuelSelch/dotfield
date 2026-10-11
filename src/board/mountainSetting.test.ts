@@ -18,7 +18,15 @@ describe('generated mountain setting', () => {
     const off = generateMap(settings(false), 28);
     expect(off.settings.mountains).toBe(false);
     expect(off.terrain).toBeUndefined();
-    expect(off.river).toEqual(on.river);
+    expect(on.river?.bridges).toHaveLength(2);
+    expect(off.river?.bridges).toHaveLength(2);
+    for (const map of [on, off]) for (const bridge of map.river!.bridges) {
+      const north = map.territories.find(city => city.id === bridge.northId)!;
+      const south = map.territories.find(city => city.id === bridge.southId)!;
+      expect(north.x).toBe(south.x);
+      expect(north.y).toBeLessThan(map.river!.top);
+      expect(south.y).toBeGreaterThan(map.river!.bottom);
+    }
     expect(off.territories).not.toEqual(on.territories);
     const reachable = new Set([off.territories[0].id]);
     for (let pass = 0; pass < off.territories.length; pass++) for (const source of off.territories) if (reachable.has(source.id))

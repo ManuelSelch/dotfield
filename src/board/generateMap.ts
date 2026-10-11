@@ -28,7 +28,7 @@ const MOUNTAIN_RANGE = { id: 'mountain-range', kind: 'mountain' as const,
 export function isMapSettings(value: unknown): value is MapSettings {
   if (!value || typeof value !== 'object') return false;
   const settings = value as MapSettings;
-  return Number.isInteger(settings.cities) && settings.cities >= 6 && settings.cities <= 40
+  return Number.isInteger(settings.cities) && settings.cities >= 6 && settings.cities <= 30
     && Number.isInteger(settings.enemies) && settings.enemies >= 1 && settings.enemies <= 4
     && typeof settings.industry === 'boolean' && typeof settings.river === 'boolean'
     && typeof settings.mountains === 'boolean' && typeof settings.artillery === 'boolean' && typeof settings.watchtower === 'boolean'
@@ -53,24 +53,29 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!isMapSettings(settings)) throw new RangeError('Invalid map settings.');
   if (!Number.isInteger(seed) || seed < 0 || seed >= 2 ** 32) throw new RangeError('Invalid map seed.');
   const random = seededRandom(seed);
-  // Forty stratified slots bound generation at the maximum city count.
+  // Stratified slots bound generation through the supported 30-city maximum.
   const rows = Array.from({ length: 10 }, (_, row) => settings.river
     ? 30 + row * 40 + (row >= 5 ? 60 : 0) : 24 + row * 48);
   const slots: Territory[] = rows.flatMap((y, row) => {
     const mountainRow = settings.mountains && row >= 5 && row <= 7;
-    const xs = mountainRow ? [34, 112, 248, 326] : [34, 107, 180, 253, 326];
-    const offset = () => (random() - 0.5) * 6;
+    const xs = mountainRow ? [48, 112, 248, 312] : [48, 114, 180, 246, 312];
+    const offset = () => settings.river && (row === 4 || row === 5) ? 0 : (random() - 0.5) * 6;
     return xs.map((x, column) => ({
       id: `city-${row * 5 + column + 1}`, owner: 'neutral', units: 8 + Math.floor(random() * 5), x: x + offset(), y: y + offset(),
     }));
   });
   const cities: Territory[] = [];
+  const bridgePairs: { north: Territory; south: Territory }[] = [];
   if (settings.river) {
-    for (const column of [0, 4]) {
-      const northIndex = 20 + column, southIndex = 25 + column;
-      const north = slots[northIndex], south = slots[southIndex];
-      slots[southIndex] = { ...south, x: north.x }; // Straight paired-city crossings.
-      cities.push(north, slots[southIndex]);
+    const northBank = slots.filter(city => city.y === 190).sort((a, b) => a.x - b.x);
+    const southBank = slots.filter(city => city.y === 290).sort((a, b) => a.x - b.x);
+    for (const column of [0, 1]) {
+      const north = northBank[column === 0 ? 0 : northBank.length - 1];
+      const south = southBank[column === 0 ? 0 : southBank.length - 1];
+      const alignedSouth = { ...south, x: north.x };
+      slots[slots.indexOf(south)] = alignedSouth;
+      bridgePairs.push({ north, south: alignedSouth });
+      cities.push(north, alignedSouth);
     }
   } else cities.push(slots[Math.floor(random() * slots.length)]);
   // Farthest-point sampling spreads sparse maps and faction starts.
@@ -119,8 +124,8 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
         features: [...(city.features ?? []), { id: `${city.id}:factory`, kind: 'factory', productionMultiplier: 2 }] } : city);
     }
   }
-  const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: [0, 4].map(column => ({
-    id: `bridge-${column}`, northId: slots[20 + column].id, southId: slots[25 + column].id, width: 64,
+  const river = settings.river ? createRiver({ top: 225, bottom: 255, bridges: bridgePairs.map((pair, index) => ({
+    id: `bridge-${index}`, northId: pair.north.id, southId: pair.south.id, width: 64,
   })) }, territories) : undefined;
   const barriers = [...(settings.mountains ? [MOUNTAIN_RANGE] : [])];
   const terrain = barriers.length ? createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers }) : undefined;
