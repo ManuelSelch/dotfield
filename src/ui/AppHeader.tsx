@@ -9,9 +9,12 @@ export function AppHeader({ children }: { children?: ReactNode }) {
           <span className="size-[11px] rounded-full bg-player shadow-[0_0_0_4px_#e2ebe3]" aria-hidden="true" />
           dotfield
         </Title>
-        <div id="game-controls-slot" className="flex items-center" />
+        <div id="game-controls-slot" className="flex items-center gap-8" />
       </div>
-      {children}
+      <div className="flex items-center gap-3">
+        <div id="game-pause-slot" className="flex items-center" />
+        {children}
+      </div>
     </header>
   );
 }

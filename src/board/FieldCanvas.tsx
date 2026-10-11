@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useBoardSession } from './useBoardSession';
-import { SessionControls } from '../ui/SessionControls';
+import { SessionControls, SessionNavigationControls } from '../ui/SessionControls';
 import { TroopCompositionBar } from '../ui/TroopCompositionBar';
 import { TransferDetails } from './TransferDetails';
 import { TERRITORIES } from './map';
@@ -45,8 +45,10 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         {state.terrain && <p id="terrain-order-help" role="status" className="sr-only">
           {session.feedback || 'Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.'}
         </p>}
-        {state.roundStatus === 'playing' && <SessionControls phase={phase}
-          onPause={session.pause} onResume={session.resume} onRestart={session.restart} onHome={onHome} />}
+        {state.roundStatus === 'playing' && <>
+          <SessionControls phase={phase} onPause={session.pause} onResume={session.resume} onRestart={session.restart} />
+          <SessionNavigationControls onRestart={session.restart} onHome={onHome} />
+        </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
       <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />
