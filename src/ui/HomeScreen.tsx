@@ -35,7 +35,7 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
           </div>
         </section>
         <section className="home-preview" aria-label="Map preview">
-          <div className="home-preview-heading home-section-label">A possible field</div>
+          <div className="home-preview-heading home-section-label">Preview</div>
           <div className="home-map-frame"><MapPreview map={map} /></div>
           <div className="home-badges" aria-live="polite">
             <span>{map.territories.length} cities</span><span>{preferences.map.enemies} {preferences.map.enemies === 1 ? 'enemy' : 'enemies'}</span>
