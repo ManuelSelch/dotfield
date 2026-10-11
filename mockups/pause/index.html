@@ -3,16 +3,15 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pause controls mockup</title><link rel="stylesheet" href="./styles.css"></head>
 <body>
 <main class="game" aria-label="Paused game mockup">
-  <header class="top"><div class="brand"><span class="mark">D</span><span>DOTFIELD</span></div><div class="round">ROUND <b>08</b></div><div class="paused"><span></span> PAUSED</div></header>
+  <header class="top"><div class="brand"><span class="mark">D</span><span>DOTFIELD</span></div><nav class="controls" aria-label="Game controls">
+    <button class="control resume" id="resume" aria-label="Resume" title="Resume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="control" id="restart" aria-label="Restart" title="Restart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M5 4v4h4M4 13a8 8 0 0 0 14.9 3M19 20v-4h-4"/></svg></button>
+    <button class="control" id="home" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></button>
+  </nav><div class="round">ROUND <b>08</b></div><div class="paused"><span></span> PAUSED</div></header>
   <div class="map" aria-label="Battle map"><svg viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
     <path class="region r1" d="M0 0H390L480 190 350 330 0 285Z"/><path class="region r2" d="M390 0H1000V190L700 260 480 190Z"/><path class="region r3" d="M0 285L350 330 500 620H0Z"/><path class="region r4" d="M350 330L480 190 700 260 1000 190V620H500Z"/><path class="line" d="M390 0L480 190 350 330 500 620M480 190L700 260 1000 190M350 330L0 285"/><path class="route" d="M156 141Q300 100 455 192M802 134Q760 210 671 288M265 475Q389 402 502 326"/>
     <g class="troops"><circle cx="264" cy="118" r="5"/><circle cx="281" cy="115" r="5"/><circle cx="298" cy="122" r="5"/><circle cx="319" cy="120" r="5"/><circle cx="342" cy="129" r="5"/><circle cx="744" cy="148" r="5"/><circle cx="759" cy="157" r="5"/><circle cx="773" cy="166" r="5"/><circle cx="788" cy="175" r="5"/><circle cx="811" cy="188" r="5"/><circle cx="347" cy="480" r="5"/><circle cx="363" cy="469" r="5"/><circle cx="378" cy="458" r="5"/><circle cx="393" cy="447" r="5"/></g>
     <g class="city blue"><circle cx="156" cy="141" r="31"/><text x="156" y="146">36</text></g><g class="city red"><circle cx="802" cy="134" r="31"/><text x="802" y="139">24</text></g><g class="city gold"><circle cx="265" cy="475" r="31"/><text x="265" y="480">18</text></g><g class="city neutral"><circle cx="502" cy="326" r="31"/><text x="502" y="331">12</text></g><g class="city red"><circle cx="671" cy="288" r="31"/><text x="671" y="293">30</text></g>
   </svg></div>
-  <nav class="controls" aria-label="Paused game controls">
-    <button class="control resume" id="resume" aria-label="Resume" title="Resume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
-    <button class="control" id="restart" aria-label="Restart" title="Restart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M5 4v4h4M4 13a8 8 0 0 0 14.9 3M19 20v-4h-4"/></svg></button>
-    <button class="control" id="home" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg></button>
-  </nav>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </main><script type="module" src="./main.js"></script></body></html>
