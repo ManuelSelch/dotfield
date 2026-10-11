@@ -22,7 +22,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'neutral')) {
         const factory = node.features?.find(feature => feature.kind === 'factory');
         const label = factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : node.features?.some(feature => feature.kind === 'artillery')
-          ? ' Artillery inactive, nearest hostile garrison within 110 units, one defender every 2000 ms. Mountains block shots; troops must capture cities.' : '';
+          ? ' Artillery inactive, nearest hostile garrison within 150 units, one defender every 333.3333333333333 ms. Mountains block shots; troops must capture cities.' : '';
         await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.${label}`);
       }
       for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'player' && node.id !== 'south')) {

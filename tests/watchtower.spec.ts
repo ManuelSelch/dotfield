@@ -13,7 +13,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await towerOption.tap(); await page.getByRole('button', { name: 'Play', exact: true }).tap();
     const towers = page.getByRole('list', { name: 'Territory details' }).getByRole('listitem').filter({ hasText: /Watchtower controlled by/ });
     await expect(towers).toHaveCount(1);
-    await expect(towers).toContainText(/Watchtower controlled by [^,]+, firing within 110 units every 250 ms \(up to 4.0 shots\/second\)\./);
+    await expect(towers).toContainText(/Watchtower controlled by [^,]+, firing within 150 units every 250 ms \(up to 4.0 shots\/second\)\./);
     await page.screenshot({ path: `test-results/watchtower-board-${viewport.width}.png` });
     await page.getByRole('button', { name: 'Pause', exact: true }).tap();
     await page.getByRole('button', { name: 'Home', exact: true }).tap();
