@@ -20,6 +20,9 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 /* Keep the iOS viewport lock independent of component-library styles. */
 body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background: var(--color-page); }
 #root { height: 100%; overflow: hidden; }
+.field-viewport canvas:focus { outline: none; }
+.game-action-button, .game-action-button:hover { background-color: #303030 !important; color: #fff !important; transition: none !important; }
+.game-action-button--primary, .game-action-button--primary:hover { background-color: #267c72 !important; color: #fff !important; }
 
 .connection-badge {
   flex-shrink: 0;

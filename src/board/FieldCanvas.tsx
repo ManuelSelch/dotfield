@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useBoardSession } from './useBoardSession';
-import { PauseButton, SessionControls } from '../ui/SessionControls';
+import { SessionControls } from '../ui/SessionControls';
 import { TroopCompositionBar } from '../ui/TroopCompositionBar';
 import { TransferDetails } from './TransferDetails';
 import { TERRITORIES } from './map';
@@ -25,7 +25,6 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
     <>
       <div className="mb-3 flex shrink-0 items-center gap-3">
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
-        {phase === 'running' && <PauseButton onPause={session.pause} />}
       </div>
       <div className="field-viewport relative min-h-0 flex-1">
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
@@ -42,7 +41,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           {session.feedback || 'Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.'}
         </p>}
         {state.roundStatus === 'playing' && <SessionControls phase={phase}
-          onResume={session.resume} onRestart={session.restart} onHome={onHome} onNewMap={onNewMap} />}
+          onPause={session.pause} onResume={session.resume} onRestart={session.restart} onHome={onHome} />}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} onNewMap={onNewMap} />
       </div>
       <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />

@@ -67,7 +67,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'More cities' }).click();
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
     await page.getByRole('button', { name: 'River and bridges' }).click();
-    await page.getByRole('button', { name: 'Map industry' }).click();
+    await page.getByRole('button', { name: 'Map Factory' }).click();
     await artillery.click();
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '110');
     await page.getByText('Your upgrades', { exact: true }).click();
@@ -113,15 +113,9 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
     expect((await saved(page)).territories).toEqual(initial.territories);
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
-    await page.getByRole('button', { name: 'New map', exact: true }).click();
-    const next = await saved(page);
-    expect(next.generated.seed).not.toBe(initial.generated.seed);
-    expect(next.territories).not.toEqual(initial.territories);
-    expect(next.generated.preferences).toEqual(initial.generated.preferences);
-    await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Paused', exact: true })).toBeVisible();
-    expect((await saved(page)).territories).toEqual(next.territories);
+    await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
+    expect((await saved(page)).territories).toEqual(initial.territories);
     await page.getByRole('button', { name: 'Home', exact: true }).click();
     await expect(play).toBeFocused();
     await page.reload();
@@ -197,7 +191,7 @@ test('Mountains Off generates and saves a field without the central ridge', asyn
   expect(game.generated.preferences.map.mountains).toBe(false);
   expect(game.state.terrain).toBeUndefined();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  await page.getByRole('button', { name: 'New map', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
   expect((await saved(page)).state.terrain).toBeUndefined();
 });
 

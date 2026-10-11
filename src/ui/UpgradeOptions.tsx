@@ -6,7 +6,7 @@ export function UpgradeOptions({ factionId, selected, onChange }: {
 }) {
   const label = factionId === 'player' ? 'Your upgrades' : `${factionId} upgrades`;
   const available = Object.values(UPGRADES).filter(upgrade => factionId === 'player'
-    ? upgrade.id !== 'factory' : upgrade.id !== 'factory' && upgrade.id !== 'industry');
+    ? upgrade.id !== 'factory' : upgrade.id !== 'factory');
   return <div role="group" aria-label={label}>
     {available.map(upgrade => <Checkbox key={upgrade.id}
       label={upgrade.name} description={factionId === 'player' ? upgrade.description

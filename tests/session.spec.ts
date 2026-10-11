@@ -31,14 +31,15 @@ test('starts immediately; pause freezes the board and survives backgrounding', a
   });
   await page.clock.runFor(10000); expect(await pixels()).toBe(paused);
   await page.getByRole('button', { name: 'Resume', exact: true }).tap();
+  await expect.poll(() => canvas.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
   await page.clock.runFor(100); expect(await pixels()).not.toBe(paused);
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
 
-test('restart is only in the pause popup and immediately starts a fresh round', async ({ page }) => {
+test('pause controls stay compact over the visible map and restart immediately starts a fresh round', async ({ page }) => {
   const { source, target } = await fieldPoints(page);
   for (let round = 0; round < 2; round++) {
-    await expect(page.getByRole('button', { name: 'Restart', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Restart', exact: true })).toBeVisible();
     await page.mouse.move(source.x, source.y); await page.mouse.down();
     await page.mouse.move(target.x, target.y); await page.mouse.up();
     await page.clock.runFor(1100);
@@ -46,6 +47,19 @@ test('restart is only in the pause popup and immediately starts a fresh round', 
     await expect(pause.locator('svg')).toHaveCount(1);
     await expect(pause).toHaveText('');
     await pause.click();
+    await expect(page.getByRole('group', { name: 'Game controls' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New map', exact: true })).toHaveCount(0);
+    for (const label of ['Resume', 'Restart', 'Home']) {
+      const control = page.getByRole('button', { name: label, exact: true });
+      await expect(control).toHaveText('');
+      await expect(control).toHaveAttribute('title', label);
+      const background = await control.evaluate(el => getComputedStyle(el).backgroundColor);
+      if (label === 'Resume') expect(background).toBe('rgb(38, 124, 114)');
+      else expect(background).toBe('rgb(48, 48, 48)');
+      await control.hover();
+      await expect.poll(() => control.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(background);
+    }
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('Ready to grow?')).toHaveCount(0);
