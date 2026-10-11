@@ -8,10 +8,12 @@ test('mobile Home selections configure the generated match', async ({ app }) => 
   await app.home.enableFieldFeature('Watchtower');
   await app.home.enablePlayerUpgrade('Industry');
   await app.home.enablePlayerUpgrade('Capture shield');
+  await app.home.rerollPreview();
   await app.home.play();
 
   await app.match.shouldStartWith({
     fieldFeatures: ['Artillery', 'Watchtower'],
     playerUpgrades: ['Industry', 'Capture shield'],
   });
+  await app.match.shouldUseCurrentPreview();
 });

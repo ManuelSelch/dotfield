@@ -25,12 +25,16 @@ const upgradeIds: Record<PlayerUpgradeName, string> = {
 
 interface SavedMatch {
   generated?: { preferences?: { map?: Record<string, unknown>; upgrades?: Record<string, string[]> } };
-  territories?: { features?: { kind: string }[] }[];
+  territories?: { x: number; y: number; features?: { kind: string }[] }[];
   state?: { rules?: { factions?: Record<string, { unitsPerSecond?: number; captureShieldBatches?: number }> } };
 }
 
+interface DriverContext {
+  previewCoordinates?: [number, number][];
+}
+
 export class HomeDriver {
-  constructor(private readonly page: Page) {}
+  constructor(private readonly page: Page, private readonly context: DriverContext) {}
 
   private async tap(control: Locator, description: string) {
     const bounds = await control.boundingBox();
@@ -50,6 +54,10 @@ export class HomeDriver {
     await expect(toggle, `${name} field setting`).toHaveAttribute('aria-pressed', 'true');
   }
 
+  async rerollPreview() {
+    await this.tap(this.page.getByRole('button', { name: 'Reroll', exact: true }), 'map reroll');
+  }
+
   async enablePlayerUpgrade(name: PlayerUpgradeName) {
     const upgrades = this.page.getByRole('group', { name: 'Your upgrades' });
     if (!await upgrades.isVisible()) {
@@ -61,13 +69,25 @@ export class HomeDriver {
   }
 
   async play() {
-    await this.page.getByRole('button', { name: 'Play', exact: true }).click();
+    const preview = this.page.getByRole('img', { name: 'Generated map preview' });
+    this.context.previewCoordinates = await preview.locator('g > circle[cx][cy]')
+      .evaluateAll(circles => circles.map(circle => [Number(circle.getAttribute('cx')), Number(circle.getAttribute('cy'))] as [number, number]));
+    await this.tap(this.page.getByRole('button', { name: 'Play', exact: true }), 'Play');
     await this.page.getByRole('img', { name: 'Territory board' }).waitFor();
   }
 }
 
 export class MatchDriver {
-  constructor(private readonly page: Page) {}
+  constructor(private readonly page: Page, private readonly context: DriverContext) {}
+
+  async shouldUseCurrentPreview() {
+    expect(this.context.previewCoordinates, 'The preview should be captured when Play is selected').toBeDefined();
+    const raw = await this.page.evaluate(key => localStorage.getItem(key), SAVED_GAME_KEY);
+    expect(raw, 'The started match should be saved').not.toBeNull();
+    const match = JSON.parse(raw!) as SavedMatch;
+    const matchCoordinates = match.territories?.map(city => [city.x, city.y]);
+    expect(matchCoordinates, 'The started match should use the currently previewed map').toEqual(this.context.previewCoordinates);
+  }
 
   async shouldStartWith(expected: { fieldFeatures: FieldFeatureName[]; playerUpgrades: PlayerUpgradeName[] }) {
     const raw = await this.page.evaluate(key => localStorage.getItem(key), SAVED_GAME_KEY);
@@ -101,7 +121,8 @@ export class DotfieldDriver {
   readonly match: MatchDriver;
 
   constructor(page: Page) {
-    this.home = new HomeDriver(page);
-    this.match = new MatchDriver(page);
+    const context: DriverContext = {};
+    this.home = new HomeDriver(page, context);
+    this.match = new MatchDriver(page, context);
   }
 }
