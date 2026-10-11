@@ -10,8 +10,12 @@ import { drawRegions } from './regions/drawRegions';
 import { drawRiver } from './drawRiver';
 import { drawMountains } from './drawMountains';
 import { drawArtilleryCoverage, drawArtilleryShots } from './drawArtillery';
+import { connectedTerritoryIds } from '../game/connectedTerritories';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
+const connectivityCaches = new WeakMap<HTMLCanvasElement, {
+  key: string; river: SimulationState['river']; terrain: SimulationState['terrain']; ids: ReadonlySet<string>;
+}>();
 const MAX_BUSY_PIXEL_RATIO = 2;
 const BUSY_TRANSFER_THRESHOLD = 12;
 
@@ -36,7 +40,16 @@ export function drawBoard(
   ctx.clearRect(0, 0, width, height);
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
-  drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection, state.river, state.terrain);
+  const homeCityId = state.homeCityIds?.player;
+  const ownershipKey = `${homeCityId ?? ''}|${state.territories.map(city => `${city.id}:${city.owner}`).join('|')}`;
+  let connectivity = connectivityCaches.get(canvas);
+  if (!connectivity || connectivity.key !== ownershipKey || connectivity.river !== state.river || connectivity.terrain !== state.terrain) {
+    connectivity = { key: ownershipKey, river: state.river, terrain: state.terrain,
+      ids: connectedTerritoryIds(state.territories, 'player', homeCityId, state.river, state.terrain) };
+    connectivityCaches.set(canvas, connectivity);
+  }
+  drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection,
+    state.river, state.terrain, connectivity.ids);
   ctx.fillStyle = '#c4cec2';
   ctx.globalAlpha = 0.5;
   for (let x = 12; x < width; x += 24) {

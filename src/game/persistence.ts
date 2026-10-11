@@ -76,7 +76,19 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
       const target = parsed.state.territories.find(c => c.id === transfer.targetId);
       if (!source || !target || !canRiverOrder(source, target, river)) return null;
     }
-    const normalized: SimulationState = { ...parsed.state, rules,
+    let homeCityIds = parsed.state.homeCityIds;
+    if (homeCityIds !== undefined) {
+      if (!isObject(homeCityIds)) return null;
+      for (const [factionId, cityId] of Object.entries(homeCityIds)) {
+        if (typeof cityId !== 'string' || !parsed.territories.some(city => city.id === cityId && city.owner === factionId)) return null;
+      }
+    } else {
+      homeCityIds = Object.fromEntries(Object.keys(rules.factions).flatMap(factionId => {
+        const home = parsed.territories.find(city => city.owner === factionId);
+        return home ? [[factionId, home.id]] : [];
+      }));
+    }
+    const normalized: SimulationState = { ...parsed.state, rules, homeCityIds,
       ...(terrain ? { terrain } : {}), ...(river ? { river } : {}),
       captureShields: restoreCaptureShields({ ...parsed.state, rules }) };
     return { ...parsed, state: normalized };

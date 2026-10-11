@@ -16,8 +16,36 @@ function path(ctx: CanvasRenderingContext2D, region: CityRegion) {
   ctx.closePath();
 }
 
+function edgeKey(a: { x: number; y: number }, b: { x: number; y: number }) {
+  const pointKey = (point: { x: number; y: number }) => `${Math.round(point.x * 100)},${Math.round(point.y * 100)}`;
+  return [pointKey(a), pointKey(b)].sort().join('|');
+}
+
+function drawConnectedPerimeter(ctx: CanvasRenderingContext2D, regions: readonly CityRegion[], connectedIds: ReadonlySet<string>) {
+  const edges = new Map<string, { a: CityRegion['points'][number]; b: CityRegion['points'][number]; count: number }>();
+  for (const region of regions) {
+    if (!connectedIds.has(region.id) || region.points.length < 2) continue;
+    for (let i = 0; i < region.points.length; i++) {
+      const a = region.points[i], b = region.points[(i + 1) % region.points.length];
+      const key = edgeKey(a, b), existing = edges.get(key);
+      if (existing) existing.count++;
+      else edges.set(key, { a, b, count: 1 });
+    }
+  }
+  ctx.beginPath();
+  for (const edge of edges.values()) if (edge.count === 1) {
+    ctx.moveTo(edge.a.x, edge.a.y);
+    ctx.lineTo(edge.b.x, edge.b.y);
+  }
+  ctx.strokeStyle = '#267c72';
+  ctx.lineWidth = 2.6;
+  ctx.setLineDash([]);
+  ctx.stroke();
+}
+
 export function drawRegions(ctx: CanvasRenderingContext2D, territories: readonly Territory[],
-  regions: readonly CityRegion[], selection: DragSelection | null, river?: River, terrain?: Terrain) {
+  regions: readonly CityRegion[], selection: DragSelection | null, river?: River, terrain?: Terrain,
+  connectedIds: ReadonlySet<string> = new Set()) {
   const owners = new Map(territories.map(n => [n.id, n.owner]));
   const source = territories.find(c => c.id === selection?.sourceId);
   const target = territories.find(c => c.id === selection?.targetId);
@@ -34,6 +62,7 @@ export function drawRegions(ctx: CanvasRenderingContext2D, territories: readonly
       : region.id === selection?.targetId ? (REGION_TARGET[owner] ?? fill) : fill;
     path(ctx, region); ctx.fill(); ctx.stroke();
   }
+  if (connectedIds.size) drawConnectedPerimeter(ctx, regions, connectedIds);
   // Outline highlights last so adjacent region fills cannot obscure selection edges.
   ctx.strokeStyle = '#267c72';
   for (const region of regions) {
