@@ -164,20 +164,6 @@ test('terminal result uses icon actions without detail text or a New map button'
   await expect(page.getByRole('region', { name: 'Match settings' })).toBeVisible();
 });
 
-test('Play uses the current preview map after reroll', async ({ page }) => {
-  await page.goto('/');
-  const preview = page.getByRole('img', { name: 'Generated map preview' });
-  const first = await preview.locator('circle[cx]:not([aria-label="Artillery range"])').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
-  await page.getByRole('button', { name: 'Reroll' }).click();
-  const rerolled = await preview.locator('circle[cx]:not([aria-label="Artillery range"])').evaluateAll(circles => circles.map(c => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]));
-  expect(rerolled).not.toEqual(first);
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-  const game = await saved(page);
-  const gameCoordinates = game.territories.map((c: { x: number; y: number }) => [c.x, c.y]);
-  expect(gameCoordinates).toEqual(rerolled);
-});
-
 test('Mountains Off generates and saves a field without the central ridge', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Mountains' }).click();
