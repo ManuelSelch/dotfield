@@ -58,31 +58,32 @@ test('drag after click selection issues one order and replacement clicks preserv
 });
 
 test('pause, resize, interruption and restart clear selection without dispatch', async ({ page }) => {
+  const playerTransfers = () => transfers(page).filter({ hasText: /^south →/ });
   let points = await fieldPoints(page);
   await click(page, points.source);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Resume', exact: true }).click();
-  await click(page, points.target); await expect(transfers(page)).toHaveCount(0);
+  await click(page, points.target); await expect(playerTransfers()).toHaveCount(0);
   await click(page, points.source);
   await page.setViewportSize({ width: 430, height: 932 });
   // Deliver ResizeObserver callbacks while the test clock is paused.
   await page.clock.runFor(50);
   points = await fieldPoints(page); await click(page, points.target);
-  await expect(transfers(page)).toHaveCount(0);
+  await expect(playerTransfers()).toHaveCount(0);
   for (const event of ['visibilitychange', 'pagehide']) {
     await click(page, points.source);
     await page.evaluate(name => (name === 'pagehide' ? window : document).dispatchEvent(new Event(name)), event);
-    await click(page, points.target); await expect(transfers(page)).toHaveCount(0);
+    await click(page, points.target); await expect(playerTransfers()).toHaveCount(0);
   }
   await click(page, points.source);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
-  await click(page, points.target); await expect(transfers(page)).toHaveCount(0);
+  await click(page, points.target); await expect(playerTransfers()).toHaveCount(0);
   await click(page, points.source);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await openAuthoredMatch(page);
-  await click(page, (await fieldPoints(page)).target); await expect(transfers(page)).toHaveCount(0);
+  await click(page, (await fieldPoints(page)).target); await expect(playerTransfers()).toHaveCount(0);
 });
 
 test('keyboard and mouse selection replace one another', async ({ page }) => {

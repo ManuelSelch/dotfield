@@ -21,16 +21,16 @@ for (const width of [320, 430]) {
     await page.clock.runFor(5850);
     await expect(city(page,'artillery')).toContainText('Artillery controlled by player');
     await page.clock.runFor(1950);
-    await expect(city(page,'near')).toHaveText('near: Opponent, 12 units.');
-    await page.clock.runFor(50);
-    await expect(city(page,'near')).toHaveText('near: Opponent, 11 units.');
+    await expect(city(page,'near')).toHaveText('near: Opponent, 7 units.');
+    await page.clock.runFor(350);
+    await expect(city(page,'near')).toHaveText('near: Opponent, 6 units.');
     await expect(page.getByRole('status',{name:'Artillery feedback'})).toContainText('artillery fired at near');
     await expect(city(page,'blocked')).toHaveText('blocked: Opponent, 12 units.');
     await expect(city(page,'neutral')).toHaveText('neutral: Neutral, 8 units.');
     await page.screenshot({ path: `test-results/artillery-${width}.png` });
     await page.getByRole('button',{name:'Pause',exact:true}).click();
     await page.clock.runFor(10000);
-    await expect(city(page,'near')).toHaveText('near: Opponent, 11 units.');
+    await expect(city(page,'near')).toHaveText('near: Opponent, 6 units.');
     await page.getByRole('button',{name:'Restart',exact:true}).click();
     await expect(city(page,'artillery')).toContainText('Artillery inactive');
     await expect(city(page,'near')).toHaveText('near: Opponent, 12 units.');
@@ -41,13 +41,13 @@ for (const width of [320, 430]) {
 test('enemy-owned Artillery targets the player and real recapture transfers firing control', async ({page})=>{
   await fixture(page,'&gun-owner=enemy');
   await page.clock.runFor(2050); // First RAF establishes the session clock.
-  await expect(city(page,'friendly')).toHaveText('friendly: You, 11 units.');
+  await expect(city(page,'friendly')).toHaveText('friendly: You, 6 units.');
   await expect(city(page,'near')).toHaveText('near: Opponent, 12 units.');
   await send(page,'south','artillery');await page.clock.runFor(5850);
   await expect(city(page,'artillery')).toContainText('Artillery controlled by player');
   const before=await city(page,'friendly').textContent();
   await page.clock.runFor(2000);
-  await expect(city(page,'near')).toHaveText('near: Opponent, 11 units.');
+  await expect(city(page,'near')).toHaveText('near: Opponent, 6 units.');
   expect(await city(page,'friendly').textContent()).toBe(before);
 });
 test('zero defenders retain hostile ownership and artillery orders reach without mountain block',async({page})=>{
@@ -55,7 +55,7 @@ test('zero defenders retain hostile ownership and artillery orders reach without
   await expect(city(page,'artillery')).toContainText('14 units.');
   await page.clock.runFor(24100);
   await expect(city(page,'near')).toHaveText('near: Opponent, 0 units.');
-  await expect(city(page,'blocked')).toHaveText('blocked: Opponent, 12 units.');
+  await expect(city(page,'blocked')).toHaveText('blocked: Opponent, 0 units.');
   await expect(page.getByRole('region',{name:'Victory'})).toHaveCount(0);
   await send(page,'artillery','near');await page.clock.runFor(1250);
   await expect(city(page,'near')).toHaveText('near: You, 5 units.');

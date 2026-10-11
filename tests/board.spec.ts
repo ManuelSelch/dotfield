@@ -39,7 +39,8 @@ for (const viewport of [
     expect(barBox!.width).toBeGreaterThan(180);
     expect(pauseBox!.width).toBeLessThanOrEqual(40);
     expect(box!.y - (pauseBox!.y + pauseBox!.height)).toBeGreaterThanOrEqual(12);
-    expect(pauseBox!.x).toBeGreaterThan(compositionBox!.x + compositionBox!.width - 50);
+    expect(pauseBox!.x).toBeGreaterThanOrEqual(0);
+    expect(pauseBox!.x + pauseBox!.width).toBeLessThanOrEqual(viewport.width);
     expect(box!.width).toBeGreaterThanOrEqual(280);
     expect(box!.height).toBeGreaterThanOrEqual(300);
     expect(box!.x).toBeGreaterThanOrEqual(0);

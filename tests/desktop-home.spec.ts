@@ -66,7 +66,7 @@ test('resizing preserves map preview and independent choices through Play and Ho
   }
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(14);
-    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
   await page.getByText('Your upgrades', { exact: true }).click();
