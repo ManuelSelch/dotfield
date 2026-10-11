@@ -67,7 +67,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.getByRole('button', { name: 'More cities' }).click();
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
     await page.getByRole('button', { name: 'River and bridges' }).click();
-    await page.getByRole('button', { name: 'Map industry' }).click();
+    await page.getByRole('button', { name: 'Map Factory' }).click();
     await artillery.click();
     await expect(preview.locator('[aria-label="Artillery range"]')).toHaveAttribute('r', '110');
     await page.getByText('Your upgrades', { exact: true }).click();
