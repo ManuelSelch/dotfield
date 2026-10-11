@@ -55,7 +55,7 @@ Tactical purpose: hold a shorter attack route, deny an enemy flank, or bypass a 
 
 ### 3. Artillery city
 
-- R15. An Artillery city automatically attacks eligible hostile city garrisons within a 90-field-unit range, firing once every 2,000 ms. It does not replace the Watchtower's airborne-dot targeting.
+- R15. An Artillery city automatically attacks eligible hostile city garrisons within a 90-field-unit range, firing once every 1,000/3 ms (~333 ms). It does not replace the Watchtower's airborne-dot targeting.
 - R16. Each shot removes one defender, without splash damage. Artillery alone cannot capture a city; a troop arrival is still required. Never reduce a garrison below zero.
 - R17. Target the nearest eligible hostile city with troops. Target ties and simultaneous-event ordering must be deterministic and identical in live play and forecasts.
 - R18. Capture transfers Artillery control to the new owner; neutral Artillery does not fire. Friendly and neutral cities are never targets.
