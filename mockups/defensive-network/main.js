@@ -8,9 +8,9 @@ const ns='http://www.w3.org/2000/svg';
 function node(tag,attrs={},text=''){const el=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);if(text)el.textContent=text;return el}
 function draw(){regions.replaceChildren();cities.replaceChildren();
  const owned=new Set(baseOwned), queue=['capital'];while(queue.length){const id=queue.shift();for(const [a,b]of edges){const other=a===id?b:b===id?a:null;if(other&&!owned.has(other)&&baseOwned.has(other)){owned.add(other);queue.push(other)}}}
- const count=owned.size, shields=count>=7?3:count>=4?2:count>=2?1:0, defense=shields*10;
- document.querySelector('#tier').textContent=shields?`Defense tier ${shields} · +${defense}%`:'No network defense';
- document.querySelector('#count').textContent=`${count} cities connected to your starting city`;
+ const count=owned.size, shields=count>=7?3:count>=4?2:count>=2?1:0;
+ document.querySelector('#tier').textContent=shields?`Tier ${shields} · ${shields} shields max`:'No network shields';
+ document.querySelector('#count').textContent='1 shield recharges every 10 seconds';
  // Abstract territory polygons; the stronger perimeter is drawn once around the union.
  const cells={capital:'42,89 95,88 112,122 88,151 40,140',a:'96,70 156,66 165,104 131,126 94,104',b:'157,76 221,89 226,128 190,145 164,108',frontL:'68,145 110,128 139,153 129,198 75,207 47,177',frontC:'133,129 190,145 212,176 190,211 133,204 126,164',frontR:'194,137 243,145 271,178 250,211 195,211 213,175',island:'259,105 319,100 331,145 282,163 253,143'};
  for(const [id,poly]of Object.entries(cells))regions.append(node('polygon',{points:poly,class:`region ${owned.has(id)?'player':'neutral'}`}));

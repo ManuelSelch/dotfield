@@ -3,6 +3,13 @@ import type { River } from './river';
 import type { Point, Territory } from './types';
 
 const EDGE_EPSILON = 1e-5;
+const adjacencyCache = new Map<string, ReadonlyMap<string, ReadonlySet<string>>>();
+
+function topologyKey(territories: readonly Territory[], river?: River): string {
+  const sites = territories.map(city => `${city.id}:${city.x}:${city.y}`).join('|');
+  const bridges = river?.bridges.map(bridge => `${bridge.northId}:${bridge.southId}`).join('|') ?? '';
+  return `${river ? `${river.top}:${river.bottom}` : 'no-river'}:${bridges}:${sites}`;
+}
 
 function sharedEdgeLength(a: Point, b: Point, c: Point, d: Point): number {
   const abX = b.x - a.x, abY = b.y - a.y;
@@ -31,6 +38,13 @@ function regionsShareBorder(a: readonly Point[], b: readonly Point[]): boolean {
 
 /** Neighbor links are shared territory-region borders, plus explicitly paired river bridges. */
 export function adjacentTerritoryIds(territories: readonly Territory[], river?: River): ReadonlyMap<string, ReadonlySet<string>> {
+  const key = topologyKey(territories, river);
+  const cached = adjacencyCache.get(key);
+  if (cached) {
+    adjacencyCache.delete(key);
+    adjacencyCache.set(key, cached);
+    return cached;
+  }
   const regions = createCityRegions(territories, 360, 480, river);
   const neighbors = new Map(territories.map(city => [city.id, new Set<string>()]));
   for (let i = 0; i < regions.length; i++) {
@@ -44,5 +58,7 @@ export function adjacentTerritoryIds(territories: readonly Territory[], river?: 
     neighbors.get(bridge.northId)?.add(bridge.southId);
     neighbors.get(bridge.southId)?.add(bridge.northId);
   }
+  adjacencyCache.set(key, neighbors);
+  if (adjacencyCache.size > 8) adjacencyCache.delete(adjacencyCache.keys().next().value!);
   return neighbors;
 }

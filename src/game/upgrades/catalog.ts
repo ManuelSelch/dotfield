@@ -39,7 +39,7 @@ export const UPGRADES = {
     effects: [{ kind: 'capture-shield', batches: 3 }],
   },
   'defensive-network': {
-    id: 'defensive-network', name: 'Defensive Network', description: 'Connected cities gain up to +30% defense against troops',
+    id: 'defensive-network', name: 'Defensive Network', description: 'Connected cities recharge 1 shield every 10s · Tier sets capacity (1–3)',
     effects: [{ kind: 'connected-defense' }],
   },
 } as const satisfies Record<string, UpgradeDefinition>;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getConnectedDefenseTier } from './connectedDefense';
+import { connectedDefenseCapacities, getConnectedDefenseTier } from './connectedDefense';
 import { createSimulation } from './state';
 import { compileRoundSetup } from './upgrades/compile';
 import type { Territory } from './types';
@@ -21,6 +21,13 @@ describe('connected defense tiers', () => {
       const state = network(size);
       expect(getConnectedDefenseTier(state, state.territories[0])).toBe(tier);
     });
+
+  it('reports shield storage capacity for each connected upgraded city', () => {
+    const state = network(4);
+    expect(connectedDefenseCapacities(state)).toEqual(new Map([
+      ['home', 2], ['city-1', 2], ['city-2', 2], ['city-3', 2],
+    ]));
+  });
 
   it('compiles the upgrade independently for each faction', () => {
     const territories: Territory[] = [

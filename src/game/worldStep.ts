@@ -6,15 +6,20 @@ import { advanceWatchtowers } from './features/watchtower';
 import { SIMULATION_STEP_MS } from './settings';
 import { hasSlowZones } from './features/slowZone';
 import { advanceArtillery } from './features/artillery';
+import { advanceNetworkShields } from './features/networkShields';
 
 function physicalStep(state: SimulationState, elapsedMs: number) {
-  return advanceArtillery(advanceWatchtowers(resolveCombat(advanceTravel(advanceGrowth(state, elapsedMs), elapsedMs)), elapsedMs), elapsedMs, state);
+  const beforeStep = state;
+  const combat = resolveCombat(advanceTravel(advanceGrowth(state, elapsedMs), elapsedMs));
+  const shielded = advanceNetworkShields(combat, elapsedMs, beforeStep);
+  return advanceArtillery(advanceWatchtowers(shielded, elapsedMs), elapsedMs, state);
 }
 
 // Shared physical update for live rounds and forecasts; never issues AI orders.
 // Orchestrators retain their existing stepping and round-evaluation semantics.
 export function advanceWorldStep(state: SimulationState, elapsedMs: number): SimulationState {
-  if ((hasSlowZones(state) || state.territories.some(city => city.features?.some(feature => feature.kind === 'watchtower' || feature.kind === 'artillery')))
+  if ((hasSlowZones(state) || Object.values(state.rules.factions).some(faction => faction.connectedDefense)
+    || state.territories.some(city => city.features?.some(feature => feature.kind === 'watchtower' || feature.kind === 'artillery')))
     && elapsedMs > SIMULATION_STEP_MS) {
     for (let remaining = elapsedMs; remaining > 0;) {
       const step = Math.min(remaining, SIMULATION_STEP_MS);

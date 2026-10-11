@@ -5,6 +5,7 @@ import { canDirectTerrainOrder } from './terrain/directOrder';
 import { isGeneratedMatch, type GeneratedMatch } from './matchPreferences';
 import { createRules } from './rules';
 import { restoreCaptureShields } from './features/captureShield';
+import { restoreNetworkShieldTimers } from './features/networkShields';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -90,7 +91,8 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
     }
     const normalized: SimulationState = { ...parsed.state, rules, homeCityIds,
       ...(terrain ? { terrain } : {}), ...(river ? { river } : {}),
-      captureShields: restoreCaptureShields({ ...parsed.state, rules }) };
+      captureShields: restoreCaptureShields({ ...parsed.state, rules }),
+      networkShieldTimers: restoreNetworkShieldTimers({ ...parsed.state, rules }) };
     return { ...parsed, state: normalized };
   } catch {
     return null;
