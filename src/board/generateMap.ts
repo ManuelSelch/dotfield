@@ -96,7 +96,7 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const artilleryCity = settings.artillery ? territories.filter(city => city.owner === 'neutral')
     .sort((a, b) => Math.hypot(a.x - 180, a.y - 240) - Math.hypot(b.x - 180, b.y - 240))[0] : undefined;
   if (artilleryCity) territories = territories.map(city => city === artilleryCity ? { ...city, units: 14,
-    features: [{ id: `${city.id}:artillery`, kind: 'artillery', range: 110, fireIntervalMs: 2000 }] } : city);
+    features: [{ id: `${city.id}:artillery`, kind: 'artillery', range: 110, fireIntervalMs: 2000 / 3 }] } : city);
   if (settings.industry) {
     const neutral = territories.filter(city => city.owner === 'neutral' && city.id !== artilleryCity?.id);
     const factoryCount = Math.min(neutral.length, Math.max(1, Math.round(settings.cities / 6)));
