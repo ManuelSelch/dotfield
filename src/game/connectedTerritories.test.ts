@@ -16,7 +16,7 @@ const cities: Territory[] = [
 const river = createRiver({ top: 225, bottom: 255, bridges: [{ id: 'west', northId: 'bridge-n', southId: 'bridge-s', width: 60 }] }, cities);
 
 describe('connected territory', () => {
-  it('finds currently owned cities reachable from the faction home by legal routes', () => {
+  it('finds currently owned cities linked to the faction home through shared borders', () => {
     expect([...connectedTerritoryIds(cities, 'player', 'home', river)]).toEqual([
       'home', 'north', 'bridge-n', 'bridge-s', 'rear', 'cut-off',
     ]);
@@ -27,12 +27,23 @@ describe('connected territory', () => {
     expect(connectedTerritoryIds(split, 'player', 'home', river)).toEqual(new Set(['home', 'north']));
   });
 
+  it('requires a shared-border chain instead of any legal direct order', () => {
+    const line: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 60, y: 240 },
+      { id: 'neutral-link', owner: 'neutral', units: 10, x: 180, y: 240 },
+      { id: 'distant', owner: 'player', units: 10, x: 300, y: 240 },
+    ];
+    expect(connectedTerritoryIds(line, 'player', 'home')).toEqual(new Set(['home']));
+    const capturedLink = line.map(city => city.id === 'neutral-link' ? { ...city, owner: 'player' } : city);
+    expect(connectedTerritoryIds(capturedLink, 'player', 'home')).toEqual(new Set(['home', 'neutral-link', 'distant']));
+  });
+
   it('has no connected group after the original home is lost', () => {
     const captured = cities.map(city => city.id === 'home' ? { ...city, owner: 'enemy' } : city);
     expect(connectedTerritoryIds(captured, 'player', 'home', river)).toEqual(new Set());
   });
 
-  it('does not treat a city owned by another faction as part of the route chain', () => {
+  it('does not treat a city owned by another faction as a border link', () => {
     const blocked = cities.map(city => city.id === 'bridge-n' ? { ...city, owner: 'enemy' } : city);
     expect([...connectedTerritoryIds(blocked, 'player', 'home', river)]).toEqual(['home', 'north']);
   });

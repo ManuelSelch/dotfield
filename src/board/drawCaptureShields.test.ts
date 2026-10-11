@@ -39,8 +39,9 @@ describe('Capture shield arcs', () => {
   });
   it('reports remaining batches separately from garrison units including depletion', () => {
     const city = { id: 'city', owner: 'player', units: 12, x: 105, y: 91 };
-    expect(featureLabels(city, { remaining: 2 })).toContain('Capture shield: 2 of 3 charges (blocks 2 hostile batches).');
-    expect(featureLabels(city, { remaining: 0 })).toContain('Capture shield depleted.');
+    expect(featureLabels(city, { remaining: 2 })).toContain('Shields: 2 active charges; each blocks one hostile troop-arrival batch.');
+    expect(featureLabels(city, { remaining: 0 })).toContain('Shields depleted.');
+    expect(featureLabels(city, { remaining: 1 }, 3)).toContain('1 stored (capacity 3)');
     expect(featureLabels(city)).not.toContain('shield');
   });
 });

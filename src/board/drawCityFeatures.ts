@@ -11,7 +11,7 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
   connectedNetworks?: ReadonlyMap<string, ReadonlySet<string>>) {
   const networks = connectedNetworks ?? new Map(Object.entries(state.rules.factions).flatMap(([factionId, rules]) => {
     if (!rules.connectedDefense) return [];
-    return [[factionId, connectedTerritoryIds(state.territories, factionId, state.homeCityIds?.[factionId], state.river, state.terrain)] as const];
+    return [[factionId, connectedTerritoryIds(state.territories, factionId, state.homeCityIds?.[factionId], state.river)] as const];
   }));
   for (const city of projectBoard(state.territories, width, height)) {
     const radius = Math.max(5, city.radius * 0.34);

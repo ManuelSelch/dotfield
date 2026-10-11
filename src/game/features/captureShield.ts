@@ -17,7 +17,8 @@ export function restoreCaptureShields(state: SimulationState): SimulationState['
   if (typeof runtime !== 'object' || runtime === null || Array.isArray(runtime)) throw new RangeError('Invalid Capture shield runtime.');
   for (const [id, shield] of Object.entries(runtime)) {
     const city = state.territories.find(city => city.id === id);
-    const maximum = city && city.owner !== 'neutral' ? state.rules.factions[city.owner]?.captureShieldBatches ?? 0 : 0;
+    const factionRules = city && city.owner !== 'neutral' ? state.rules.factions[city.owner] : undefined;
+    const maximum = Math.max(factionRules?.captureShieldBatches ?? 0, factionRules?.connectedDefense ? 3 : 0);
     if (!city || city.owner === 'neutral' || maximum === 0 || !shield || typeof shield !== 'object'
       || !Number.isInteger(shield.remaining) || shield.remaining < 0 || shield.remaining > maximum
       || ((shield.blockedAt === undefined) !== (shield.blockedFrom === undefined))

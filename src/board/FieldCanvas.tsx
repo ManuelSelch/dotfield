@@ -14,7 +14,7 @@ import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
-import { CONNECTED_DEFENSE_BONUSES, connectedDefenseTierForSize } from '../game/connectedDefense';
+import { connectedDefenseCapacities, connectedDefenseTierForSize } from '../game/connectedDefense';
 
 interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
@@ -22,9 +22,9 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
   const { state, phase } = session;
-  const connectedIds = connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river, state.terrain);
+  const connectedIds = connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river);
   const playerDefenseTier = state.rules.factions.player?.connectedDefense ? connectedDefenseTierForSize(connectedIds.size) : 0;
-  const defenseBonusPercent = Math.round(CONNECTED_DEFENSE_BONUSES[playerDefenseTier] * 100);
+  const shieldCapacities = connectedDefenseCapacities(state);
 
   return (
     <>
@@ -35,10 +35,10 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
-        <RegionControls state={state} disabled={phase !== 'running'} />
+        <RegionControls state={state} disabled={phase !== 'running'} shieldCapacities={shieldCapacities} />
         <p id="connected-territory-help" className="sr-only">
-          {connectedIds.size ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city by currently legal routes.` : 'No cities are currently connected to your starting city by currently legal routes.'}
-          {playerDefenseTier ? ` Each connected city has ${defenseBonusPercent}% stronger defense against enemy troops, shown by ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'}.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least two connected cities to grant a bonus.' : ''}
+          {connectedIds.size ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city through shared borders between neighboring territories.` : 'No cities are currently connected to your starting city through neighboring territory borders.'}
+          {playerDefenseTier ? ` Each connected city can store up to ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'} and recharges one every 10 seconds. Each shield blocks one hostile troop-arrival batch. The numbered badge shows capacity; shield arcs show current charges.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least two connected cities before shields recharge.' : ''}
         </p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}
@@ -55,7 +55,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
-      <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />
+      <TerritoryDetails territories={state.territories} captureShields={state.captureShields} shieldCapacities={shieldCapacities} />
       <TransferDetails state={state} />
     </>
   );

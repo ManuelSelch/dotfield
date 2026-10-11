@@ -14,7 +14,7 @@ import { connectedTerritoryIds } from '../game/connectedTerritories';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
 const connectivityCaches = new WeakMap<HTMLCanvasElement, {
-  key: string; river: SimulationState['river']; terrain: SimulationState['terrain']; rules: SimulationState['rules'];
+  key: string; river: SimulationState['river']; rules: SimulationState['rules'];
   ids: ReadonlySet<string>; networks: ReadonlyMap<string, ReadonlySet<string>>;
 }>();
 const MAX_BUSY_PIXEL_RATIO = 2;
@@ -41,20 +41,19 @@ export function drawBoard(
   ctx.clearRect(0, 0, width, height);
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
-  const homeCityId = state.homeCityIds?.player;
   const homesKey = Object.entries(state.homeCityIds ?? {}).map(([id, home]) => `${id}:${home}`).join('|');
-  const ownershipKey = `${homesKey}|${state.territories.map(city => `${city.id}:${city.owner}`).join('|')}`;
+  const ownershipKey = `${homesKey}|${state.territories.map(city => `${city.id}:${city.owner}:${city.x}:${city.y}`).join('|')}`;
   let connectivity = connectivityCaches.get(canvas);
   if (!connectivity || connectivity.key !== ownershipKey || connectivity.river !== state.river
-    || connectivity.terrain !== state.terrain || connectivity.rules !== state.rules) {
+    || connectivity.rules !== state.rules) {
     const networks = new Map<string, ReadonlySet<string>>();
     for (const factionId of Object.keys(state.rules.factions)) {
       if (factionId === 'player' || state.rules.factions[factionId].connectedDefense) {
         networks.set(factionId, connectedTerritoryIds(state.territories, factionId,
-          state.homeCityIds?.[factionId], state.river, state.terrain));
+          state.homeCityIds?.[factionId], state.river));
       }
     }
-    connectivity = { key: ownershipKey, river: state.river, terrain: state.terrain, rules: state.rules,
+    connectivity = { key: ownershipKey, river: state.river, rules: state.rules,
       ids: networks.get('player') ?? new Set(), networks };
     connectivityCaches.set(canvas, connectivity);
   }

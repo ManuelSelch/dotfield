@@ -66,6 +66,11 @@ export interface CaptureShieldState {
   readonly blockedFrom?: number;
 }
 
+export interface NetworkShieldTimer {
+  readonly owner: Owner;
+  readonly elapsedMs: number;
+}
+
 export interface ArtilleryShot {
   readonly sourceId: string;
   readonly targetId: string;
@@ -92,4 +97,6 @@ export interface SimulationState {
   readonly nextTransferId: number;
   readonly watchtowerElapsedMs: Readonly<Record<string, number>>;
   readonly captureShields: Readonly<Record<string, CaptureShieldState>>;
+  /** Partial per-city recharge progress for Defensive Network shields. */
+  readonly networkShieldTimers?: Readonly<Record<string, NetworkShieldTimer>>;
 }

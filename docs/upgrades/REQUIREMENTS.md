@@ -4,7 +4,7 @@
 
 Keep faction upgrades independently configurable per player and AI faction, and keep territory features deterministic and shared with AI forecasting. Watchtower and Slow Zone are field-level map settings rather than faction upgrades; Industry, Factory and Capture shield remain independently selectable faction upgrades.
 
-Industry, Factory, Watchtower and Slow Zone mechanics are implemented; see the [effect catalog](EFFECTS.md). Watchtower and Slow Zone each globally add one seeded-random host. Both are toggled in Home's On the field settings. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/rules.
+Industry, Factory, Watchtower, Slow Zone, Capture Shield and Defensive Network mechanics are implemented; see the [effect catalog](EFFECTS.md). Watchtower and Slow Zone each globally add one seeded-random host. Both are toggled in Home's On the field settings. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/rules.
 
 ## Scope
 
@@ -36,6 +36,7 @@ Industry, Factory, Watchtower and Slow Zone mechanics are implemented; see the [
 - Factory is now a typed territory feature with a stable ID and production multiplier (legacy beneficiary IDs remain readable). Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
 - Factory stays attached on capture and boosts its current non-neutral owner. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
 - Watchtower is implemented as a typed territory feature with 250ms simulation-time firing, shared with AI forecasts. Its current city owner controls it; capturing switches allegiance immediately, and the continuous cadence does not reset. It targets the nearest hostile dot center within 72 field units, removes one stable slot, and draws a subtle coverage circle plus tower silhouette.
+- Defensive Network links currently owned shared-border neighbors from each faction's original home (paired bridge endpoints count as neighbors). Network sizes 2–3/4–6/7+ set capacity to 1/2/3 batch-blocking shields per connected city; one shield recharges every 10 seconds in simulation time. Capture Shield charges share this pool, and network recharge never removes charges already above capacity. Partial per-city recharge timers persist with active-round saves and are shared by live simulation and AI forecasts.
 
 ### Historical baseline before Industry
 
