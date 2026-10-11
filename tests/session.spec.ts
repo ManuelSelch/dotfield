@@ -55,6 +55,8 @@ test('pause controls stay compact over the visible map and restart immediately s
       await expect(control).toHaveText('');
       await expect(control).toHaveAttribute('title', label);
       const background = await control.evaluate(el => getComputedStyle(el).backgroundColor);
+      if (label === 'Resume') expect(background).toBe('rgb(38, 124, 114)');
+      else expect(background).toBe('rgb(48, 48, 48)');
       await control.hover();
       await expect.poll(() => control.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(background);
     }
