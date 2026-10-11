@@ -27,7 +27,7 @@ export function SessionNavigationControls({ onRestart, onHome }: Pick<Props, 'on
   const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => setTarget(document.getElementById('game-controls-slot')), []);
   if (!target) return null;
-  return createPortal(<Group className="items-center" gap={28} wrap="nowrap" role="group" aria-label="Navigation controls">
+  return createPortal(<Group className="items-center" gap={4} wrap="nowrap" role="group" aria-label="Navigation controls">
     <ActionIcon className="game-action-button" variant="filled" color="#303030" radius="xl" size={28} aria-label="Restart" title="Restart" onClick={onRestart}>
       <IconRefresh size={18} aria-hidden="true" />
     </ActionIcon>

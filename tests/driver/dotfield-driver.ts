@@ -63,9 +63,9 @@ export class HomeDriver {
     if (!await upgrades.isVisible()) {
       await this.tap(this.page.getByText('Your upgrades', { exact: true }), 'Your upgrades section');
     }
-    const checkbox = upgrades.getByRole('checkbox', { name, exact: true });
-    if (!await checkbox.isChecked()) await this.tap(checkbox, `${name} upgrade`);
-    await expect(checkbox, `${name} upgrade`).toBeChecked();
+    const toggle = upgrades.getByRole('button', { name, exact: true });
+    if (await toggle.getAttribute('aria-pressed') !== 'true') await this.tap(toggle, `${name} upgrade`);
+    await expect(toggle, `${name} upgrade`).toHaveAttribute('aria-pressed', 'true');
   }
 
   async play() {
