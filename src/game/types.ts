@@ -30,6 +30,8 @@ export interface FactionRules extends GrowthRules {
   readonly batchIntervalMs: number;
   // Optional in authored/legacy inputs; normalized to zero by createRules.
   readonly captureShieldBatches?: number;
+  /** Enables city-count-based defense for cities connected to this faction's home. */
+  readonly connectedDefense?: boolean;
 }
 export interface SimulationRules {
   readonly factions: Readonly<Record<FactionId, FactionRules>>;

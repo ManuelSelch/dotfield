@@ -14,7 +14,8 @@ import { connectedTerritoryIds } from '../game/connectedTerritories';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
 const connectivityCaches = new WeakMap<HTMLCanvasElement, {
-  key: string; river: SimulationState['river']; terrain: SimulationState['terrain']; ids: ReadonlySet<string>;
+  key: string; river: SimulationState['river']; terrain: SimulationState['terrain']; rules: SimulationState['rules'];
+  ids: ReadonlySet<string>; networks: ReadonlyMap<string, ReadonlySet<string>>;
 }>();
 const MAX_BUSY_PIXEL_RATIO = 2;
 const BUSY_TRANSFER_THRESHOLD = 12;
@@ -41,11 +42,20 @@ export function drawBoard(
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
   const homeCityId = state.homeCityIds?.player;
-  const ownershipKey = `${homeCityId ?? ''}|${state.territories.map(city => `${city.id}:${city.owner}`).join('|')}`;
+  const homesKey = Object.entries(state.homeCityIds ?? {}).map(([id, home]) => `${id}:${home}`).join('|');
+  const ownershipKey = `${homesKey}|${state.territories.map(city => `${city.id}:${city.owner}`).join('|')}`;
   let connectivity = connectivityCaches.get(canvas);
-  if (!connectivity || connectivity.key !== ownershipKey || connectivity.river !== state.river || connectivity.terrain !== state.terrain) {
-    connectivity = { key: ownershipKey, river: state.river, terrain: state.terrain,
-      ids: connectedTerritoryIds(state.territories, 'player', homeCityId, state.river, state.terrain) };
+  if (!connectivity || connectivity.key !== ownershipKey || connectivity.river !== state.river
+    || connectivity.terrain !== state.terrain || connectivity.rules !== state.rules) {
+    const networks = new Map<string, ReadonlySet<string>>();
+    for (const factionId of Object.keys(state.rules.factions)) {
+      if (factionId === 'player' || state.rules.factions[factionId].connectedDefense) {
+        networks.set(factionId, connectedTerritoryIds(state.territories, factionId,
+          state.homeCityIds?.[factionId], state.river, state.terrain));
+      }
+    }
+    connectivity = { key: ownershipKey, river: state.river, terrain: state.terrain, rules: state.rules,
+      ids: networks.get('player') ?? new Set(), networks };
     connectivityCaches.set(canvas, connectivity);
   }
   drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection,
@@ -68,7 +78,7 @@ export function drawBoard(
   drawTerritoryCounters(ctx, state, width, height);
   drawCaptureShields(ctx, state, width, height,
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  drawCityFeatures(ctx, state, width, height);
+  drawCityFeatures(ctx, state, width, height, connectivity.networks);
   drawArtilleryShots(ctx, state, width, height, typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawDrag(ctx, state.territories, selection, width, height, state.river, state.terrain);
 }

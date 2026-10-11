@@ -73,10 +73,13 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(playerUpgrades.getByRole('button', { name: 'Slow Zone' })).toHaveCount(0);
     await playerUpgrades.getByRole('button', { name: 'Industry' }).click();
     await playerUpgrades.getByRole('button', { name: 'Capture shield' }).click();
-    await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('2 enabled');
+    await playerUpgrades.getByRole('button', { name: 'Defensive Network' }).click();
+    await expect(page.locator('summary').filter({ hasText: 'Your upgrades' })).toContainText('3 enabled');
     await page.getByText('Enemy settings', { exact: true }).click();
     await page.getByLabel('Enemy 4 behavior').selectOption('defensive');
-    await expect(page.getByRole('group', { name: 'enemy-4 upgrades' }).getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);
+    const enemyFourUpgrades = page.getByRole('group', { name: 'enemy-4 upgrades' });
+    await enemyFourUpgrades.getByRole('button', { name: 'Defensive Network' }).click();
+    await expect(enemyFourUpgrades.getByRole('checkbox', { name: 'Watchtower' })).toHaveCount(0);
     await watchtower.click();
     await slowZone.click();
     expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).map, MATCH_PREFERENCES_KEY)).toMatchObject({ watchtower: true, slowZone: true });
@@ -102,6 +105,8 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     expect(Object.keys(initial.ai)).toHaveLength(4);
     expect(initial.state.rules.factions.player.unitsPerSecond).toBe(1.25);
     expect(initial.state.rules.factions.player.captureShieldBatches).toBe(3);
+    expect(initial.state.rules.factions.player.connectedDefense).toBe(true);
+    expect(initial.state.rules.factions['enemy-4'].connectedDefense).toBe(true);
     expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'watchtower'))).toHaveLength(1);
     expect(initial.territories.filter((c: { features?: { kind: string }[] }) => c.features?.some(feature => feature.kind === 'slow-zone'))).toHaveLength(1);
     expect(initial.territories.some((c: { owner: string; features?: { kind: string }[] }) => c.owner === 'neutral' && c.features?.some(feature => feature.kind === 'factory'))).toBe(true);
@@ -118,6 +123,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await expect(preview.locator('circle[cx][r="14"]')).toHaveCount(15);
     await page.getByText('Your upgrades', { exact: true }).click();
     await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('button', { name: 'Industry' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('group', { name: 'Your upgrades' }).getByRole('button', { name: 'Defensive Network' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByRole('button', { name: 'Artillery' })).toHaveAttribute('aria-pressed', 'true');
     expect(errors).toEqual([]);
   });

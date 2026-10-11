@@ -2,6 +2,7 @@ import type { SimulationState } from './types';
 import { launchBatches } from './launch';
 import { getFactionRules } from './rules';
 import { consumeShield } from './features/captureShield';
+import { connectedDefenseBonus, getConnectedDefenseTier } from './connectedDefense';
 
 export function resolveCombat(state: SimulationState): SimulationState {
   if (state.roundStatus !== 'playing' || state.arrivals.length === 0) return state;
@@ -17,7 +18,9 @@ export function resolveCombat(state: SimulationState): SimulationState {
         captureShields = { ...captureShields, [target.id]: consumeShield(shield, state.elapsedMs) };
         return target;
       }
-      if (arrival.units <= target.units) return { ...target, units: target.units - arrival.units };
+      const tier = getConnectedDefenseTier({ ...state, territories }, target);
+      const defenseStrength = target.units + Math.round(target.units * connectedDefenseBonus(tier));
+      if (arrival.units <= defenseStrength) return { ...target, units: Math.max(0, target.units - arrival.units) };
       const charges = getFactionRules(state, arrival.owner).captureShieldBatches ?? 0;
       if (charges) captureShields = { ...captureShields, [target.id]: { remaining: charges } };
       else if (shield) {
@@ -25,7 +28,7 @@ export function resolveCombat(state: SimulationState): SimulationState {
         captureShields = rest;
       }
       return {
-        ...target, owner: arrival.owner, units: arrival.units - target.units,
+        ...target, owner: arrival.owner, units: arrival.units - defenseStrength,
         growthRemainder: 0,
       };
     });

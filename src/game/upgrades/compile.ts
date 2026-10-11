@@ -42,6 +42,8 @@ export function compileRoundSetup(territories: readonly Territory[], selection: 
           rules[effect.stat] *= effect.multiplier;
         } else if (effect.kind === 'capture-shield') {
           rules.captureShieldBatches = effect.batches;
+        } else if (effect.kind === 'connected-defense') {
+          rules.connectedDefense = true;
         } else {
           const host = seed.find(city => city.owner === id);
           if (!host) throw new RangeError(`No eligible city for faction ${id}.`);
