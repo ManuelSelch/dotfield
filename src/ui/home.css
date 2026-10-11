@@ -31,6 +31,7 @@
 .home-settings-section[open] summary::after { content: '−'; }
 .home-summary-count { margin-left: auto; font-size: 10px; font-weight: 400; color: #6b776e; text-align: right; }
 .home-upgrade-list { padding-bottom: 12px; }
+.home-upgrade-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
 .home-upgrade-list .mantine-Checkbox-label { font-size: 13px; }
 .home-upgrade-list .mantine-Checkbox-description { font-size: 11px; line-height: 1.5; }
 .home-enemy-option { border-top: 1px solid #dce2d8; padding-top: 16px; }

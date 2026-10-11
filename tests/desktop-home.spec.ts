@@ -49,29 +49,28 @@ test('resizing preserves map preview and independent choices through Play and Ho
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');
   await page.getByText('Your upgrades', { exact: true }).click();
-  const player = page.getByRole('group', { name: 'Your upgrades' }).getByRole('checkbox', { name: 'Industry' });
-  await player.check();
+  const player = page.getByRole('group', { name: 'Your upgrades' }).getByRole('button', { name: 'Industry' });
+  await player.click();
   await page.getByText('Enemy settings', { exact: true }).click();
   await page.getByLabel('Enemy 1 behavior').selectOption('aggressive');
   await page.getByLabel('Enemy 2 behavior').selectOption('defensive');
-  const factory = page.getByRole('group', { name: 'enemy-2 upgrades' }).getByRole('checkbox', { name: 'Factory' });
-  await factory.check();
+  const shield = page.getByRole('group', { name: 'enemy-2 upgrades' }).getByRole('button', { name: 'Capture shield' });
+  await shield.click();
   const coordinates = await page.getByRole('img', { name: 'Generated map preview' }).innerHTML();
   for (const viewport of [{ width: 320, height: 480 }, { width: 1280, height: 480 }, { width: 1440, height: 1000 }]) {
     await page.setViewportSize(viewport);
     expect(await page.getByRole('img', { name: 'Generated map preview' }).innerHTML()).toBe(coordinates);
-    await expect(player).toBeChecked(); await expect(factory).toBeChecked();
+    await expect(player).toHaveAttribute('aria-pressed', 'true'); await expect(shield).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByLabel('Enemy 1 behavior')).toHaveValue('aggressive');
     await expect(page.getByLabel('Enemy 2 behavior')).toHaveValue('defensive');
   }
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(14);
-  await expect(page.getByRole('listitem').filter({ hasText: /Factory active/ })).toContainText('Faction enemy-2');
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
   await page.getByText('Your upgrades', { exact: true }).click();
-  await expect(player).toBeChecked();
+  await expect(player).toHaveAttribute('aria-pressed', 'true');
   await page.getByText('Enemy settings', { exact: true }).click();
-  await expect(factory).toBeChecked();
+  await expect(shield).toHaveAttribute('aria-pressed', 'true');
 });

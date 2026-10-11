@@ -1,4 +1,5 @@
 import type { MapSettings } from '../board/generateMap';
+import { TogglePill } from './TogglePill';
 
 export function MapOptions({ settings, onChange }: { settings: MapSettings; onChange: (value: MapSettings) => void }) {
   function cities(value: number) { onChange({ ...settings, cities: Math.min(24, Math.max(6, value)) }); }
@@ -25,11 +26,8 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
         { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
         { id: 'artillery', name: 'Artillery', aria: 'Artillery' },
         { id: 'watchtower', name: 'Watchtower', aria: 'Watchtower' },
-        { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <button
-        className="home-feature-toggle" type="button" key={feature.id} aria-label={feature.aria}
-        aria-pressed={settings[feature.id]} onClick={() => onChange({ ...settings, [feature.id]: !settings[feature.id] })}>
-        {feature.name}
-      </button>)}
+        { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <TogglePill key={feature.id} label={feature.aria} pressed={settings[feature.id]}
+        onClick={() => onChange({ ...settings, [feature.id]: !settings[feature.id] })} />)}
     </div>
   </>;
 }
