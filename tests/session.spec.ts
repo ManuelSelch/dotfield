@@ -31,6 +31,7 @@ test('starts immediately; pause freezes the board and survives backgrounding', a
   });
   await page.clock.runFor(10000); expect(await pixels()).toBe(paused);
   await page.getByRole('button', { name: 'Resume', exact: true }).tap();
+  await expect.poll(() => canvas.evaluate(el => getComputedStyle(el).outlineStyle)).toBe('none');
   await page.clock.runFor(100); expect(await pixels()).not.toBe(paused);
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
