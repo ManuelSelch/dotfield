@@ -82,6 +82,8 @@ export interface SimulationState {
   readonly aiDecisionDeadlines: Readonly<Record<FactionId, number>>;
   readonly elapsedMs: number;
   readonly territories: readonly TerritoryState[];
+  /** Original city for each faction, stable through capture and save/restore. */
+  readonly homeCityIds?: Readonly<Record<FactionId, string>>;
   readonly rules: SimulationRules;
   readonly transfers: readonly Transfer[];
   readonly arrivals: readonly Transfer[];

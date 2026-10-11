@@ -27,6 +27,14 @@ describe('round persistence', () => {
     expect(readSavedGame(target)).toEqual({ state, territories: TERRITORIES, ai: {}, phase: 'running' });
   });
 
+  it('backfills original home city IDs when restoring a legacy save', () => {
+    const target = storage();
+    const state = createSimulation(TERRITORIES);
+    const { homeCityIds: _homeCityIds, ...legacyState } = state;
+    writeSavedGame({ state: legacyState, territories: TERRITORIES, ai: {}, phase: 'paused' }, target);
+    expect(readSavedGame(target)?.state.homeCityIds).toEqual({ player: 'south', enemy: 'north' });
+  });
+
   it.each([undefined, 'player'])('restores captured Factory benefits and resets ownership on replay (legacy beneficiary %s)', beneficiaryId => {
     const target = storage();
     const territories = [{ id: 'home', owner: 'player', x: 80, y: 90, units: 36,

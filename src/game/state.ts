@@ -38,6 +38,10 @@ export function createSimulation(
     watchtowerElapsedMs: Object.fromEntries(opening.flatMap(city => (city.features ?? [])
       .filter(feature => feature.kind === 'watchtower').map(feature => [feature.id, 0]))),
     rules: resolved,
+    homeCityIds: Object.fromEntries(factionIds.flatMap(id => {
+      const home = opening.find(city => city.owner === id);
+      return home ? [[id, home.id]] : [];
+    })),
     territories: opening.map((node) => ({ ...node, growthRemainder: 0 })),
   };
 }

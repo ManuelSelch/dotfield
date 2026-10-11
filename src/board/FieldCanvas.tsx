@@ -13,6 +13,7 @@ import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiConfigurations } from '../game/ai/tick';
 import type { River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
+import { connectedTerritoryIds } from '../game/connectedTerritories';
 
 interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
@@ -20,6 +21,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
   const { state, phase } = session;
+  const connectedIds = connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river, state.terrain);
 
   return (
     <>
@@ -27,10 +29,13 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
       </div>
       <div className="field-viewport relative min-h-0 flex-1">
-        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
+        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
         <RegionControls state={state} disabled={phase !== 'running'} />
+        <p id="connected-territory-help" className="sr-only">
+          {connectedIds.size ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city by currently legal routes.` : 'No cities are currently connected to your starting city by currently legal routes.'}
+        </p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}
         </p>}
