@@ -16,7 +16,7 @@ export function SessionControls({ phase, onPause, onResume, onRestart, onHome }:
   const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => setTarget(document.getElementById('game-pause-slot')), []);
   if (!target) return null;
-  return createPortal(<Group className="rounded-full border border-ink/15 bg-field/80 p-1.5 shadow-sm" gap={1} wrap="nowrap" role="group" aria-label="Game controls">
+  return createPortal(<Group gap={1} wrap="nowrap" role="group" aria-label="Game controls">
     <ActionIcon className="game-action-button game-action-button--primary" data-autofocus={paused || undefined} variant="filled" color="#303030" radius="xl" size={28} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
       {paused ? <IconPlayerPlay size={18} aria-hidden="true" /> : <IconPlayerPause size={18} aria-hidden="true" />}
     </ActionIcon>
