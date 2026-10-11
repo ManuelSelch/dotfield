@@ -1,4 +1,5 @@
 import { ActionIcon, Paper, Title } from '@mantine/core';
+import { IconHome, IconRefresh } from '@tabler/icons-react';
 import type { RoundStatus } from '../game/types';
 
 const TITLES: Record<Exclude<RoundStatus, 'playing'>, string> = {
@@ -18,10 +19,10 @@ export function RoundResult({ status, onReplay, onHome }: { status: RoundStatus;
         </div>
         <div className="mt-5 flex justify-center gap-3">
           <ActionIcon autoFocus aria-label="Play again" title="Play again" size={48} radius="xl" color="#267c72" onClick={onReplay}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M20 7v5h-5M19 12a7.5 7.5 0 1 1-2.2-5.3L20 10" /></svg>
+            <IconRefresh size={20} stroke={1.9} aria-hidden="true" />
           </ActionIcon>
           {onHome && <ActionIcon aria-label="Home" title="Home" size={48} radius="xl" variant="default" onClick={onHome}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
+            <IconHome size={20} stroke={1.9} aria-hidden="true" />
           </ActionIcon>}
         </div>
       </Paper>
