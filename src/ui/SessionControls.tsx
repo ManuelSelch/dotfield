@@ -1,4 +1,6 @@
 import { ActionIcon, Group } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { SessionPhase } from '../game/session';
 
 interface Props {
@@ -26,15 +28,18 @@ export function SessionControls({ phase, onPause, onResume, onRestart, onHome }:
   const paused = phase === 'paused';
   if (!paused && phase !== 'running') return null;
   const toggleLabel = paused ? 'Resume' : 'Pause';
-  return <Group className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-field/85 p-2 shadow-lg backdrop-blur-sm" gap="sm" role="group" aria-label="Game controls">
-    <ActionIcon data-autofocus={paused || undefined} variant="filled" color="#267c72" radius="xl" size={42} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => setTarget(document.getElementById('game-controls-slot')), []);
+  if (!target) return null;
+  return createPortal(<Group className="rounded-full border border-ink/15 bg-field/80 p-0.5 shadow-sm" gap={1} wrap="nowrap" role="group" aria-label="Game controls">
+    <ActionIcon data-autofocus={paused || undefined} variant="filled" color="#267c72" radius="xl" size={28} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
       {paused ? <PlayIcon /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>}
     </ActionIcon>
-    <ActionIcon variant="filled" color="gray" radius="xl" size={42} aria-label="Restart" title="Restart" onClick={onRestart}>
+    <ActionIcon variant="filled" color="gray" radius="xl" size={28} aria-label="Restart" title="Restart" onClick={onRestart}>
       <RestartIcon />
     </ActionIcon>
-    {onHome && <ActionIcon variant="filled" color="gray" radius="xl" size={42} aria-label="Home" title="Home" onClick={onHome}>
+    {onHome && <ActionIcon variant="filled" color="gray" radius="xl" size={28} aria-label="Home" title="Home" onClick={onHome}>
       <HomeIcon />
     </ActionIcon>}
-  </Group>;
+  </Group>, target);
 }
