@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { drawBoard } from './drawBoard';
 
 const layers = vi.hoisted(() => ({
-  backgrounds: vi.fn(), transfers: vi.fn(), counters: vi.fn(), shields: vi.fn(), features: vi.fn(),
+  backgrounds: vi.fn(), transfers: vi.fn(), counters: vi.fn(), shields: vi.fn(), features: vi.fn(), regions: vi.fn(),
 }));
 
 vi.mock('./drawTerritories', () => ({
@@ -14,13 +14,30 @@ vi.mock('./drawCaptureShields', () => ({ drawCaptureShields: layers.shields }));
 vi.mock('./drawCityFeatures', () => ({ drawCityFeatures: layers.features }));
 vi.mock('./drawDrag', () => ({ drawDrag: vi.fn() }));
 vi.mock('./regions/cache', () => ({ createRegionCache: () => () => [] }));
-vi.mock('./regions/drawRegions', () => ({ drawRegions: vi.fn() }));
+vi.mock('./regions/drawRegions', () => ({ drawRegions: layers.regions }));
 vi.mock('./drawRiver', () => ({ drawRiver: vi.fn() }));
 vi.mock('./drawMountains', () => ({ drawMountains: vi.fn() }));
 vi.mock('./drawArtillery', () => ({ drawArtilleryCoverage: vi.fn(), drawArtilleryShots: vi.fn() }));
 
 describe('board layer order', () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it('only highlights connected borders when Defensive Network is enabled', () => {
+    const context = { setTransform: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn() };
+    const canvas = { width: 0, height: 0, getContext: () => context } as unknown as HTMLCanvasElement;
+    const territories = [
+      { id: 'home', owner: 'player', units: 10, x: 60, y: 100 },
+      { id: 'neighbor', owner: 'player', units: 10, x: 180, y: 100 },
+    ];
+    const state = (connectedDefense: boolean) => ({ territories, transfers: [], captureShields: {},
+      homeCityIds: { player: 'home' }, rules: { factions: { player: { connectedDefense } } } });
+
+    drawBoard(canvas, state(false) as never, 320, 480, 1);
+    expect(layers.regions.mock.lastCall?.[6]).toEqual(new Set());
+
+    drawBoard(canvas, state(true) as never, 320, 480, 1);
+    expect(layers.regions.mock.lastCall?.[6]).toEqual(new Set(['home', 'neighbor']));
+  });
 
   it('draws city circles behind troops and counters above them', () => {
     const context = { setTransform: vi.fn(), clearRect: vi.fn(), beginPath: vi.fn(), arc: vi.fn(), fill: vi.fn() };
