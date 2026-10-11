@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { drawCityFeatures } from './drawCityFeatures';
-import { drawChevronIcon } from './upgradeIcons';
+import { drawChevronIcon, drawDefenseShieldIcon } from './upgradeIcons';
 import { createSimulation } from '../game/state';
 import { compileRoundSetup } from '../game/upgrades/compile';
 import type { Territory } from '../game/types';
@@ -9,7 +9,7 @@ const host: Territory = { id: 'host', owner: 'player', units: 36, x: 100, y: 100
 const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 300 };
 const context = () => ({ save: vi.fn(), restore: vi.fn(), beginPath: vi.fn(), arc: vi.fn(),
   fill: vi.fn(), stroke: vi.fn(), fillText: vi.fn(), moveTo: vi.fn(), lineTo: vi.fn(),
-  closePath: vi.fn(), roundRect: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
+  closePath: vi.fn(), roundRect: vi.fn(), bezierCurveTo: vi.fn(), translate: vi.fn(), scale: vi.fn(), setLineDash: vi.fn(), globalAlpha: 1 });
 const seed = (upgrades: ('factory' | 'industry' | 'defensive-network')[] = [], fieldFeatures: NonNullable<Territory['features']> = []) => {
   const setup = compileRoundSetup([{ ...host, features: fieldFeatures }, enemy], { player: upgrades });
   return createSimulation(setup.territories, setup.rules);
@@ -85,8 +85,9 @@ describe('city upgrade indicators', () => {
     ];
     const setup = compileRoundSetup(territories, { player: ['defensive-network'] });
     const ctx = render(createSimulation(setup.territories, setup.rules));
-    expect(ctx.roundRect).toHaveBeenCalledTimes(4);
-    expect(ctx.closePath).toHaveBeenCalledTimes(8); // Two shield silhouettes per connected city (4-city tier).
+    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['2', '2', '2', '2']);
+    expect(ctx.roundRect).not.toHaveBeenCalled();
+    expect(ctx.stroke).toHaveBeenCalledTimes(4); // One Tabler shield outline per connected city.
   });
 
   it('adds no indicators when no upgrades are active, even for a large connected group', () => {
@@ -122,6 +123,14 @@ describe('city upgrade indicators', () => {
     expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
       [true, true], [false, true], [true, false], [false, false],
     ]);
+  });
+  it('renders a single numbered Tabler shield for each defense tier', () => {
+    const ctx = context();
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 1, '#123');
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 2, '#123');
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 3, '#123');
+    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['1', '2', '3']);
+    expect(ctx.stroke).toHaveBeenCalledTimes(3);
   });
   it('supports two stacked chevrons for a future level without enabling that level', () => {
     const ctx = context(); drawChevronIcon(ctx as unknown as CanvasRenderingContext2D, 2);

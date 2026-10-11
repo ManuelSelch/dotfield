@@ -9,13 +9,13 @@ function node(tag,attrs={},text=''){const el=document.createElementNS(ns,tag);fo
 function draw(){regions.replaceChildren();cities.replaceChildren();
  const owned=new Set(baseOwned), queue=['capital'];while(queue.length){const id=queue.shift();for(const [a,b]of edges){const other=a===id?b:b===id?a:null;if(other&&!owned.has(other)&&baseOwned.has(other)){owned.add(other);queue.push(other)}}}
  const count=owned.size, shields=count>=7?3:count>=4?2:count>=2?1:0, defense=shields*10;
- document.querySelector('#tier').textContent=shields?`${shields} ${shields===1?'shield':'shields'} · +${defense}% defense`:'No network defense';
+ document.querySelector('#tier').textContent=shields?`Defense tier ${shields} · +${defense}%`:'No network defense';
  document.querySelector('#count').textContent=`${count} cities connected to your starting city`;
  // Abstract territory polygons; the stronger perimeter is drawn once around the union.
  const cells={capital:'42,89 95,88 112,122 88,151 40,140',a:'96,70 156,66 165,104 131,126 94,104',b:'157,76 221,89 226,128 190,145 164,108',frontL:'68,145 110,128 139,153 129,198 75,207 47,177',frontC:'133,129 190,145 212,176 190,211 133,204 126,164',frontR:'194,137 243,145 271,178 250,211 195,211 213,175',island:'259,105 319,100 331,145 282,163 253,143'};
  for(const [id,poly]of Object.entries(cells))regions.append(node('polygon',{points:poly,class:`region ${owned.has(id)?'player':'neutral'}`}));
  for(const [id,[x,y]]of Object.entries(points)){const isOwned=owned.has(id),isEnemy=enemy.has(id),cls=isOwned?'player':isEnemy?'enemy':'neutral';const g=node('g');g.append(node('circle',{cx:x,cy:y,r:id==='capital'?15:13,class:`city ${cls}`}));g.append(node('text',{x,y:y+1,class:'city-count'},id==='capital'?'36':isOwned?'18':isEnemy?'30':'8'));g.append(node('text',{x,y:y+25,class:'label'},labels[id]));if(id==='capital')g.append(node('circle',{cx:x,cy:y,r:4,class:'city-capital'}));
-   if(isOwned&&shields){const width=shields*4.3+3, left=x+8;g.append(node('rect',{x:left-2,y:y-17,width,height:9,rx:4.5,class:'shield-badge'}));for(let i=0;i<shields;i++){const sx=left+i*4.3;g.append(node('path',{d:`M${sx} ${y-15.8} l1.55 .6 -.25 1.6 -1.3 1.1 -1.3-1.1 -.25-1.6z`,class:'shield-icon'}));}}
+   if(isOwned&&shields){const sx=x+9, sy=y-12, scale=.62;g.append(node('path',{d:'M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3',transform:`translate(${sx},${sy}) scale(${scale})`,class:'tier-shield'}));g.append(node('text',{x:sx+12*scale,y:sy+15*scale,class:'tier-number'},String(shields)));}
    cities.append(g);
  }
 }
