@@ -68,7 +68,7 @@ describe('city upgrade indicators', () => {
     ]);
   });
   it('draws a compact cannon outside the counter, distinct from the Factory badge', () => {
-    const city = { ...host, features: [{ id: 'gun', kind: 'artillery' as const, range: 90, fireIntervalMs: 2000 }] };
+    const city = { ...host, features: [{ id: 'gun', kind: 'artillery' as const, range: 150, fireIntervalMs: 2000 }] };
     const ctx = render(createSimulation([city, enemy]));
     expect(ctx.arc.mock.calls[0].slice(0, 3)).toEqual([114, 86, 5]);
     expect(ctx.lineTo.mock.calls.length).toBeGreaterThan(3);
@@ -79,7 +79,7 @@ describe('city upgrade indicators', () => {
     expect(render().arc).not.toHaveBeenCalled();
   });
   it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
-    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 110, fireIntervalMs: 250 }]); const ctx = render(state);
+    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 150, fireIntervalMs: 250 }]); const ctx = render(state);
     // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
     expect(ctx.arc).toHaveBeenCalledTimes(2);
     const radii = ctx.arc.mock.calls.map(call => call[2]);
@@ -87,7 +87,7 @@ describe('city upgrade indicators', () => {
     expect(ctx.translate).toHaveBeenCalledOnce(); expect(ctx.fillText).not.toHaveBeenCalled();
   });
   it('draws a distinct dashed 90-unit Slow Zone circle and lower-left marker', () => {
-    const ctx = render(seed([], [{ id: 'zone', kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 }]));
+    const ctx = render(seed([], [{ id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 }]));
     expect(ctx.arc.mock.calls.some(call => call[2] === 90)).toBe(true);
     expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
     expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
@@ -95,8 +95,8 @@ describe('city upgrade indicators', () => {
   });
   it('keeps four upgrade markers distinct when all effects share a city', () => {
     const ctx = render(seed(['factory', 'industry'], [
-      { id: 'tower', kind: 'watchtower', range: 110, fireIntervalMs: 250 },
-      { id: 'zone', kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 },
+      { id: 'tower', kind: 'watchtower', range: 150, fireIntervalMs: 250 },
+      { id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 },
     ]));
     expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
       [true, true], [false, true], [true, false], [false, false],

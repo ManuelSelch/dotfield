@@ -65,7 +65,7 @@ describe('round persistence', () => {
   it('restores Artillery cadence and terrain, pauses without firing, and replays fresh', () => {
     const target = storage();
     const territories = [
-      { id: 'gun', owner: 'player', x: 180, y: 240, units: 20, features: [{ id: 'cannon', kind: 'artillery' as const, range: 90, fireIntervalMs: 2000 }] },
+      { id: 'gun', owner: 'player', x: 180, y: 240, units: 20, features: [{ id: 'cannon', kind: 'artillery' as const, range: 150, fireIntervalMs: 2000 }] },
       { id: 'foe', owner: 'enemy', x: 180, y: 170, units: 5 },
     ];
     const terrain = createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, barriers: [], crossings: [] });

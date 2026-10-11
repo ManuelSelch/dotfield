@@ -98,17 +98,17 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (settings.watchtower) {
     const host = territories[Math.floor(random() * territories.length)];
     territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
-      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 }] } : city);
+      { id: `${city.id}:watchtower`, kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 }] } : city);
   }
   if (settings.slowZone) {
     const host = territories[Math.floor(random() * territories.length)];
     territories = territories.map(city => city === host ? { ...city, features: [...(city.features ?? []),
-      { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] } : city);
+      { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] } : city);
   }
   const artilleryCity = settings.artillery ? territories.filter(city => city.owner === 'neutral')
     .sort((a, b) => Math.hypot(a.x - 180, a.y - 240) - Math.hypot(b.x - 180, b.y - 240))[0] : undefined;
   if (artilleryCity) territories = territories.map(city => city === artilleryCity ? { ...city, units: 14,
-    features: [...(city.features ?? []), { id: `${city.id}:artillery`, kind: 'artillery', range: 110, fireIntervalMs: 2000 / 3 }] } : city);
+    features: [...(city.features ?? []), { id: `${city.id}:artillery`, kind: 'artillery', range: 150, fireIntervalMs: 2000 / 3 }] } : city);
   if (settings.industry) {
     const neutral = territories.filter(city => city.owner === 'neutral' && city.id !== artilleryCity?.id);
     const factoryCount = Math.min(neutral.length, Math.max(1, Math.round(settings.cities / 6)));

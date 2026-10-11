@@ -12,12 +12,12 @@ import { chooseOrder } from '../ai/decision';
 
 const base = createRules();
 const setupWithZone = (territories = MAPS[0].territories, index = 6) => compileRoundSetup(territories.map((city, i) => i === index
-  ? { ...city, features: [...(city.features ?? []), { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] }
+  ? { ...city, features: [...(city.features ?? []), { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] }
   : city), {}, base);
 describe('Slow Zone setup and lifecycle', () => {
   it.each(MAPS)('preserves one authored random-city Slow Zone on $id', map => {
     const source = map.territories.map((city, i) => i === 0
-      ? { ...city, features: [{ id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] }
+      ? { ...city, features: [{ id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] }
       : city);
     const setup = compileRoundSetup(source, {}, base);
     const hosts = setup.territories.filter(c => c.features?.some(f => f.kind === 'slow-zone'));
@@ -29,8 +29,8 @@ describe('Slow Zone setup and lifecycle', () => {
   });
   it('keeps field features independent from faction upgrades', () => {
     const authored = MAPS[0].territories.map((city, i) => city.owner === 'player'
-      ? { ...city, features: [{ id: 'start:watchtower', kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 }] }
-      : i === 6 ? { ...city, features: [{ id: 'zone:slow-zone', kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] } : city);
+      ? { ...city, features: [{ id: 'start:watchtower', kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 }] }
+      : i === 6 ? { ...city, features: [{ id: 'zone:slow-zone', kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] } : city);
     const a = compileRoundSetup(authored, { player: ['factory', 'industry'] }, base);
     const b = compileRoundSetup(authored, { player: ['industry', 'factory'] }, base);
     expect(a).toEqual(b);
@@ -64,7 +64,7 @@ describe('Slow Zone AI horizons', () => {
     const territories = [
       { id: 'e', owner: 'enemy' as const, units: 15, x: 100, y: 100 },
       { id: 'n', owner: 'neutral' as const, units: 1, x: 200, y: 100,
-        features: [{ id: 'z', kind: 'slow-zone' as const, radius: 90, speedMultiplier: 0.5 }] },
+        features: [{ id: 'z', kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] },
       { id: 'p', owner: 'player' as const, units: 100, x: 300, y: 400 },
     ];
     expect(chooseOrder(createSimulation(territories))).toMatchObject({ sourceId: 'e', targetId: 'n' });

@@ -13,7 +13,7 @@ export const ARTILLERY_MAP = Object.freeze({
     { id: 'near', owner: 'enemy', units: 12, x: 180, y: 170 },
     { id: 'blocked', owner: 'enemy', units: 12, x: 258, y: 215 },
     { id: 'artillery', owner: 'neutral', units: 14, x: 180, y: 240,
-      features: [{ id: 'artillery:gun', kind: 'artillery', range: 110, fireIntervalMs: 2000 / 3 }] },
+      features: [{ id: 'artillery:gun', kind: 'artillery', range: 150, fireIntervalMs: 2000 / 3 }] },
     { id: 'friendly', owner: 'player', units: 12, x: 112, y: 270 },
     { id: 'neutral', owner: 'neutral', units: 8, x: 245, y: 300 },
     { id: 'rear', owner: 'player', units: 12, x: 65, y: 370 },

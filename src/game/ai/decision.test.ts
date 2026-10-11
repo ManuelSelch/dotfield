@@ -22,7 +22,7 @@ describe('basic enemy policy', () => {
   it('prefers a capturable Artillery covering a hostile garrison to an equivalent ordinary city', () => {
     const game = state(node('base', 'enemy', 30, 180, 240),
       node('ordinary', 'neutral', 6, 80, 240),
-      { ...node('gun', 'neutral', 6, 280, 240), features: [{ id: 'gun:artillery', kind: 'artillery', range: 90, fireIntervalMs: 2000 }] },
+      { ...node('gun', 'neutral', 6, 280, 240), features: [{ id: 'gun:artillery', kind: 'artillery', range: 150, fireIntervalMs: 2000 }] },
       node('player', 'player', 80, 280, 320));
     expect(chooseOrder(game)).toMatchObject({ targetId: 'gun', kind: 'expand' });
   });

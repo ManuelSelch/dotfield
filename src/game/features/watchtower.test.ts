@@ -4,7 +4,7 @@ import { createSimulation } from '../state';
 import { forecastBattle } from '../ai/forecast';
 import type { SimulationState, Transfer } from '../types';
 
-const tower = { id: 'tower', kind: 'watchtower' as const, range: 110, fireIntervalMs: 250 };
+const tower = { id: 'tower', kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 };
 function armed(owner: 'player' | 'enemy' = 'player') {
   const attacker = owner === 'player' ? 'enemy' : 'player';
   const state = createSimulation([

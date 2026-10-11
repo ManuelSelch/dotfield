@@ -7,7 +7,7 @@ import { dispatchUnits } from '../dispatch';
 import { createTerrain } from '../terrain/terrain';
 import type { Territory } from '../types';
 
-const cannon = { id: 'gun', kind: 'artillery' as const, range: 90, fireIntervalMs: 2000 };
+const cannon = { id: 'gun', kind: 'artillery' as const, range: 150, fireIntervalMs: 2000 };
 const seeds: Territory[] = [
   { id:'gun-city', owner:'player', units:20, x:180, y:240, features:[cannon] },
   { id:'near', owner:'enemy', units:4, x:180, y:170 },

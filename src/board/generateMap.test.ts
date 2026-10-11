@@ -89,7 +89,7 @@ describe('generated fields', () => {
     expect(towers).toHaveLength(1);
     const zones = map.territories.filter(city => city.features?.some(feature => feature.kind === 'slow-zone'));
     expect(zones).toHaveLength(1);
-    expect(zones[0].features).toContainEqual({ id: `${zones[0].id}:slow-zone`, kind: 'slow-zone', radius: 90, speedMultiplier: 0.5 });
+    expect(zones[0].features).toContainEqual({ id: `${zones[0].id}:slow-zone`, kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 });
     expect(generateMap(settings, 19)).toEqual(map);
     const placements = Array.from({ length: 20 }, (_, seed) => generateMap({ ...DEFAULT_MAP_SETTINGS, watchtower: true }, seed)
       .territories.find(city => city.features?.some(feature => feature.kind === 'watchtower'))!);
