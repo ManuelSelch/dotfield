@@ -27,7 +27,7 @@ describe('combat and capture', () => {
     expect(centre(attack(owner, 35))).toMatchObject({ owner, units: 0 });
   });
   it('increases the capture threshold for cities in an upgraded connected group', () => {
-    const territories = TERRITORIES.map(city => ['south', 'lower-west', 'lower-east', 'south-west', 'upper-west'].includes(city.id)
+    const territories = TERRITORIES.map(city => ['south', 'lower-west', 'lower-east', 'south-west', 'west', 'upper-west'].includes(city.id)
       ? { ...city, owner: 'player', ...(city.id === 'upper-west' ? { units: 10 } : {}) } : city);
     const setup = compileRoundSetup(territories, { player: ['defensive-network'] });
     const state = createSimulation(setup.territories, setup.rules);

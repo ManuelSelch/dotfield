@@ -13,7 +13,7 @@ export function connectedDefenseTierForSize(size: number): 0 | 1 | 2 | 3 {
 
 export function getConnectedDefenseTier(state: SimulationState, territory: Territory): 0 | 1 | 2 | 3 {
   if (territory.owner === 'neutral' || !getFactionRules(state, territory.owner).connectedDefense) return 0;
-  const connected = connectedTerritoryIds(state.territories, territory.owner, state.homeCityIds?.[territory.owner], state.river, state.terrain);
+  const connected = connectedTerritoryIds(state.territories, territory.owner, state.homeCityIds?.[territory.owner], state.river);
   if (!connected.has(territory.id)) return 0;
   return connectedDefenseTierForSize(connected.size);
 }

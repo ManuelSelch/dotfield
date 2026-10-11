@@ -10,7 +10,7 @@
   <main class="app">
     <header><h1><span class="brand-dot" aria-hidden="true"></span>dotfield</h1><span class="round">UPGRADE PREVIEW</span></header>
     <section class="title"><div><p class="eyebrow">DEFENSIVE NETWORK</p><h2>Your cities hold together.</h2><p class="intro">A connected territory is stronger when enemy troops attack.</p></div></section>
-    <section class="status" aria-live="polite"><span class="status-mark" aria-hidden="true">⌂</span><div><strong id="tier">Defense tier 3 · +30%</strong><span id="count">7 cities connected to your starting city</span></div><span class="info" title="Connected by legal routes through cities you own">i</span></section>
+    <section class="status" aria-live="polite"><span class="status-mark" aria-hidden="true">⌂</span><div><strong id="tier">Defense tier 3 · +30%</strong><span id="count">7 cities connected to your starting city</span></div><span class="info" title="Connected through shared borders between cities you own">i</span></section>
     <section class="field" aria-label="Illustration of a connected defensive network">
       <svg id="board" viewBox="0 0 360 440" role="img" aria-labelledby="map-title map-desc">
         <title id="map-title">Your connected cities form a defensive network</title>
@@ -23,7 +23,7 @@
         <g id="routes"></g><g id="cities"></g>
       </svg>
     </section>
-    <footer><div class="legend"><span><i class="friendly"></i>Connected territory</span><span><b class="shield-sample" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/><text x="12" y="15">3</text></svg></b>Defense tier on each city</span><span><i class="foe"></i>Enemy</span></div><p>Shield tier is shared by all cities connected to your starting city through currently owned legal routes.</p></footer>
+    <footer><div class="legend"><span><i class="friendly"></i>Connected territory</span><span><b class="shield-sample" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/><text x="12" y="15">3</text></svg></b>Defense tier on each city</span><span><i class="foe"></i>Enemy</span></div><p>Shield tier is shared by all cities connected to your starting city through currently owned neighboring territories that share a border.</p></footer>
   </main>
   <script type="module" src="./main.js"></script>
 </body>

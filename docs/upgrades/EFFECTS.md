@@ -53,7 +53,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 ## Defensive Network scope
 
 - Off by default and independently selectable for the player and each AI faction.
-- A network includes same-owner cities reachable from the faction's original starting city through a chain of currently owned legal direct orders. River bridges and mountain-blocked routes use the same legality rules as troop orders. Neutral/enemy cities cannot serve as links.
+- A network includes same-owner cities connected to the faction's original starting city through a chain of currently owned neighboring territories that share a border. Paired endpoints of an authored river bridge count as neighbors. Troop-order legality and mountain-blocked direct routes do not determine network adjacency. Neutral/enemy cities cannot serve as links.
 - Network tiers count every connected owned city, including cities with zero garrison: 2–3 cities grant one shield (+10% defense), 4–6 grant two (+20%), and 7 or more grant three (+30%). A singleton home receives no tier. Bonuses do not stack beyond three shields.
 - The bonus affects only city defense against hostile arriving troops; it does not affect artillery, outgoing attacks, garrison size, production, movement or capture shields. Effective defense strength is:
 
@@ -62,7 +62,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
   $$
 
   If attackers exhaust the actual garrison but not the effective defense strength, the city remains owned at zero units; a later attack can finish the capture.
-- Tiers are computed from current ownership for each combat. Losing the starting city disconnects the network; capturing a route link removes bonuses from cities beyond it. Recapturing the home/link restores connected bonuses. Live combat and AI forecasts use the same shared combat path.
+- Tiers are computed from current ownership for each combat. Losing the starting city disconnects the network; capturing a shared-border link removes bonuses from cities beyond it. Recapturing the home/link restores connected bonuses. Live combat and AI forecasts use the same shared combat path.
 - The player's connected group has a strong outer-perimeter outline. Connected cities of any faction with the upgrade show one, two or three compact shield markers; the board's accessible description explains the player's current tier.
 - Approved visual reference: [Defensive Network mockup revision 3](../../mockups/defensive-network/DESIGN.md).
 
