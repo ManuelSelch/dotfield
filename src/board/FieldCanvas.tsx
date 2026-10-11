@@ -42,7 +42,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           {session.feedback || 'Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.'}
         </p>}
         {state.roundStatus === 'playing' && <SessionControls phase={phase}
-          onResume={session.resume} onRestart={session.restart} onHome={onHome} onNewMap={onNewMap} />}
+          onResume={session.resume} onRestart={session.restart} onHome={onHome} />}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} onNewMap={onNewMap} />
       </div>
       <TerritoryDetails territories={state.territories} captureShields={state.captureShields} />
