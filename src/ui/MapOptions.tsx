@@ -21,7 +21,7 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
     </div>
     <div className="home-section-label home-features-label">On the field</div>
     <div className="home-feature-toggles">
-      {([{ id: 'industry', name: 'Factory', aria: 'Map Factory' },
+      {([{ id: 'industry', name: 'Factory', aria: 'Factory' },
         { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
         { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
         { id: 'artillery', name: 'Artillery', aria: 'Artillery' },
