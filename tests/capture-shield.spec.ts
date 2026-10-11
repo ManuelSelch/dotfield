@@ -41,8 +41,8 @@ test('Home selection, real capture, reload and restart retain rules without gran
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/');
   await page.getByText('Your upgrades', { exact: true }).click();
-  const shield = page.getByRole('group', { name: 'Your upgrades', exact: true }).getByRole('checkbox', { name: 'Capture shield', exact: true });
-  await shield.check();
+  const shield = page.getByRole('group', { name: 'Your upgrades', exact: true }).getByRole('button', { name: 'Capture shield', exact: true });
+  await shield.click();
   await openAuthoredMatch(page, 0, { player: ['capture-shield'] });
   const details = page.getByRole('list', { name: 'Territory details' });
   await expect(details).not.toContainText('Capture shield');
@@ -61,5 +61,5 @@ test('Home selection, real capture, reload and restart retain rules without gran
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   await page.getByText('Your upgrades', { exact: true }).click();
   // Generated match preferences now persist across reloads.
-  await expect(shield).toBeChecked();
+  await expect(shield).toHaveAttribute('aria-pressed', 'true');
 });
