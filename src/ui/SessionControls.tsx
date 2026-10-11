@@ -3,7 +3,7 @@ import type { SessionPhase } from '../game/session';
 
 interface Props {
   phase: SessionPhase; onHome?: () => void;
-  onResume: () => void; onRestart: () => void;
+  onPause: () => void; onResume: () => void; onRestart: () => void;
 }
 
 function PlayIcon() {
@@ -22,20 +22,13 @@ function HomeIcon() {
   </svg>;
 }
 
-export function PauseButton({ onPause }: { onPause: () => void }) {
-  return <ActionIcon variant="filled" color="#267c72" radius="xl" size={36} aria-label="Pause" title="Pause" onClick={onPause}>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-      <rect x="6" y="4" width="4" height="16" rx="1" />
-      <rect x="14" y="4" width="4" height="16" rx="1" />
-    </svg>
-  </ActionIcon>;
-}
-
-export function SessionControls({ phase, onResume, onRestart, onHome }: Props) {
-  if (phase !== 'paused') return null;
-  return <Group className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-field/85 p-2 shadow-lg backdrop-blur-sm" gap="sm" role="group" aria-label="Paused game controls">
-    <ActionIcon data-autofocus variant="filled" color="#267c72" radius="xl" size={42} aria-label="Resume" title="Resume" onClick={onResume}>
-      <PlayIcon />
+export function SessionControls({ phase, onPause, onResume, onRestart, onHome }: Props) {
+  const paused = phase === 'paused';
+  if (!paused && phase !== 'running') return null;
+  const toggleLabel = paused ? 'Resume' : 'Pause';
+  return <Group className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-field/85 p-2 shadow-lg backdrop-blur-sm" gap="sm" role="group" aria-label="Game controls">
+    <ActionIcon data-autofocus={paused || undefined} variant="filled" color="#267c72" radius="xl" size={42} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
+      {paused ? <PlayIcon /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>}
     </ActionIcon>
     <ActionIcon variant="filled" color="gray" radius="xl" size={42} aria-label="Restart" title="Restart" onClick={onRestart}>
       <RestartIcon />
