@@ -50,12 +50,15 @@ for (const viewport of [
     await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
     await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
-    const overlay = (await page.getByRole('region', { name: 'Paused', exact: true }).boundingBox())!;
-    expect(overlay).toEqual(box);
+    await expect(page.getByRole('group', { name: 'Paused game controls' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Paused' })).toHaveCount(0);
     for (const name of ['Resume', 'Restart', 'Home']) {
-      const button = (await page.getByRole('button', { name, exact: true }).boundingBox())!;
-      expect(button.y).toBeGreaterThanOrEqual(box.y);
-      expect(button.y + button.height).toBeLessThanOrEqual(box.y + box.height);
+      const button = page.getByRole('button', { name, exact: true });
+      await expect(button).toBeVisible();
+      await expect(button).toHaveAttribute('title', name);
+      const bounds = (await button.boundingBox())!;
+      expect(bounds.y).toBeGreaterThan(box.y);
+      expect(bounds.y + bounds.height).toBeLessThan(box.y + box.height);
     }
     await page.screenshot({ path: `test-results/desktop-layout-paused-${viewport.width}x${viewport.height}.png` });
     await page.getByRole('button', { name: 'Resume', exact: true }).click();

@@ -35,7 +35,7 @@ test('starts immediately; pause freezes the board and survives backgrounding', a
   expect(await page.evaluate(() => scrollY)).toBe(0);
 });
 
-test('restart is only in the pause popup and immediately starts a fresh round', async ({ page }) => {
+test('pause controls stay compact over the visible map and restart immediately starts a fresh round', async ({ page }) => {
   const { source, target } = await fieldPoints(page);
   for (let round = 0; round < 2; round++) {
     await expect(page.getByRole('button', { name: 'Restart', exact: true })).toHaveCount(0);
@@ -46,6 +46,14 @@ test('restart is only in the pause popup and immediately starts a fresh round', 
     await expect(pause.locator('svg')).toHaveCount(1);
     await expect(pause).toHaveText('');
     await pause.click();
+    await expect(page.getByRole('group', { name: 'Paused game controls' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'New map', exact: true })).toHaveCount(0);
+    for (const label of ['Resume', 'Restart', 'Home']) {
+      const control = page.getByRole('button', { name: label, exact: true });
+      await expect(control).toHaveText('');
+      await expect(control).toHaveAttribute('title', label);
+    }
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('Ready to grow?')).toHaveCount(0);
