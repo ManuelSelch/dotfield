@@ -62,13 +62,16 @@ The opponent is deterministic and browser-independent. Small modules under `src/
 
 - `config.ts`: decision cadence, minimum useful army, action scores, source-risk penalty and frontline distance threshold.
 - `forecast.ts`: immutable forecasts of growth and already-known orders, using the real launch/travel/collision/combat rules. Uses fixed steps while opposing groups exist; skips only safe quiet steps.
-- `score.ts`: evaluates expansion, attack, defensive reinforcement and forward army concentration.
+- `score.ts`: evaluates expansion, attack, defensive reinforcement and production-aware army concentration.
+- `logistics.ts`: terrain/bridge-aware front distances, stable staging priorities, conservative source protection and faction-wide army accounting for production relief.
 - `decision.ts`: enumerates legal candidates, compares forecasts, and picks one useful order; waits if none are worthwhile.
 - `tick.ts`: schedules decisions on active simulation time, not rendering frames or wall-clock timers.
 
 Prototype cadence: first decision after **1.8 seconds**, then every **1.8 seconds**; armies must have at least six units to send. Busy sources wait for their existing groups to finish. The policy considers travel time, defender growth, incoming groups, source exposure and existing captures, without extra resources or knowledge of future player input. It does not stop making decisions simply because it is winning or losing.
 
-Tune `DEFAULT_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain deferred; each enemy uses its selected Balanced, Aggressive or Defensive behavior on generated maps. River AI stages at bridge endpoints and values contested Factory production; these behaviors are not Easy/Normal/Hard difficulty presets.
+Safe rear cities also export troops shortly before reaching the 50-unit production cap, concentrating at a few useful staging cities which may exceed 50. Production relief compares faction-wide forecast troop gains, including the recipient's lost growth, and protects threatened sources and exposed strongholds. Stable staging priorities prevent cap-driven back-and-forth transfers. See [production-aware AI logistics](docs/ai-production.md) for behavior, safeguards and limits.
+
+Tune `DEFAULT_AI` and `PRODUCTION_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain deferred; each enemy uses its selected Balanced, Aggressive or Defensive behavior on generated maps. River AI stages at bridge endpoints and values contested Factory production; these behaviors are not Easy/Normal/Hard difficulty presets.
 
 ## Run
 

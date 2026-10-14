@@ -1,0 +1,36 @@
+# Production-aware AI logistics
+
+The enemy uses the same 50-troop production cap, all-but-one orders and physical simulation as the player. Friendly arrivals can exceed 50. No troop bonuses, new controls or AI inspector are added.
+
+## Behavior
+
+- Safe rear cities become eligible for economic redistribution when they are at the cap or will reach it within five seconds. Time-to-cap uses the current owner's real production rate, local Factory bonus and fractional growth; a Factory therefore becomes eligible earlier than an otherwise equivalent ordinary city.
+- Sources feed the best legally reachable staging city rather than distribute their reserves across many almost-full cities. A staging city may accumulate well above 50 while donor cities resume growing.
+- A useful staging city has a legal manual-staging path toward a hostile city. Strategic distances account for mountains and paired river crossings. The distance estimate does not forward armies automatically or assume neutral cities are already captured.
+- Existing attack, expansion and emergency-defense candidates remain available. Large collected armies can attack when the normal battle forecast finds a successful order; they are not permanently assigned a passive staging role.
+
+## Candidate evaluation
+
+- The normal frontline rule still accepts substantial forward concentration. Production relief additionally allows consolidation between similarly positioned cities; it does not require the previous 60-unit improvement toward the front.
+- Production candidates compare the normal known-order battle forecast against the same forecast with the proposed transfer. Both use a horizon of at least 15 seconds, extended when the order or relevant arrivals take longer.
+- Compare faction-wide surviving troops, including airborne groups but excluding duplicate counts of unlaunched reservations. This credits resumed growth and subtracts recipient production lost to capping. A transfer itself creates no benefit. Collision/combat losses are also reflected: this is a net army benefit, not a separate exact production counter.
+- At least two additional forecast troops are required to relax the frontline rule. A bounded, increasing score bonus favors larger net gains without turning economic urgency into an unbounded override of defense. Travel cost still uses the order/arrival duration, not the minimum economic lookahead.
+- Existing incoming friendly armies and faction/Factory growth modifiers are included by the shared real simulation. No future player orders or future AI decisions are invented.
+
+## Safety and stability
+
+- Economic redistribution is disabled when known hostile groups target the source or destination. A threatened destination instead uses the existing defense evaluation.
+- Hold a source when a hostile city has a useful available army and a legal direct route whose first batch can arrive within five seconds at its normal speed. This conservative guard protects exposed capped strongholds even before an enemy dispatch; it is not a perfect future-threat model. Slow effects can make actual arrival later.
+- A friendly transfer cannot receive a positive score by sacrificing a source that the no-order forecast would retain. The destination must also remain owned in the proposed forecast.
+- Production transfers follow a stable staging priority: nearer front-distance bands, then lower production rate within a band, then shorter front distance, then city ID for equal positions. Band width uses `AiConfig.frontlineAdvance` (60 by default).
+- Priority does not depend on current garrison or friendly incoming troop counts, so merely filling a collection city does not reverse the direction. The best reachable eligible sink receives the donors. A Factory can export into an ordinary city in the same band to preserve the higher-value production site.
+- Rearward economic transfers are not allowed across front bands. Ownership/strategic-front changes may legitimately change the preferred staging city. Known contested destinations are not used as economic sinks.
+- Existing source-busy rules, minimum dispatch size, terrain legality and manual river staging remain unchanged. Holding a capped army is valid when no safe, useful consolidation exists.
+
+## Tuning and verification
+
+`PRODUCTION_AI` in `src/game/ai/config.ts` contains the lookahead, cap lead time, source-threat window, minimum gain and bounded bonus scale. It is separate from persisted `AiConfig`, so old round configs need no new fields. All behavior presets and AI factions use the same logistics policy; their existing defense/attack/frontline scores still differ.
+
+`src/game/ai/production.test.ts` covers pre-cap relief, repeated decisions without ping-pong, consolidation above 100, premature evacuation, Factory timing and priority, a net-negative Factory sink, queue accounting, stronghold preservation, known threats, emergency defense, attacks from collected armies, disabled production, bridge/mountain legality, independent factions and immutability. `tests/ai-production.spec.ts` exercises the real worker and production round-save entry path at mobile and desktop widths.
+
+These checks establish rule behavior, not optimal play or human balance. The policy remains a deterministic heuristic with known-order forecasts; it has no long-term campaign planner, predicted enemy feints or persistent logistics-role state.

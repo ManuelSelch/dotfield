@@ -12,6 +12,13 @@ export interface AiConfig {
   readonly frontlineAdvance: number;
 }
 
+// Economic lookahead and conservative source protection; shared by all behaviors.
+// Separate from persisted AiConfig so existing saved rounds need no migration.
+export const PRODUCTION_AI = Object.freeze({
+  lookAheadMs: 15_000, capLeadMs: 5_000, threatTravelMs: 5_000,
+  minGain: 2, bonusHalfGain: 10,
+});
+
 // One prototype policy, not difficulty presets. No growth or resource advantages.
 export const DEFAULT_AI: AiConfig = {
   initialDelayMs: 1800, decisionIntervalMs: 1800, minDispatchUnits: 6,

@@ -1,20 +1,15 @@
-import { riverDistance } from '../river';
 import { artilleryTarget } from '../features/artillery';
 import { getTerritoryGrowthRate } from '../features/growthRate';
 import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
-import type { AiConfig } from './config';
+import { PRODUCTION_AI, type AiConfig } from './config';
 
 export type OrderKind = 'expand' | 'attack' | 'reinforce';
 export interface AiOrder { readonly sourceId: string; readonly targetId: string; readonly kind: OrderKind; readonly score: number }
 
-function distanceToHostile(state: SimulationState, node: TerritoryState, factionId: string) {
-  return Math.min(...state.territories.filter(t => t.owner !== factionId && t.owner !== 'neutral')
-    .map(t => riverDistance(node, t, state.territories, state.river)));
-}
-
 export function scoreOrder(state: SimulationState, source: TerritoryState, target: TerritoryState,
-  baseline: SimulationState, proposed: SimulationState, horizonMs: number, config: AiConfig, factionId = 'enemy'): AiOrder | null {
+  baseline: SimulationState, proposed: SimulationState, horizonMs: number, config: AiConfig, factionId: string,
+  distances: ReadonlyMap<string, number>, productionGain = 0): AiOrder | null {
   const before = baseline.territories.find(n => n.id === target.id)!;
   const after = proposed.territories.find(n => n.id === target.id)!;
   if (after.owner !== factionId) return null;
@@ -41,13 +36,19 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
       if (before.owner === factionId && after.units <= before.units) return null;
       score = config.defenceScore;
     } else {
-      if (distanceToHostile(state, source, factionId) - distanceToHostile(state, target, factionId) < config.frontlineAdvance) return null;
-      score = config.frontlineScore;
+      const advance = distances.get(source.id)! - distances.get(target.id)!;
+      if (!(advance >= config.frontlineAdvance) && productionGain < PRODUCTION_AI.minGain) return null;
+      // A bounded, strictly increasing bonus favors Factory relief without
+      // allowing large economic gains to overwhelm emergency defence scores.
+      score = config.frontlineScore * (1 + productionGain / (productionGain + PRODUCTION_AI.bonusHalfGain));
     }
   }
   const sourceBefore = baseline.territories.find(n => n.id === source.id)!;
   const sourceAfter = proposed.territories.find(n => n.id === source.id)!;
-  if (sourceBefore.owner === factionId && sourceAfter.owner !== factionId) score -= config.sourceLossPenalty;
+  if (sourceBefore.owner === factionId && sourceAfter.owner !== factionId) {
+    if (kind === 'reinforce') return null; // Economic/frontline transfers must not sacrifice their source.
+    score -= config.sourceLossPenalty;
+  }
   score -= horizonMs / 1000 * config.travelCostPerSecond;
   return score > 0 ? { sourceId: source.id, targetId: target.id, kind, score } : null;
 }
