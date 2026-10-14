@@ -43,7 +43,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
             ? `The highlighted outer border encloses ${connectedIds.size} of your cities connected to your starting city through shared borders between neighboring territories.`
             : 'No cities are currently connected to your starting city through neighboring territory borders.'
             : 'The connected-territory border highlight is shown only while Defensive Network is enabled.'}
-          {playerDefenseTier ? ` Each connected city can store up to ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'} and recharges one every 10 seconds. Each shield blocks one hostile troop-arrival batch. The numbered badge shows capacity; shield arcs show current charges.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least two connected cities before shields recharge.' : ''}
+          {playerDefenseTier ? ` Each connected city can store up to ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'} and recharges one every 10 seconds. Each shield blocks one hostile troop-arrival batch. The numbered badge shows capacity; shield arcs show current charges.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least four connected cities before shields recharge.' : ''}
         </p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}

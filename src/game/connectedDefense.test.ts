@@ -7,16 +7,17 @@ import type { Territory } from './types';
 function network(size: number, selected = true) {
   const territories: Territory[] = Array.from({ length: size }, (_, index) => ({
     id: index === 0 ? 'home' : `city-${index}`, owner: 'player', units: 10,
-    x: 40 + index * 45, y: 80,
+    x: 40 + (index % 5) * 60, y: 80 + Math.floor(index / 5) * 70,
   }));
-  territories.push({ id: 'enemy', owner: 'enemy', units: 10, x: 40, y: 180 });
+  territories.push({ id: 'enemy', owner: 'enemy', units: 10, x: 40, y: 440 });
   const setup = compileRoundSetup(territories, selected ? { player: ['defensive-network'] } : { player: [] });
   return createSimulation(setup.territories, setup.rules, setup.river, setup.terrain);
 }
 
 describe('connected defense tiers', () => {
-  it.each([{ size: 1, tier: 0 }, { size: 2, tier: 1 }, { size: 3, tier: 1 },
-    { size: 4, tier: 2 }, { size: 6, tier: 2 }, { size: 7, tier: 3 }, { size: 12, tier: 3 }])(
+  it.each([{ size: 1, tier: 0 }, { size: 2, tier: 0 }, { size: 3, tier: 0 },
+    { size: 4, tier: 1 }, { size: 6, tier: 1 }, { size: 7, tier: 2 }, { size: 12, tier: 2 },
+    { size: 13, tier: 3 }, { size: 20, tier: 3 }])(
     'assigns tier $tier to a connected group of $size cities', ({ size, tier }) => {
       const state = network(size);
       expect(getConnectedDefenseTier(state, state.territories[0])).toBe(tier);
@@ -25,7 +26,7 @@ describe('connected defense tiers', () => {
   it('reports shield storage capacity for each connected upgraded city', () => {
     const state = network(4);
     expect(connectedDefenseCapacities(state)).toEqual(new Map([
-      ['home', 2], ['city-1', 2], ['city-2', 2], ['city-3', 2],
+      ['home', 1], ['city-1', 1], ['city-2', 1], ['city-3', 1],
     ]));
   });
 

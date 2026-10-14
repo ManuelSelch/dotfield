@@ -224,7 +224,7 @@
 - River y=225–255; NB↔J is the only bridge, width 64. No mountains, Factory or other field features.
 - Enable Defensive Network for the enemy only. This is a disclosed asymmetric scenario rule; player sources get no network bonus.
 - Opening production before caps: enemy 6 troops/second, player 3. Opening troops: enemy 126, player 90. Safe neutral expansion alone offers no plausible economic parity.
-- The six initially connected enemy cities have shield capacity two each. Stored charges start at zero and recharge under existing ten-second rules; the opening therefore offers a possible early-disruption window.
+- The six initially connected enemy cities have shield capacity one each under the updated 4/7/13-city thresholds. Stored charges start at zero and recharge under existing ten-second rules; the opening therefore offers a possible early-disruption window.
 
 #### Competing tactics and transitions
 
@@ -236,7 +236,7 @@
 #### Exact consequences of a cut
 
 - After J changes owner, FW and FE are disconnected from the original enemy home. Their shield recharge stops, but their troops, normal production and stored shields remain.
-- EH, ER and NB remain connected as a group of three, reducing their capacity from tier two to tier one. Existing excess shield charges are not removed.
+- EH, ER and NB remain connected as a group of three, removing their network recharge eligibility because fewer than four connected cities remain. Existing excess shield charges are not removed.
 - Losing J also interrupts northern reinforcement across the bridge until the enemy retakes it. The isolated forward cities can still reinforce and attack on the south bank; this is not a supply-starvation mechanic.
 - If the enemy recaptures J, connectivity and recharge can resume under existing cooldown rules. The player must exploit or defend the disruption rather than assume the match is solved.
 
@@ -249,7 +249,7 @@
 #### Acceptance and tuning
 
 - Verify with actual Voronoi shared-border adjacency and paired bridge rules, not a hand-drawn connection graph: initially EH/ER/NB/J/FW/FE are connected; after J capture, exactly EH/ER/NB remain in the enemy home component.
-- Test no shield recharge at isolated cities, retention of existing charges, unchanged production and resumed recharge after reconnection. Test the tier reduction without trimming excess charges.
+- Test no shield recharge at isolated cities, retention of existing charges, unchanged production and resumed recharge after reconnection. Test loss of network recharge eligibility without removing stored charges.
 - The enemy must contest a threatened junction and attempt useful reconnection when feasible. Current target scoring does not explicitly value network disruption; this is an implementation risk, not an existing capability claim.
 - Reject the opening if an uncontested home-to-junction rush always settles the match, if both forward armies always overrun the player before a response is possible, or if the network cut has no practical effect.
 

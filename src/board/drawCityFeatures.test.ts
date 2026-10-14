@@ -85,7 +85,7 @@ describe('city upgrade indicators', () => {
     ];
     const setup = compileRoundSetup(territories, { player: ['defensive-network'] });
     const ctx = render(createSimulation(setup.territories, setup.rules));
-    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['2', '2', '2', '2']);
+    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['1', '1', '1', '1']);
     expect(ctx.roundRect).not.toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalledTimes(4); // One Tabler shield outline per connected city.
   });

@@ -3,9 +3,9 @@ import { getFactionRules } from './rules';
 import type { SimulationState, Territory } from './types';
 
 export function connectedDefenseTierForSize(size: number): 0 | 1 | 2 | 3 {
-  if (size >= 7) return 3;
-  if (size >= 4) return 2;
-  if (size >= 2) return 1;
+  if (size >= 13) return 3;
+  if (size >= 7) return 2;
+  if (size >= 4) return 1;
   return 0;
 }
 
