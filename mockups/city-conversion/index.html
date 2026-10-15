@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dotfield · City controls study</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main>
+    <header><a href="./">DOTFIELD</a><span>City controls · revision 1 · in review</span></header>
+    <section class="review" aria-label="Mockup review states">
+      <label for="scenario">Review state</label>
+      <select id="scenario">
+        <option value="production">Production</option><option value="poor">Insufficient troops</option>
+        <option value="ready">Ready airfield</option><option value="busy">Plane away</option>
+        <option value="preparing">Preparing</option><option value="returning">Returning</option>
+        <option value="targeting">Fly targeting</option><option value="lost">Ownership lost</option>
+      </select>
+      <button id="reset">Reset</button>
+    </section>
+    <div class="game">
+      <div class="match"><span><i></i> You · 4 cities</span><span>Illustrative field</span></div>
+      <div id="board" role="group" aria-label="Battlefield. Tap owned regions to manage. Drag from an owned region for a ground order.">
+        <svg viewBox="0 0 360 360" aria-hidden="true">
+          <path class="region" data-city="a" d="M0 0H174L150 112 0 140Z"/>
+          <path class="region" data-city="b" d="M0 140L150 112 174 224 0 258Z"/>
+          <path class="region" data-city="c" d="M0 258L174 224V360H0Z"/>
+          <path class="region" data-city="d" d="M174 0H360V132L204 115Z"/>
+          <path class="region" data-city="e" d="M204 115L360 132V252L200 240Z"/>
+          <path class="region" data-city="f" d="M200 240L360 252V360H174Z"/>
+          <path class="river" d="M174 0H190L200 360H184Z"/>
+          <path class="mountain" d="M160 223L180 165 209 223Z"/>
+          <path class="facet" d="M180 165L181 223H209Z"/>
+          <line id="route" x1="0" y1="0" x2="0" y2="0" hidden/>
+        </svg>
+        <div id="cities"></div>
+        <div id="plane" hidden aria-hidden="true"><span>✈</span><small>0</small></div>
+      </div>
+      <div class="field-help" id="hint">Tap your city to manage · drag to send by ground</div>
+      <div class="dock-space">
+        <section id="dock" aria-label="Selected city controls" hidden>
+          <div class="selection"><div><strong id="city-name"></strong><span id="city-detail"></span></div><button id="close" aria-label="Close city controls">×</button></div>
+          <div id="type-actions" class="types" aria-label="Convert city"></div>
+          <p id="reason"></p>
+          <div class="flight"><span id="plane-status"></span><button id="fly" hidden>Fly</button><button id="ground">Ground…</button><button id="cancel" hidden>Cancel</button></div>
+        </section>
+        <p id="empty">Select an owned city. Enemy and neutral cities cannot be managed.</p>
+      </div>
+    </div>
+    <p id="status" role="status" aria-live="polite">Control mockup only. No live game is running.</p>
+    <footer>
+      <p>Prices 10 / 20 / 30 · plane capacity 100 · all rules and numbers are proposals, not approved.</p>
+      <p>Keyboard: Tab to a city, Enter to select. G for ground targeting, Escape to cancel or close. Fly → tap any other city.</p>
+      <p>Only Dock & pulse delivery is approved. These conversion and targeting controls await review.</p>
+    </footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
