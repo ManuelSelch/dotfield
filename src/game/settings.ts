@@ -1,6 +1,14 @@
 import type { GrowthRules } from './types';
 
 // Prototype tuning values, not permanent balance decisions.
+export const CITY_CONVERSION_COST = Object.freeze({ production: 10, defender: 20, airfield: 30 });
+export const DEFENDER_SHIELD_CAPACITY = 3;
+export const AIRCRAFT_CAPACITY = 100;
+export const AIRCRAFT_PREPARATION_MS = 20_000;
+export const AIRCRAFT_TURNAROUND_MS = 10_000;
+export const AIRCRAFT_SPEED_MULTIPLIER = 2;
+export const AIR_DELIVERY_INTERVAL_MS = 200;
+export const AIR_DELIVERY_FEEDBACK_MS = 1_000;
 export const GROWTH_RULES: GrowthRules = { unitsPerSecond: 1 };
 export const CITY_PRODUCTION_LIMIT = 50; // Reinforcements may exceed this limit.
 export const SIMULATION_STEP_MS = 50;

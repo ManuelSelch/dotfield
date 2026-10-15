@@ -13,6 +13,7 @@ export function advanceGrowth(state: SimulationState, elapsedMs: number): Simula
     elapsedMs: state.elapsedMs + elapsedMs,
     territories: state.territories.map((node) => {
       if (node.owner === 'neutral') return node;
+      if ((node.cityType ?? 'production') !== 'production') return node.growthRemainder === 0 ? node : { ...node, growthRemainder: 0 };
       if (node.units >= CITY_PRODUCTION_LIMIT) {
         return node.growthRemainder === 0 ? node : { ...node, growthRemainder: 0 };
       }
