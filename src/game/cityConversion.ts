@@ -14,9 +14,9 @@ export function convertCity(state: SimulationState, cityId: string, type: CityTy
   if (plane && ['outbound', 'unloading', 'returning', 'turnaround'].includes(plane.phase)) return state;
   const { [cityId]: _plane, ...aircraft } = state.aircraft ?? {};
   const { [cityId]: _timer, ...networkShieldTimers } = state.networkShieldTimers ?? {};
-  if (type === 'airfield') aircraft[cityId] = createAircraft(city);
+  const nextAircraft = type === 'airfield' ? { ...aircraft, [cityId]: createAircraft(city) } : aircraft;
   return {
-    ...state, aircraft, networkShieldTimers,
+    ...state, aircraft: nextAircraft, networkShieldTimers,
     territories: state.territories.map(c => c === city
       ? { ...c, cityType: type, units: c.units - CITY_CONVERSION_COST[type], growthRemainder: 0 } : c),
     transfers: state.transfers.filter(t => t.sourceId !== cityId || t.elapsedMs >= 0),
