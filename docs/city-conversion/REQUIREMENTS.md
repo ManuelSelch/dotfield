@@ -4,7 +4,7 @@
 
 Give players a meaningful choice between troop production, defense, and air mobility by converting existing cities at a troop cost. Introduce reusable, capacity-limited airplanes that transport troops to any city across rivers and mountains, while keeping mobile controls quick and the top-down battlefield readable.
 
-Status: planning only. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md): “yes option C is approved Now create the full plan for all of it”. This approval covers the delivery treatment, not the unshown conversion/dispatch controls or proposed balance numbers. No production implementation is authorized by the request to plan.
+Status: implementation authorized in an isolated feature worktree using subagents. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md), then requested “now use subagents and worktrees to implement it” and confirmed “Yes—use all recommended defaults”. All eight rule questions are resolved by that confirmation. The conversion/flight control mockup remains a visual-review gate before production UI implementation.
 
 ## Scope
 
@@ -126,9 +126,9 @@ Status: planning only. User approved **Dock & pulse (option C), revision 1** of 
 - Run the full unit/browser suites, typecheck/production build, and PWA tests for final integration. Keep existing ground combat, geography, upgrades, generated-map and offline-update behavior passing.
 - Human playtesting decides conversion prices, carrying capacity, timing, readability, and whether geography/Defender cities remain tactically meaningful. Actual iPhone Safari/installed-PWA checks remain manual acceptance, not inferred from Chromium.
 
-## Assumptions
+### R11. Confirmed initial implementation defaults
 
-These are **recommendations for confirmation**, not additional user-approved rules:
+User confirmed all recommended defaults. Values remain tunable after playtesting:
 
 - Initial/legacy cities are Production. Capture retains city type and map features; capture does not create an airplane instantly. A captured Airfield starts full preparation for its new owner.
 - Conversion is immediate; target-type prices initially Production 10, Defender 20, Airfield 30 troops, always leaving at least one garrison troop. No refund on switching. Costs are centralized playtest values.
@@ -140,6 +140,10 @@ These are **recommendations for confirmation**, not additional user-approved rul
 - Capture of the home airfield destroys its plane and any undelivered cargo; already delivered troops remain. Plane allegiance never transfers. Capture before/during return cancels the old trip and starts the new owner's full preparation. This is intentionally a strong commitment and requires balance testing.
 - Air unloading cadence starts at 200 ms per batch, separate from ground launches. Exact first-pulse timestamp and deterministic tie policy are specified in slice 6 tests, not inferred from a visual animation frame.
 - Conversion is available symmetrically in normal matches without another pre-game toggle. No generated Defender/Airfield placements are added initially.
+
+## Assumptions
+
+None. Initial implementation defaults above are confirmed; control layout remains subject to mockup review.
 
 ## Implementation Plan
 
@@ -178,11 +182,4 @@ Description: After slices 8–10, enable the complete feature, run full unit/bro
 
 ## Open Questions
 
-1. What conversion prices and timing should we start with? Proposed: instant conversion costing 10 troops for Production, 20 for Defender, and 30 for Airfield, always leaving one troop, with no refund.
-2. Should Defender use the proposed three-charge capacity, one shield every 10 seconds, empty initial pool, and non-additive shared-pool policy with Defensive Network/Capture Shield?
-3. Confirm initial airplane tuning: capacity 100, preparation 20 seconds, twice normal ground speed, 200 ms unloading pulses, and 10-second turnaround after return?
-4. Should air dispatch use the proposed Fly action followed by a target tap, boarding up to capacity while leaving one troop, with ordinary dragging reserved for ground orders?
-5. Should capture retain city type, destroy the old home airplane and its undelivered cargo, and make a captured Airfield prepare a new airplane from scratch?
-6. Should conversion cancel unlaunched ground orders, reset partial production/recharge progress, preserve stored shields, and be forbidden while that airfield's airplane is away?
-7. Should airplanes/cargo initially ignore Watchtowers, Artillery, ground collisions, and Slow Zones, with Factory/Industry affecting troop production only?
-8. Should conversion be available in every normal match immediately, without a new Home toggle or generated Defender/Airfield placements?
+None. All eight proposed rule defaults were explicitly accepted. Conversion/flight-control visual review and manual balance/device acceptance remain implementation gates, not unresolved rule choices.
