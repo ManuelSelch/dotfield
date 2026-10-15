@@ -95,6 +95,9 @@ export interface CaptureShieldState {
 export interface NetworkShieldTimer {
   readonly owner: Owner;
   readonly elapsedMs: number;
+  /** Optional for legacy timers; prevents carrying progress across a changed recharge policy. */
+  readonly capacity?: number;
+  readonly source?: 'defender' | 'network';
 }
 
 export interface ArtilleryShot {

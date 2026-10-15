@@ -4,6 +4,7 @@ import { advanceWorldStep } from './worldStep';
 import { launchAircraft } from './aircraft';
 import { convertCity } from './cityConversion';
 import { resolveCombat } from './combat';
+import { dispatchUnits } from './dispatch';
 import type { SimulationState, Transfer } from './types';
 
 function opening(units = 101, targetOwner = 'enemy') {
@@ -62,6 +63,57 @@ describe('aircraft', () => {
     const captured = resolveCombat({ ...flying, arrivals: [arrival(flying, 'home', 'enemy', 2), arrival(flying, 'home', 'player', 2, 2)] });
     expect(captured.territories[0]).toMatchObject({ owner: 'player', cityType: 'airfield' });
     expect(captured.aircraft?.home).toMatchObject({ owner: 'player', phase: 'preparing', cargo: 0, elapsedMs: 0 });
+  });
+  it('resolves equal-time home captures before any air delivery, independent of partition', () => {
+    const launched = launchAircraft(ready(), 'home', 'target');
+    const docking = launched.aircraft!.home.durationMs;
+    const docked = advanceWorldStep(launched, docking);
+    const ground = { ...arrival(docked, 'home', 'enemy', 5), elapsedMs: 0, durationMs: 200 };
+    const threatened = { ...docked, transfers: [ground] };
+    const coarse = advanceWorldStep(threatened, 200);
+    const fine = advanceWorldStep(advanceWorldStep(threatened, 73), 127);
+    expect(fine).toEqual(coarse);
+    expect(coarse.territories[1].units).toBe(10);
+    expect(coarse.airDeliveries).toEqual([]);
+    expect(coarse.aircraft?.home).toMatchObject({ owner: 'enemy', phase: 'preparing', cargo: 0, elapsedMs: 0 });
+  });
+  it('does not deliver early when a home capture follows the pulse by one millisecond', () => {
+    const flying = launchAircraft(ready(), 'home', 'target');
+    const docked = advanceWorldStep(flying, flying.aircraft!.home.durationMs);
+    const state = { ...docked, transfers: [{ ...arrival(docked, 'home', 'enemy', 5), elapsedMs: 0, durationMs: 201 }] };
+    const result = advanceWorldStep(state, 201);
+    expect(result.territories[1].units).toBe(5);
+    expect(result.airDeliveries).toHaveLength(1);
+    expect(result.aircraft?.home.cargo).toBe(0);
+  });
+  it('boards actual garrison after canceling reservations, but leaves launched ground troops alone', () => {
+    const state = dispatchUnits(ready(151), 'home', 'target');
+    const launched = launchAircraft(state, 'home', 'target');
+    expect(launched.aircraft?.home.cargo).toBe(100);
+    expect(launched.territories[0].units).toBe(46);
+    expect(launched.transfers).toHaveLength(1);
+    expect(dispatchUnits(launched, 'home', 'target').transfers.length).toBeGreaterThan(1);
+    expect(launchAircraft(state, 'home', 'home')).toBe(state);
+    expect(launchAircraft(state, 'home', 'missing')).toBe(state);
+    expect(launchAircraft(state, 'home', 'target', 'enemy')).toBe(state);
+  });
+  it('resolves later pulses against current target ownership, including intervening recapture', () => {
+    const flying = launchAircraft(ready(21), 'home', 'target');
+    let state = advanceWorldStep(flying, flying.aircraft!.home.durationMs + 600);
+    expect(state.territories[1]).toMatchObject({ owner: 'player', units: 5 });
+    state = resolveCombat({ ...state, arrivals: [arrival(state, 'target', 'enemy', 6)] });
+    state = advanceWorldStep(state, 200);
+    expect(state.territories[1]).toMatchObject({ owner: 'player', units: 4 });
+    expect(state.aircraft?.home.cargo).toBe(0);
+  });
+  it('keeps fractional-duration pulse timestamps and shield cooldowns partition-invariant', () => {
+    const base = ready();
+    const state = launchAircraft({ ...base, territories: base.territories.map(c => c.id === 'target' ? { ...c, x: 97 } : c),
+      captureShields: { target: { remaining: 3 } } }, 'home', 'target');
+    const whole = advanceWorldStep(state, 8437);
+    let split = state;
+    for (const dt of [17, 113, 567, 1021, 231, 6488]) split = advanceWorldStep(split, dt);
+    expect(split).toEqual(whole);
   });
   it('is equivalent across arbitrary time partitions including docking and pulses', () => {
     const state = launchAircraft(ready(), 'home', 'target');

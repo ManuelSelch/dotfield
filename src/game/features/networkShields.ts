@@ -14,7 +14,9 @@ export function restoreNetworkShieldTimers(state: SimulationState): NonNullable<
     const city = state.territories.find(candidate => candidate.id === id);
     if (!city || city.owner === 'neutral' || (city.cityType !== 'defender' && !state.rules.factions[city.owner]?.connectedDefense)
       || !timer || typeof timer !== 'object' || timer.owner !== city.owner
-      || !Number.isFinite(timer.elapsedMs) || timer.elapsedMs < 0 || timer.elapsedMs >= NETWORK_SHIELD_RECHARGE_MS) {
+      || !Number.isFinite(timer.elapsedMs) || timer.elapsedMs < 0 || timer.elapsedMs >= NETWORK_SHIELD_RECHARGE_MS
+      || (timer.capacity !== undefined && (!Number.isInteger(timer.capacity) || timer.capacity < 1 || timer.capacity > 3))
+      || (timer.source !== undefined && timer.source !== 'defender' && timer.source !== 'network')) {
       throw new RangeError('Invalid Defensive Network shield timers.');
     }
   }
@@ -65,7 +67,8 @@ export function advanceNetworkShields(state: SimulationState, elapsedMs: number,
     const existing = timers[cityId];
     if (!timer) {
       if (existing) { delete timers[cityId]; timersChanged = true; }
-    } else if (!existing || existing.owner !== timer.owner || existing.elapsedMs !== timer.elapsedMs) {
+    } else if (!existing || existing.owner !== timer.owner || existing.elapsedMs !== timer.elapsedMs
+      || existing.capacity !== timer.capacity || existing.source !== timer.source) {
       timers[cityId] = timer;
       timersChanged = true;
     }
@@ -91,21 +94,24 @@ export function advanceNetworkShields(state: SimulationState, elapsedMs: number,
     const previousTimer = timers[city.id];
     const sameRechargeWindow = previousConnected && previousTier === tier && previous.source === active.source
       && (!previousTimer || previousTimer.owner === city.owner);
+    const metadata = { capacity: tier, source: active.source as 'defender' | 'network' };
+    const timerMatches = (previousTimer?.capacity === undefined || previousTimer.capacity === tier)
+      && (previousTimer?.source === undefined || previousTimer.source === active.source);
     const blockedThisStep = currentShields?.blockedAt === state.elapsedMs;
     if (!sameRechargeWindow || blockedThisStep) {
-      setTimer(city.id, { owner: city.owner, elapsedMs: 0 });
+      setTimer(city.id, { owner: city.owner, elapsedMs: 0, ...metadata });
       continue;
     }
 
-    const total = (previousTimer?.elapsedMs ?? 0) + elapsedMs;
+    const total = (timerMatches ? previousTimer?.elapsedMs ?? 0 : 0) + elapsedMs;
     const earned = Math.floor((total + 1e-7) / NETWORK_SHIELD_RECHARGE_MS);
     if (earned > 0) {
       const nextRemaining = Math.min(tier, remaining + earned);
       setShield(city.id, { remaining: nextRemaining });
       if (nextRemaining >= tier) setTimer(city.id);
-      else setTimer(city.id, { owner: city.owner, elapsedMs: total - earned * NETWORK_SHIELD_RECHARGE_MS });
+      else setTimer(city.id, { owner: city.owner, elapsedMs: total - earned * NETWORK_SHIELD_RECHARGE_MS, ...metadata });
     } else {
-      setTimer(city.id, { owner: city.owner, elapsedMs: total });
+      setTimer(city.id, { owner: city.owner, elapsedMs: total, ...metadata });
     }
   }
 

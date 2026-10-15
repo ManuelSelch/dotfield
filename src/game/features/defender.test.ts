@@ -25,6 +25,16 @@ describe('Defender shields', () => {
     expect(next.captureShields.c1.remaining).toBe(1);
     expect(advanceWorldStep(next, 30000).captureShields.c0.remaining).toBe(3);
   });
+  it('resets old progress when a network changes capacity between physical updates', () => {
+    const initial = defender(true);
+    const seven = { ...initial, territories: [...initial.territories.map(c => ({ ...c, cityType: 'production' as const })),
+      ...Array.from({ length: 3 }, (_, i) => ({ id: `extra${i}`, owner: 'neutral', units: 40, growthRemainder: 0,
+        x: 40 + i * 60, y: 160, cityType: 'production' as const }))] };
+    const partial = advanceWorldStep(seven, 5000);
+    const expanded = { ...partial, territories: partial.territories.map(c => ({ ...c, owner: 'player' })) };
+    expect(advanceWorldStep(expanded, 5000).captureShields.c0).toBeUndefined();
+    expect(advanceWorldStep(expanded, 10000).captureShields.c0.remaining).toBe(1);
+  });
   it('retains stored charges but resets partial recharge on conversion', () => {
     const state = advanceWorldStep(defender(), 15000);
     const converted = convertCity(state, 'c0', 'production');
