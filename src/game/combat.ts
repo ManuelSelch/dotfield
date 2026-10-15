@@ -25,7 +25,10 @@ export function resolveArrivalBatch(state: SimulationState, arrival: { targetId:
     const { [target.id]: _plane, ...aircraft } = state.aircraft ?? {};
     const nextAircraft = target.cityType === 'airfield' ? { ...aircraft, [target.id]: createAircraft(next) } : aircraft;
     const { [target.id]: _timer, ...networkShieldTimers } = state.networkShieldTimers ?? {};
-    updated = { ...updated, captureShields: nextShields, networkShieldTimers,
+    const nextTimers = target.cityType === 'defender' || state.rules.factions[arrival.owner]?.connectedDefense
+      ? { ...networkShieldTimers, [target.id]: { owner: arrival.owner, elapsedMs: 0, resetAtMs: state.elapsedMs } }
+      : networkShieldTimers;
+    updated = { ...updated, captureShields: nextShields, networkShieldTimers: nextTimers,
       ...(state.aircraft || target.cityType === 'airfield' ? { aircraft: nextAircraft } : {}),
       // Cancel immediately: capture followed by recapture must not revive old reservations.
       transfers: state.transfers.filter(t => t.sourceId !== target.id || t.elapsedMs >= 0) };

@@ -106,6 +106,31 @@ describe('aircraft', () => {
     expect(state.territories[1]).toMatchObject({ owner: 'player', units: 4 });
     expect(state.aircraft?.home.cargo).toBe(0);
   });
+  it('ignores terrain, Slow Zones, Watchtowers and Artillery while airborne', () => {
+    const base = ready();
+    const state: SimulationState = { ...base, terrain: { bounds: { minX: -20, minY: -100, maxX: 360, maxY: 480 },
+      barriers: [{ id: 'ridge', kind: 'mountain', bounds: { minX: 40, minY: -50, maxX: 60, maxY: 50 } }], crossings: [] },
+      territories: [...base.territories.map(c => c.id !== 'target' ? c : { ...c, features: [
+        { id: 'slow', kind: 'slow-zone' as const, radius: 1000, speedMultiplier: 0.1 },
+        { id: 'tower', kind: 'watchtower' as const, range: 1000, fireIntervalMs: 20 },
+      ] }), { id: 'gun-city', owner: 'enemy', x: 0, y: 60, units: 10, growthRemainder: 0,
+        features: [{ id: 'gun', kind: 'artillery', range: 1000, fireIntervalMs: 200 }] }] };
+    expect(dispatchUnits(state, 'home', 'target')).toBe(state);
+    const launched = launchAircraft(state, 'home', 'target');
+    expect(launched.aircraft?.home.durationMs).toBe(1200);
+    const delivered = advanceWorldStep(launched, 1500);
+    expect(delivered.aircraft?.home).toMatchObject({ phase: 'unloading', cargo: 95 });
+    expect(delivered.transfers).toEqual([]);
+    expect(delivered.territories[0]).toMatchObject({ owner: 'player', units: 0 });
+  });
+  it.each([0, 1, 1200, 1600, 2800])('restarts full preparation on home capture at trip time %i', dt => {
+    const flying = launchAircraft(ready(9), 'home', 'target');
+    const advanced = advanceWorldStep(flying, dt);
+    const captured = resolveCombat({ ...advanced, arrivals: [arrival(advanced, 'home', 'enemy', 200)] });
+    expect(captured.aircraft?.home).toMatchObject({ phase: 'preparing', cargo: 0, elapsedMs: 0, owner: 'enemy' });
+    expect(advanceWorldStep(captured, 19999).aircraft?.home.phase).toBe('preparing');
+    expect(advanceWorldStep(captured, 20000).aircraft?.home.phase).toBe('ready');
+  });
   it('keeps fractional-duration pulse timestamps and shield cooldowns partition-invariant', () => {
     const base = ready();
     const state = launchAircraft({ ...base, territories: base.territories.map(c => c.id === 'target' ? { ...c, x: 97 } : c),

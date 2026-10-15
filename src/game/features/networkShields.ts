@@ -16,7 +16,8 @@ export function restoreNetworkShieldTimers(state: SimulationState): NonNullable<
       || !timer || typeof timer !== 'object' || timer.owner !== city.owner
       || !Number.isFinite(timer.elapsedMs) || timer.elapsedMs < 0 || timer.elapsedMs >= NETWORK_SHIELD_RECHARGE_MS
       || (timer.capacity !== undefined && (!Number.isInteger(timer.capacity) || timer.capacity < 1 || timer.capacity > 3))
-      || (timer.source !== undefined && timer.source !== 'defender' && timer.source !== 'network')) {
+      || (timer.source !== undefined && timer.source !== 'defender' && timer.source !== 'network')
+      || (timer.resetAtMs !== undefined && (!Number.isFinite(timer.resetAtMs) || timer.resetAtMs < 0 || timer.resetAtMs > state.elapsedMs))) {
       throw new RangeError('Invalid Defensive Network shield timers.');
     }
   }
@@ -68,7 +69,7 @@ export function advanceNetworkShields(state: SimulationState, elapsedMs: number,
     if (!timer) {
       if (existing) { delete timers[cityId]; timersChanged = true; }
     } else if (!existing || existing.owner !== timer.owner || existing.elapsedMs !== timer.elapsedMs
-      || existing.capacity !== timer.capacity || existing.source !== timer.source) {
+      || existing.capacity !== timer.capacity || existing.source !== timer.source || existing.resetAtMs !== timer.resetAtMs) {
       timers[cityId] = timer;
       timersChanged = true;
     }
@@ -98,7 +99,7 @@ export function advanceNetworkShields(state: SimulationState, elapsedMs: number,
     const timerMatches = (previousTimer?.capacity === undefined || previousTimer.capacity === tier)
       && (previousTimer?.source === undefined || previousTimer.source === active.source);
     const blockedThisStep = currentShields?.blockedAt === state.elapsedMs;
-    if (!sameRechargeWindow || blockedThisStep) {
+    if (!sameRechargeWindow || blockedThisStep || previousTimer?.resetAtMs === state.elapsedMs) {
       setTimer(city.id, { owner: city.owner, elapsedMs: 0, ...metadata });
       continue;
     }

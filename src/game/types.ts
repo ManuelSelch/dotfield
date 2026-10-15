@@ -98,6 +98,7 @@ export interface NetworkShieldTimer {
   /** Optional for legacy timers; prevents carrying progress across a changed recharge policy. */
   readonly capacity?: number;
   readonly source?: 'defender' | 'network';
+  readonly resetAtMs?: number;
 }
 
 export interface ArtilleryShot {

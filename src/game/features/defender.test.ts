@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { createSimulation } from '../state';
 import { advanceWorldStep } from '../worldStep';
 import { convertCity } from '../cityConversion';
-import { shieldRechargeSource } from './networkShields';
+import { advanceNetworkShields, shieldRechargeSource } from './networkShields';
+import { resolveArrivalBatch } from '../combat';
 
 function defender(network = false) {
   return createSimulation(Array.from({ length: 4 }, (_, i) => ({ id: `c${i}`, owner: 'player', units: 40,
@@ -34,6 +35,15 @@ describe('Defender shields', () => {
     const expanded = { ...partial, territories: partial.territories.map(c => ({ ...c, owner: 'player' })) };
     expect(advanceWorldStep(expanded, 5000).captureShields.c0).toBeUndefined();
     expect(advanceWorldStep(expanded, 10000).captureShields.c0.remaining).toBe(1);
+  });
+  it('resets recharge on each capture even if recaptured at the same timestamp', () => {
+    const before = advanceWorldStep(defender(), 5000);
+    const now = { ...before, elapsedMs: 5200 };
+    // Faction rules are required for both capturing owners.
+    const configured = { ...now, rules: { factions: { ...now.rules.factions, enemy: now.rules.factions.player } } };
+    const lost = resolveArrivalBatch(configured, { targetId: 'c0', owner: 'enemy', units: 41 }).state;
+    const back = resolveArrivalBatch(lost, { targetId: 'c0', owner: 'player', units: 2 }).state;
+    expect(advanceNetworkShields(back, 200, before).networkShieldTimers?.c0.elapsedMs).toBe(0);
   });
   it('retains stored charges but resets partial recharge on conversion', () => {
     const state = advanceWorldStep(defender(), 15000);
