@@ -1,6 +1,7 @@
 import { connectedDefenseTierForSize } from '../connectedDefense';
 import { connectedTerritoryIds } from '../connectedTerritories';
 import type { CaptureShieldState, NetworkShieldTimer, SimulationState } from '../types';
+import { DEFENDER_SHIELD_CAPACITY } from '../settings';
 
 export const NETWORK_SHIELD_RECHARGE_MS = 10_000;
 
@@ -11,7 +12,7 @@ export function restoreNetworkShieldTimers(state: SimulationState): NonNullable<
   }
   for (const [id, timer] of Object.entries(runtime)) {
     const city = state.territories.find(candidate => candidate.id === id);
-    if (!city || city.owner === 'neutral' || !state.rules.factions[city.owner]?.connectedDefense
+    if (!city || city.owner === 'neutral' || (city.cityType !== 'defender' && !state.rules.factions[city.owner]?.connectedDefense)
       || !timer || typeof timer !== 'object' || timer.owner !== city.owner
       || !Number.isFinite(timer.elapsedMs) || timer.elapsedMs < 0 || timer.elapsedMs >= NETWORK_SHIELD_RECHARGE_MS) {
       throw new RangeError('Invalid Defensive Network shield timers.');
@@ -27,6 +28,19 @@ function networks(state: SimulationState): ReadonlyMap<string, Network> {
     const ids = connectedTerritoryIds(state.territories, factionId, state.homeCityIds?.[factionId], state.river);
     return [[factionId, { ids, tier: connectedDefenseTierForSize(ids.size) }] as const];
   }));
+}
+
+export function shieldRechargeSource(state: SimulationState, cityId: string): { capacity: number; source: 'defender' | 'network' | 'none' } {
+  return rechargeSource(state, cityId, networks(state));
+}
+function rechargeSource(state: SimulationState, cityId: string, all: ReadonlyMap<string, Network>) {
+  const city = state.territories.find(c => c.id === cityId);
+  if (!city || city.owner === 'neutral') return { capacity: 0, source: 'none' as const };
+  const network = all.get(city.owner);
+  const tier = network?.ids.has(cityId) ? network.tier : 0;
+  return city.cityType === 'defender'
+    ? { capacity: Math.max(DEFENDER_SHIELD_CAPACITY, tier), source: 'defender' as const }
+    : { capacity: tier, source: tier ? 'network' as const : 'none' as const };
 }
 
 function sameOwners(first: SimulationState, second: SimulationState): boolean {
@@ -62,21 +76,20 @@ export function advanceNetworkShields(state: SimulationState, elapsedMs: number,
   };
 
   for (const city of state.territories) {
-    const network = city.owner === 'neutral' ? undefined : currentNetworks.get(city.owner);
-    const tier = network?.ids.has(city.id) ? network.tier : 0;
-    if (!network || tier === 0) { setTimer(city.id); continue; }
+    const active = rechargeSource(state, city.id, currentNetworks);
+    const tier = active.capacity;
+    if (tier === 0) { setTimer(city.id); continue; }
 
     const currentShields = shields[city.id];
     const remaining = currentShields?.remaining ?? 0;
     if (remaining >= tier) { setTimer(city.id); continue; }
 
-    const previousNetwork = beforeNetworks.get(city.owner);
-    const previousConnected = city.owner !== 'neutral'
-      && beforeStep.territories.find(previous => previous.id === city.id)?.owner === city.owner
-      && previousNetwork?.ids.has(city.id) === true;
-    const previousTier = previousConnected ? previousNetwork?.tier ?? 0 : 0;
+    const previous = rechargeSource(beforeStep, city.id, beforeNetworks);
+    const previousConnected = beforeStep.territories.find(c => c.id === city.id)?.owner === city.owner
+      && previous.capacity > 0;
+    const previousTier = previous.capacity;
     const previousTimer = timers[city.id];
-    const sameRechargeWindow = previousConnected && previousTier === tier
+    const sameRechargeWindow = previousConnected && previousTier === tier && previous.source === active.source
       && (!previousTimer || previousTimer.owner === city.owner);
     const blockedThisStep = currentShields?.blockedAt === state.elapsedMs;
     if (!sameRechargeWindow || blockedThisStep) {
