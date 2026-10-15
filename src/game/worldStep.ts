@@ -40,6 +40,17 @@ export function advanceWorldStep(state: SimulationState, elapsedMs: number): Sim
       for (const timer of Object.values(state.networkShieldTimers ?? {})) {
         step = Math.min(step, NETWORK_SHIELD_RECHARGE_MS - timer.elapsedMs);
       }
+      // Feature cadence boundaries are physical events too: do not defer a shot
+      // past a later capture simply because aircraft shifted its cadence off-grid.
+      for (const city of state.territories) for (const feature of city.features ?? []) {
+        if (feature.kind === 'artillery') {
+          const timer = state.artilleryTimers?.[feature.id];
+          const elapsed = timer?.owner === city.owner ? timer.elapsedMs : 0;
+          step = Math.min(step, feature.fireIntervalMs - elapsed);
+        } else if (feature.kind === 'watchtower') {
+          step = Math.min(step, feature.fireIntervalMs - (state.watchtowerElapsedMs[feature.id] ?? 0));
+        }
+      }
       // Zero-duration routes still transition at this timestamp, without advancing the clock.
       if (step <= 1e-7) { state = resolveAircraftEvents(state); step = Math.min(end - state.elapsedMs, 1e-7); }
       state = physicalStep(state, step);

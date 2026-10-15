@@ -27,7 +27,11 @@ export function advanceArtillery(state: SimulationState, elapsedMs: number, befo
   const shots = (state.artilleryShots ?? []).filter(shot => state.elapsedMs - shot.firedAtMs < ARTILLERY_FEEDBACK_MS);
   for (const { city, feature } of guns) {
     const previous = timers[feature.id];
-    const capturedThisStep = beforeStep.territories.find(c => c.id === city.id)?.owner !== city.owner;
+    // Combat replaces the timer on EVERY capture, including capture-recapture.
+    // Reference identity marks an event in this physical step without adding saved
+    // runtime fields; do not credit the pre-capture interval to that fresh timer.
+    const capturedThisStep = beforeStep.territories.find(c => c.id === city.id)?.owner !== city.owner
+      || previous !== beforeStep.artilleryTimers?.[feature.id];
     const total = (previous?.owner === city.owner ? previous.elapsedMs : 0) + (capturedThisStep ? 0 : elapsedMs);
     const count = Math.floor((total + 1e-7) / feature.fireIntervalMs);
     timers[feature.id] = { owner: city.owner, elapsedMs: Math.max(0, total - count * feature.fireIntervalMs) };
