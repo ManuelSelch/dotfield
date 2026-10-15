@@ -1,6 +1,9 @@
 import { DEFAULT_AI, type AiConfig } from './ai/config';
 import { createClock } from './clock';
 import { dispatchUnits } from './dispatch';
+import { convertCity } from './cityConversion';
+import { launchAircraft } from './aircraft';
+import type { CityType } from './types';
 import { advanceRound, evaluateRound } from './round';
 import { createSimulation } from './state';
 import type { FactionId, RulesInput, Territory } from './types';
@@ -60,6 +63,14 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
     },
     dispatch(sourceId: string, targetId: string) {
       if (active()) state = dispatchUnits(state, sourceId, targetId);
+      return state;
+    },
+    convert(cityId: string, type: CityType) {
+      if (active()) state = convertCity(state, cityId, type);
+      return state;
+    },
+    fly(sourceId: string, targetId: string) {
+      if (active()) state = launchAircraft(state, sourceId, targetId);
       return state;
     },
     reserveAiDecision(factionId: FactionId, config: AiConfig) {

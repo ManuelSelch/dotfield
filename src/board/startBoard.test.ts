@@ -32,11 +32,40 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   const canvas = { parentElement: new EventTarget(), getBoundingClientRect: () => bounds } as HTMLCanvasElement;
   const onCounts = vi.fn();
   const onSnapshot = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot });
-  return { resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
+  const onCitySelection = vi.fn();
+  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection });
+  return { onCitySelection, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('opens management, converts through session, and clears it on pause without writing per command', () => {
+    const board = harness();
+    const options = vi.mocked(bindDrag).mock.lastCall![5]!;
+    options.onOwnedCityTap!('south');
+    expect(board.onCitySelection).toHaveBeenLastCalledWith({ cityId: 'south', targeting: null });
+    const snapshots = board.onSnapshot.mock.calls.length;
+    board.stop.convert('defender');
+    expect(board.onCounts.mock.lastCall![0].territories.find((c: { id: string }) => c.id === 'south')).toMatchObject({ cityType: 'defender', units: 16 });
+    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
+    board.stop.pause();
+    expect(board.onCitySelection).toHaveBeenLastCalledWith(null);
+    board.stop();
+  });
+  it('cancels explicit targeting and rejects a fly command before readiness', () => {
+    const board = harness();
+    const options = vi.mocked(bindDrag).mock.lastCall![5]!;
+    options.onOwnedCityTap!('south');
+    board.stop.convert('airfield');
+    board.stop.target('fly');
+    expect(options.getTargetMode!()).toBeNull();
+    board.stop.target('ground');
+    expect(options.getTargetMode!()).toBe('ground');
+    board.stop.cancelTarget();
+    expect(options.getTargetMode!()).toBeNull();
+    board.stop.closeCity();
+    expect(board.onCitySelection).toHaveBeenLastCalledWith(null);
+    board.stop();
+  });
   it('revalidates selection every frame and cancels on page exit', () => {
     const board = harness();
     const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
@@ -112,6 +141,16 @@ describe('board lifecycle adapter', () => {
     board.stop();
   });
 
+  it('preserves click-to-click selection through the management bar resize but cancels on a window resize', () => {
+    const board = harness();
+    const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;
+    vi.mocked(bindDrag).mock.lastCall![5]!.onOwnedCityTap!('south');
+    board.resize(360, 300);
+    expect(input.cancel).not.toHaveBeenCalled();
+    board.window.dispatchEvent(new Event('resize'));
+    expect(input.cancel).toHaveBeenCalledOnce();
+    board.stop();
+  });
   it('does not cancel first input on the initial same-size observer notification', () => {
     const board = harness();
     const input = vi.mocked(bindDrag).mock.results.at(-1)!.value;

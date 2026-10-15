@@ -1,4 +1,8 @@
 import { useRef } from 'react';
+import { CityControls } from './CityControls';
+import { cityType } from '../game/cityConversion';
+import { AIRCRAFT_CAPACITY, CITY_CONVERSION_COST } from '../game/settings';
+import { shieldRechargeSource } from '../game/features/networkShields';
 import { useBoardSession } from './useBoardSession';
 import { SessionControls, SessionNavigationControls } from '../ui/SessionControls';
 import { TroopCompositionBar } from '../ui/TroopCompositionBar';
@@ -26,7 +30,14 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const connectedIds = networkEnabled
     ? connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river) : new Set<string>();
   const playerDefenseTier = networkEnabled ? connectedDefenseTierForSize(connectedIds.size) : 0;
-  const shieldCapacities = connectedDefenseCapacities(state);
+  const shieldCapacities = new Map(connectedDefenseCapacities(state));
+  for (const city of state.territories) {
+    if (city.cityType === 'defender' && city.owner !== 'neutral') shieldCapacities.set(city.id, 3);
+  }
+  const selectedCity = phase === 'running' && state.roundStatus === 'playing'
+    ? state.territories.find(c => c.id === session.citySelection?.cityId && c.owner === 'player') : undefined;
+  const plane = selectedCity && state.aircraft?.[selectedCity.id];
+  const shield = selectedCity && shieldRechargeSource(state, selectedCity.id);
 
   return (
     <>
@@ -60,6 +71,12 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
+      {selectedCity && <CityControls name={selectedCity.id} cityType={cityType(selectedCity)} troops={selectedCity.units}
+        planePhase={plane?.phase ?? null} capacity={AIRCRAFT_CAPACITY} costs={CITY_CONVERSION_COST}
+        targeting={session.citySelection?.targeting ?? null}
+        detail={plane?.cargo ? `${plane.cargo} aboard` : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
+        onConvert={session.convert} onFly={() => session.target('fly')} onGround={() => session.target('ground')}
+        onCancel={session.cancelTarget} onClose={session.closeCity} />}
       <TerritoryDetails territories={state.territories} captureShields={state.captureShields} shieldCapacities={shieldCapacities} />
       <TransferDetails state={state} />
     </>
