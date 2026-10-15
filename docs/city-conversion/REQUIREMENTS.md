@@ -1,0 +1,188 @@
+# City Conversion and Air Transport — Requirements
+
+## Goal
+
+Give players a meaningful choice between troop production, defense, and air mobility by converting existing cities at a troop cost. Introduce reusable, capacity-limited airplanes that transport troops to any city across rivers and mountains, while keeping mobile controls quick and the top-down battlefield readable.
+
+Status: planning only. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md): “yes option C is approved Now create the full plan for all of it”. This approval covers the delivery treatment, not the unshown conversion/dispatch controls or proposed balance numbers. No production implementation is authorized by the request to plan.
+
+## Scope
+
+### In Scope
+
+- Convert an existing owned city between Production, Defender, and Airfield by spending its troops.
+- Quick tap-to-open mobile conversion controls; preserve drag orders and desktop/keyboard access.
+- Production-only troop growth, Defender shielding, and Airfield-only airplane preparation.
+- One reusable airplane per airfield, with a proposed capacity of 100 troops, outbound transport, Dock & pulse unloading, and empty return.
+- Friendly reinforcement and hostile/neutral attacks at any city, including across rivers and mountains.
+- Coexistence with Capture Shield, Defensive Network, Factory/Industry, Watchtower, Slow Zone, Artillery, and existing orders.
+- Deterministic simulation, AI/forecast parity, faction symmetry, troop accounting, round completion, persistence, restart/replay, accessibility, and regression coverage.
+- Human playtesting and centralized tuning; conversion and flight-control mockup review before implementing those controls.
+
+### Out of Scope
+
+- Creating/moving cities, additional unit classes, combat aircraft, bombing, aircraft-to-aircraft combat, or manual flight steering.
+- Multiple airplanes per airfield, airplane transfer to a new home, airborne troop pickup, or carrying troops home after delivery.
+- Removing Capture Shield or Defensive Network; redesigning existing unrelated upgrades or map generation.
+- Automatic ground detours, new mountain/river routing, progression, resource currencies, multiplayer, or cloud saves.
+- General UI redesign or implementing rejected unloading alternatives A/B.
+
+## Requirements
+
+### R1. City identity and conversion
+
+- Every city has exactly one city type: Production, Defender, or Airfield. These are separate from existing attached map/upgrade features; a Factory or Artillery is not a fourth conversion type.
+- Only the current non-neutral owner can convert a city. Neutral/enemy taps cannot expose actionable conversion controls.
+- Conversion spends actual troops from that city's garrison, not airplane cargo or another city's troops. It must not create troops, spend the same troops twice, or make the garrison negative.
+- Recheck owner, type, available troops, round phase, and any flight restrictions at command execution. An invalid command leaves state and orders unchanged.
+- Selecting the current type is a no-op with no cost. All factions use the same costs and rules.
+- Keep territory identity, coordinates, original-home identity, features, and neighboring-region membership unchanged. Conversion is not capture: it must not grant Capture Shield charges.
+- Costs, timing, order cancellation, switching restrictions, and capture/type retention use the proposed policy under Assumptions until explicitly settled. Do not silently implement those proposals as confirmed rules.
+
+### R2. Production and troop handling
+
+- Production cities generate ordinary troops using existing faction/local production effects, fractional accounting, and the current automatic production cap of 50. Reinforcements can exceed 50 without being trimmed.
+- Defenders and Airfields generate **no troops**, including when they carry Factory or belong to an Industry-upgraded faction. They can receive, hold, defend with, and dispatch ordinary troops.
+- An airfield does not automatically create its cargo: a full 100-troop load requires reinforcement/consolidation. Ordinary garrison troops defend until they actually board.
+- Never exchange or reinterpret a city troop count as an airplane count. Show airplane readiness/cargo separately from the garrison.
+- Reset or retain fractional/timer state explicitly on conversion/capture, with no conversion-loop production exploit. Proposed reset policy is listed below.
+
+### R3. Defender cities and shield coexistence
+
+- A Defender trades all troop production for stronger defense based on the existing whole-arrival-batch shield mechanic, not a hidden multiplier to displayed troops.
+- Capture Shield remains independently selectable and keeps its capture-grant behavior. Defender conversion never simulates a capture to obtain charges.
+- Defensive Network remains independently selectable with original-home/shared-border membership, current 4/7/13 city thresholds, and existing recharge rules on ordinary cities.
+- Define Defender capacity, recharge, initial charges, and combination with both existing shield sources before implementing this slice. Recommended non-additive policy is under Assumptions.
+- Friendly arrivals never consume shields. Each hostile air-delivery batch consumes at most one charge, just like a ground arrival; do not block an entire plane load with one shield.
+- Expose stored charges and the active recharge/capacity source without overlapping miniature badges or changing hit/combat geometry. Pause/background/reload cannot grant extra charges.
+
+### R4. Airplane lifecycle
+
+- Only an Airfield city prepares an airplane. Each airfield owns **at most one airplane across all phases**, not one parked plane plus another in flight.
+- Phases are explicit: preparing, ready, outbound, unloading, returning, turnaround. No launch while preparing, away, unloading, or turning around. Never produce a second plane during a trip.
+- A launch transports a positive whole number of existing troops up to its capacity; it does not wait for a full load. Capacity **100** is the proposed initial playtest value, not a proven balance setting.
+- Remove boarded troops from the source exactly once at launch. They no longer defend that source, grow, collide as ground dots, or count as its queued garrison.
+- Target any distinct existing city, irrespective of river-bank pairing or mountain obstructions. Ownership at delivery time determines attack versus reinforcement.
+- Plane flies a direct top-down route, without ground-dot collision/bridge-clearance checks. Keep existing ground route legality unchanged.
+- Airborne speed, preparation time, turnaround, Slow Zone/Watchtower interactions, and loss of the home airfield need explicit policy; recommendations are below.
+- After the last delivery pulse, return empty to the original airfield and complete turnaround before another launch. Neither the airplane nor an empty return can capture a city.
+- Plane position, cargo, phase, and timers are simulation state, not CSS/Canvas-owned gameplay state. Outcome must not depend on rendering frame rate.
+
+### R5. Approved Dock & pulse delivery
+
+- Stop the airplane at the target city edge; do not render ground troop dots crossing the final gap, an orbit, a drop-height effect, or a separate landing area.
+- Resolve cargo in normal **five-troop batches**, plus a final smaller batch when needed. Show one restrained city pulse for each actual batch and decrement the cargo counter accordingly.
+- Use the shared combat path: shield block, ordinary defense, zero-garrison tie, capture, and friendly reinforcement. A blocked batch is lost; do not refund it to the airplane.
+- Deliver all cargo to the originally selected city. If ownership changes midway, later batches resolve against the new owner, including friendly reinforcement after capture or an attack after an intervening enemy capture.
+- Batch size and cadence are different decisions: existing ground launch cadence is 600 ms, while the approved visual study illustrated 200 ms air pulses. Do not accidentally change ground cadence. Proposed air cadence is 200 ms, approximately four seconds for a full load.
+- Use stable event ordering when air pulses, ground arrivals, shields, artillery, and captures share a simulation timestamp. Live and forecast execution must agree, including simultaneous home loss and delivery.
+- Render from committed gameplay events. Reduced-motion mode suppresses decorative pulse expansion, never delivery/cargo changes; pause freezes feedback on simulation time.
+
+### R6. Quick conversion and flight controls
+
+- **Confirmed interaction:** tap an owned city to open a compact bottom conversion bar with Production, Defender, and Airfield choices. A second tap on a type performs the conversion without a confirmation dialog.
+- Show current type, troop price, and unaffordable/temporarily unavailable states. The current type is highlighted and cannot incur another charge. Explain disabled reasons in accessible text.
+- Keep all three type actions comfortably tappable (at least 44 CSS px high), account for mobile safe areas, and retain readable counts. Avoid long-press, nested menus, and a large management panel.
+- A tap is not a drag. Dragging from a region still issues an ordinary order without accidentally converting a city or opening the bar on release. Water/outside taps do not select a city.
+- Tapping outside dismisses the bar. Ownership loss, pause, restart, Home, round end, and invalid source state clear actionable selection. No click-through when dismissing or opening controls.
+- Air transport needs an explicit, discoverable send action so a legal same-bank target can receive either ground troops or air cargo. The proposed workflow is a Fly action followed by a target tap; it is not yet visually approved.
+- Busy planes must not prevent ordinary ground dispatch from an airfield. Show preparing/ready/away/returning state without requiring another menu.
+- Integrate desktop click-to-click, keyboard city controls, Escape, focus restoration, and screen-reader city/airplane details. Do not sacrifice existing desktop commands to make taps work.
+- Review the conversion bar, flight targeting/cancel flow, and busy/unaffordable states in an isolated mobile/desktop mockup before production UI work. Option C approval does not cover those screens.
+
+### R7. Existing feature and combat boundaries
+
+- Keep map/upgrade features attached through conversion unless an explicitly approved policy says otherwise. Factory/Industry troop multipliers apply only to Production; do not implicitly accelerate airplane or shield timers.
+- Watchtower/Artillery/Slow Zone city allegiance remains current-owner based. Whether existing troop-targeting effects can affect airplanes/cargo must be explicit; recommended initial policy is immunity in flight.
+- Defender and Airfield garrisons remain susceptible to ordinary hostile troop arrivals and Artillery. Airplane cargo is not part of the city garrison until delivered.
+- Conversion/capture must reset or cancel invalid queues and feature timers consistently; no stale launch may spend troops already used for construction/boarding.
+- City-type changes must not remove map features, alter river endpoints, grant free shields, reset original-home identity, or bypass faction permissions.
+
+### R8. Round lifecycle, accounting, and saving
+
+- Include loaded outbound/unloading cargo exactly once in faction troop totals and elimination/round-completion checks. Unlaunched ground reservations remain counted only in the garrison.
+- A parked/empty/preparing/returning airplane has no troop combat strength and cannot alone keep an eliminated faction in the round.
+- Specify home-loss cargo handling before coding terminal outcomes; test it alongside a faction losing its last city and possible recovery by other in-flight ground troops.
+- Pause, hidden/background handling, and terminal state freeze preparation, travel, delivery, return, shield recharge, turnaround, and AI. No catch-up on resume/reload.
+- Persist city types, exact plane phase/home/owner/target/cargo/timing, relevant cooldowns, and opening setup/rules. Validate one-plane-per-airfield, valid references, cargo bounds, owner consistency, and finite timers.
+- Preserve the existing event-only save contract; no per-frame or per-pulse storage writes. Storage failures remain nonfatal.
+- Restore old valid rounds with missing city types as Production and no invented airplanes/Defender shields. Corrupt new runtime must not yield duplicate planes or free troops; follow existing invalid-save handling.
+- Restart/Play again restore the exact opening types/setup with fresh runtime. New map uses the existing generated-match lifecycle, not the converted live board. No additional Home setting is assumed.
+
+### R9. AI and forecasts
+
+- The same pure commands and physical stepping govern player, AI, and forecasts. Extend worker messages/snapshots and all forecast paths to include city types, shields, planes, and cargo.
+- AI forecasts account for stopped troop production, conversion costs, occupied plane slots, whole-batch shielding, air pulses, and potential home loss. No hidden resource advantages.
+- AI can reinforce an airfield, launch a partially/full-loaded flight when useful, attack across barriers, and choose sensible conversions without converting every city into a nonproducer.
+- Keep a viable production base, avoid repeated type switching/resource waste, and retain ordinary ground logistics/defense. Avoid overfilling a busy airfield through production-relief logic that now misclassifies nonproducing cities.
+- Airplanes are not new shared-border links for Defensive Network. Preserve original-home protection and legal ground staging where those features are present.
+- Test independent enemy factions and both strong/weak AI positions. AI is heuristic; no promise of optimal strategy or future-enemy-order prediction.
+
+### R10. Verification and delivery discipline
+
+- Implement in small tested slices after unresolved rules for that slice are settled. Keep simulation, rendering, input, persistence, and AI changes modular rather than growing one catch-all component.
+- Unit tests cover resource conservation, conversion validation, production gating, shield interactions, complete aircraft lifecycle, partial loads, pulse ordering, capture/loss, and deterministic results across step partitioning.
+- Real-browser tests cover mobile tap/drag distinctions, bar/targeting lifecycle, 100-troop delivery with three shields, friendly reinforcement, terrain crossing, busy plane behavior, reload mid-trip, pause, restart, and desktop/keyboard regressions.
+- Run the full unit/browser suites, typecheck/production build, and PWA tests for final integration. Keep existing ground combat, geography, upgrades, generated-map and offline-update behavior passing.
+- Human playtesting decides conversion prices, carrying capacity, timing, readability, and whether geography/Defender cities remain tactically meaningful. Actual iPhone Safari/installed-PWA checks remain manual acceptance, not inferred from Chromium.
+
+## Assumptions
+
+These are **recommendations for confirmation**, not additional user-approved rules:
+
+- Initial/legacy cities are Production. Capture retains city type and map features; capture does not create an airplane instantly. A captured Airfield starts full preparation for its new owner.
+- Conversion is immediate; target-type prices initially Production 10, Defender 20, Airfield 30 troops, always leaving at least one garrison troop. No refund on switching. Costs are centralized playtest values.
+- Successful conversion cancels that source's unlaunched ground queue, leaves launched ground groups alone, and resets fractional troop growth/local production or recharge progress. Ready/preparing airfields may convert away; airfields with a plane away/unloading may not.
+- Defender starts empty and regenerates one shield every 10 seconds up to capacity 3, independently of network connectivity. Shared shield pool uses the larger of Defender/network capacities, not their sum; recharge is one coordinated stream, not two additive timers. Preserve capture-granted excess charges. Switching away retains stored charges but removes Defender recharge; reset partial progress when eligibility/capacity changes to prevent timer exploits.
+- First airplane preparation 20 seconds; turnaround after return 10 seconds. Airplane speed starts at twice the current normal ground speed. Factory/Industry/Slow Zone do not alter airplane or Defender timers/speed.
+- A flight boards up to 100 available troops immediately, keeping one behind. Successful boarding cancels unlaunched source ground reservations; a rejected flight changes nothing. Player chooses air dispatch explicitly using Fly, then taps a target; ordinary drag remains ground dispatch.
+- Initial airplanes and embarked cargo are not targetable by ordinary dots, Watchtowers, or Artillery. Troops delivered into cities regain normal garrison vulnerability. Visual dock position never invokes terrain/ground collision rules.
+- Capture of the home airfield destroys its plane and any undelivered cargo; already delivered troops remain. Plane allegiance never transfers. Capture before/during return cancels the old trip and starts the new owner's full preparation. This is intentionally a strong commitment and requires balance testing.
+- Air unloading cadence starts at 200 ms per batch, separate from ground launches. Exact first-pulse timestamp and deterministic tie policy are specified in slice 6 tests, not inferred from a visual animation frame.
+- Conversion is available symmetrically in normal matches without another pre-game toggle. No generated Defender/Airfield placements are added initially.
+
+## Implementation Plan
+
+### 1. Rules and Control Mockup
+Description: Settle the numbered open questions below, centralize the accepted tuning table, and extend isolated mockups with the tap conversion bar and explicit flight targeting/cancel controls at mobile and desktop sizes. Include current type, prices, insufficient troops, busy plane, ownership loss, and keyboard behavior. Preserve approved option C. Verify by user review and record explicit approval for new UI; stop its owned preview before production UI work. No gameplay implementation in this slice.
+
+### 2. City Types and Conversion Commands
+Description: Add explicit city types with default Production normalization and an owner-validated conversion command. Implement cost conservation, minimum garrison, queue invalidation, type retention on capture, and growth-remainder reset according to slice 1 decisions. Gate troop growth to Production while preserving Factory/Industry behavior there. Verify pure tests for every source/target type, hostile/neutral/paused rejection, repeat commands, cap-overflow reinforcements, and immutable inputs. Do not expose the incomplete feature in normal UI yet.
+
+### 3. Defender Shield Rules
+Description: After slices 1–2, implement Defender capacity/recharge with the selected stacking policy using the shared batch shield/combat path. Cover conversion, capture, network connection/tier changes, excess capture charges, no free conversion charges, friendly arrivals, and timing across pause/bulk stepping. Verify live/forecast physical-step parity and no changes to non-Defender network behavior. Keep recharge source/capacity available to rendering/accessibility.
+
+### 4. Airfield Preparation and Plane State
+Description: After slice 2, introduce the one-plane-per-airfield lifecycle, preparation/readiness/turnaround timers, frozen runtime ownership/home identity, and shared validated tuning. Capture/conversion resets must follow slice 1 policy. Verify no duplicate planes after large steps or repeated conversion, no troop production from an Airfield, no premature readiness, and phase validity. Rendering and dispatch UI remain deferred.
+
+### 5. Flight Dispatch and Direct Travel
+Description: After slice 4, add the shared launch command, partial/full boarding up to capacity, reservation cancellation, cargo accounting, direct terrain-independent outbound travel, and empty-return travel. Implement agreed in-flight effect immunity and home-loss behavior. Verify river/mountain crossings without changing ground legality, busy/invalid/no-cargo rejection, all-but-one boarding, conservation, and faction/owner boundaries. Intermediate tests can exercise arrival/return states directly until slice 6 adds unloading.
+
+### 6. Dock and Pulse Combat
+Description: After slices 3 and 5, connect arrival to edge docking, five-troop pulses, final partial batches, cargo decrement, empty return, and turnaround. Reuse shared combat rather than duplicating shield/capture rules. Specify exact first-pulse timing and stable equal-time order with ground arrivals/home loss. Verify 100 troops against three shields, friendly deliveries, partial loads, mid-unload ownership changes, same-time captures, no orphaned cargo, and equivalent coarse/fine physical stepping. Rendering-independent end-to-end flight cycle must pass.
+
+### 7. Save Replay and Round Accounting
+Description: After slice 6, integrate types/planes/cargo into snapshots, restore validation, worker serialization, troop composition, elimination, and round setup/restart/replay. Preserve event-only persistence. Verify legacy defaults, corrupt/mismatched references, duplicate-plane rejection, mid-preparation/outbound/unloading/return/turnaround reload, pause/background freeze, last-city loss, and exact opening reset. Complete this before exposing playable controls so active saves cannot silently lose new state.
+
+### 8. Conversion Bar and Flight Controls
+Description: After slices 1 and 7, implement only the approved compact conversion UI and air targeting flow using shared commands. Preserve mobile full-region dragging, existing desktop click-to-click and keyboard commands, safe areas, pause controls, and click-through prevention. Add accessible cost/readiness/cargo/state descriptions. Verify browser interactions on narrow mobile and desktop, insufficient/busy states, source capture, outside/Escape cancellation, and zero unintended conversions during ground dispatch. Keep incomplete renderer/AI integration out of normal releases until subsequent slices pass.
+
+### 9. Aircraft and Defender Rendering
+Description: After slices 3, 6 and 8, render clear city-type indicators, plane readiness/cargo, direct flights, approved option C edge docking/pulses, shield-block feedback, and empty return from simulation state. Keep counts readable with stacked map features, no new collision geometry, and no per-frame React publications. Respect reduced motion and pause. Verify board rendering tests and browser scenarios at compact phone/desktop sizes against the approved sources; actual iPhone readability is checked in slice 11.
+
+### 10. Conversion and Air Transport AI
+Description: After slices 6–7, extend forecast/worker decisions and production-aware logistics for nonproducing city types and complete flights. Add conservative conversion spending/production-base safeguards, Defender placement, Airfield supply, partial/full flights, barrier attacks, and original-home defense without switching loops. Use the exact player commands and physics. Verify deterministic pure/worker/browser scenarios across multiple factions, useful cross-barrier attacks, home-loss risk, strong/weak positions, and unchanged legal ground staging.
+
+### 11. Integrated Playtest and Documentation
+Description: After slices 8–10, enable the complete feature, run full unit/browser/build/PWA checks, and document actual rules/controls/tuning and saved-round behavior. Playtest 100-capacity flights versus Defender/Capture Shield/network combinations, conversion-loop risks, no-producer situations, battlefield clutter, and short-round pacing. Check actual iPhone tap/drag, safe areas, interruption, installed/offline use and performance. Adjust only centralized tuning with explicit balance feedback; mark automated evidence separately from manual/human acceptance and commit verified slices without pushing automatically.
+
+## Open Questions
+
+1. What conversion prices and timing should we start with? Proposed: instant conversion costing 10 troops for Production, 20 for Defender, and 30 for Airfield, always leaving one troop, with no refund.
+2. Should Defender use the proposed three-charge capacity, one shield every 10 seconds, empty initial pool, and non-additive shared-pool policy with Defensive Network/Capture Shield?
+3. Confirm initial airplane tuning: capacity 100, preparation 20 seconds, twice normal ground speed, 200 ms unloading pulses, and 10-second turnaround after return?
+4. Should air dispatch use the proposed Fly action followed by a target tap, boarding up to capacity while leaving one troop, with ordinary dragging reserved for ground orders?
+5. Should capture retain city type, destroy the old home airplane and its undelivered cargo, and make a captured Airfield prepare a new airplane from scratch?
+6. Should conversion cancel unlaunched ground orders, reset partial production/recharge progress, preserve stored shields, and be forbidden while that airfield's airplane is away?
+7. Should airplanes/cargo initially ignore Watchtowers, Artillery, ground collisions, and Slow Zones, with Factory/Industry affecting troop production only?
+8. Should conversion be available in every normal match immediately, without a new Home toggle or generated Defender/Airfield placements?
