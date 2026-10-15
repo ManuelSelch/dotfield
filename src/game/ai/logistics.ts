@@ -7,6 +7,7 @@ import { CITY_PRODUCTION_LIMIT } from '../settings';
 import { canDirectTerrainOrder } from '../terrain/directOrder';
 import type { SimulationState, TerritoryState } from '../types';
 import { PRODUCTION_AI, type AiConfig } from './config';
+import { airSupplyRoom, incomingThreat } from './mobility';
 
 // Strategic distances use legal straight legs, including manual staging around
 // mountains and through paired bridges. They never create automatic troop routes.
@@ -45,6 +46,7 @@ function stagingPriority(state: SimulationState, a: TerritoryState, b: Territory
 export function canRelieveProduction(state: SimulationState, source: TerritoryState, target: TerritoryState,
   distances: ReadonlyMap<string, number>, config: AiConfig, factionId: string): boolean {
   if (target.owner !== factionId || source.id === target.id) return false;
+  if (target.cityType === 'airfield' && airSupplyRoom(state, target, factionId) < availableUnits(state, source.id) - 1) return false;
   const rate = getTerritoryGrowthRate(state, source);
   if (rate <= 0) return false;
   const timeToCap = Math.max(0, (CITY_PRODUCTION_LIMIT - source.units) * 1000 - source.growthRemainder) / rate;
@@ -52,8 +54,7 @@ export function canRelieveProduction(state: SimulationState, source: TerritorySt
 
   // Never evacuate a known threatened city or use economic redistribution as a
   // substitute for defending the destination. Defence has its own scoring path.
-  if (state.transfers.some(batch => batch.owner !== factionId
-    && (batch.targetId === source.id || batch.targetId === target.id))) return false;
+  if (incomingThreat(state, source.id, factionId) || incomingThreat(state, target.id, factionId)) return false;
   // Also hold exposed strongholds against nearby armies which have not launched
   // yet. This is deliberately conservative, not a prediction of future orders.
   if (state.territories.some(hostile => hostile.owner !== factionId && hostile.owner !== 'neutral'
@@ -84,5 +85,7 @@ export function factionArmyUnits(state: SimulationState, factionId: string): num
   // Unlaunched batches are still inside their source garrison: count them once.
   return state.territories.reduce((sum, city) => sum + (city.owner === factionId ? city.units : 0), 0)
     + state.transfers.reduce((sum, batch) => sum + (batch.owner === factionId && batch.elapsedMs >= 0 ? batch.units : 0), 0)
-    + state.arrivals.reduce((sum, batch) => sum + (batch.owner === factionId ? batch.units : 0), 0);
+    + state.arrivals.reduce((sum, batch) => sum + (batch.owner === factionId ? batch.units : 0), 0)
+    + Object.values(state.aircraft ?? {}).reduce((sum, plane) => sum + (plane.owner === factionId
+      && (plane.phase === 'outbound' || plane.phase === 'unloading') ? plane.cargo : 0), 0);
 }

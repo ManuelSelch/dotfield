@@ -1,7 +1,6 @@
-import { dispatchUnits } from '../dispatch';
 import type { FactionId, SimulationState } from '../types';
 import type { AiConfig } from './config';
-import { chooseOrder } from './decision';
+import { applyAiAction, chooseAction } from './actions';
 
 export type AiConfigurations = Readonly<Partial<Record<FactionId, AiConfig>>>;
 const isConfig = (value: AiConfig | AiConfigurations): value is AiConfig => 'decisionIntervalMs' in value;
@@ -27,8 +26,8 @@ export function advanceAi(state: SimulationState, input: AiConfig | AiConfigurat
     const nextDeadline = next.elapsedMs + config.decisionIntervalMs;
     next = { ...next, aiDecisionDeadlines: { ...next.aiDecisionDeadlines, [factionId]: nextDeadline },
       ...(factionId === 'enemy' ? { aiNextDecisionMs: nextDeadline } : {}) };
-    const order = chooseOrder(next, config, factionId);
-    if (order) next = dispatchUnits(next, order.sourceId, order.targetId, factionId);
+    const action = chooseAction(next, config, factionId);
+    if (action) next = applyAiAction(next, action, factionId);
   }
   return next;
 }

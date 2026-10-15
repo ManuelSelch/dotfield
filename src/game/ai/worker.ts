@@ -1,4 +1,5 @@
-import { chooseOrder } from './decision';
+import { chooseAction, type AiAction } from './actions';
+import type { AiOrder } from './score';
 import type { AiConfig } from './config';
 import type { FactionId, SimulationState } from '../types';
 
@@ -12,11 +13,15 @@ export interface AiWorkerRequest {
 export interface AiWorkerResponse {
   readonly requestId: number;
   readonly factionId: FactionId;
-  readonly order: ReturnType<typeof chooseOrder>;
+  readonly action: AiAction | null;
+  /** Compatibility for ground-only coordinators. New consumers execute action. */
+  readonly order: AiOrder | null;
 }
 
 self.onmessage = (event: MessageEvent<AiWorkerRequest>) => {
   const { requestId, state, factionId, config } = event.data;
-  const order = chooseOrder(state, config, factionId);
-  self.postMessage({ requestId, factionId, order } satisfies AiWorkerResponse);
+  const action = chooseAction(state, config, factionId);
+  const order = action?.type === 'ground' ? { sourceId: action.sourceId, targetId: action.targetId,
+    kind: action.kind, score: action.score } : null;
+  self.postMessage({ requestId, factionId, action, order } satisfies AiWorkerResponse);
 };

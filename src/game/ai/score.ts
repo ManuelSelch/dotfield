@@ -3,13 +3,14 @@ import { getTerritoryGrowthRate } from '../features/growthRate';
 import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
 import { PRODUCTION_AI, type AiConfig } from './config';
+import { airSupplyRoom, incomingThreat, usefulAirSupply } from './mobility';
 
 export type OrderKind = 'expand' | 'attack' | 'reinforce';
 export interface AiOrder { readonly sourceId: string; readonly targetId: string; readonly kind: OrderKind; readonly score: number }
 
 export function scoreOrder(state: SimulationState, source: TerritoryState, target: TerritoryState,
   baseline: SimulationState, proposed: SimulationState, horizonMs: number, config: AiConfig, factionId: string,
-  distances: ReadonlyMap<string, number>, productionGain = 0): AiOrder | null {
+  distances: ReadonlyMap<string, number>, productionGain = 0, sentUnits = source.units - 1): AiOrder | null {
   const before = baseline.territories.find(n => n.id === target.id)!;
   const after = proposed.territories.find(n => n.id === target.id)!;
   if (after.owner !== factionId) return null;
@@ -30,14 +31,16 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     }
   } else {
     kind = 'reinforce';
-    const threatened = state.transfers.some(t => t.targetId === target.id && t.owner !== factionId);
+    const threatened = incomingThreat(state, target.id, factionId);
     if (threatened) {
       if (before.owner === factionId && before.units > config.defenceBuffer) return null;
       if (before.owner === factionId && after.units <= before.units) return null;
       score = config.defenceScore;
     } else {
       const advance = distances.get(source.id)! - distances.get(target.id)!;
-      if (!(advance >= config.frontlineAdvance) && productionGain < PRODUCTION_AI.minGain) return null;
+      const airSupply = usefulAirSupply(state, source, target, factionId);
+      if (target.cityType === 'airfield' && airSupplyRoom(state, target, factionId) < sentUnits) return null;
+      if (!(advance >= config.frontlineAdvance) && productionGain < PRODUCTION_AI.minGain && !airSupply) return null;
       // A bounded, strictly increasing bonus favors Factory relief without
       // allowing large economic gains to overwhelm emergency defence scores.
       score = config.frontlineScore * (1 + productionGain / (productionGain + PRODUCTION_AI.bonusHalfGain));

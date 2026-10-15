@@ -11,6 +11,7 @@ import { DEFAULT_AI, PRODUCTION_AI, type AiConfig } from './config';
 import { forecastBattle } from './forecast';
 import { scoreOrder, type AiOrder } from './score';
 import { canRelieveProduction, factionArmyUnits, frontlineDistances } from './logistics';
+import { keepsHomeReserve, remainingDeliveryMs } from './mobility';
 
 export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy'): AiOrder | null {
   if (state.roundStatus !== 'playing') return null;
@@ -29,11 +30,15 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
         .map(t => remainingTravelBound(t, minimumMultiplier));
       const productionRelief = canRelieveProduction(state, source, target, distances, config, factionId);
       const orderHorizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner), minimumMultiplier),
-        ...relevantArrivals) / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
+        ...relevantArrivals, ...Object.values(state.aircraft ?? {}).filter(p => p.targetId === target.id || p.targetId === source.id)
+          .map(remainingDeliveryMs)) / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
       const horizon = Math.max(orderHorizon, productionRelief ? PRODUCTION_AI.lookAheadMs : 0);
       let baseline = forecasts.get(horizon);
       if (!baseline) { baseline = forecastBattle(state, horizon); forecasts.set(horizon, baseline); }
-      const proposed = forecastBattle(dispatchUnits(state, source.id, target.id, factionId), horizon);
+      const dispatched = dispatchUnits(state, source.id, target.id, factionId);
+      if (!keepsHomeReserve(state, dispatched, factionId)) continue;
+      const proposed = forecastBattle(dispatched, horizon);
+      if (!keepsHomeReserve(baseline, proposed, factionId)) continue;
       // Compare the whole faction, not just the freed source: filling the sink
       // can sacrifice its production. Real forecasts include queues, incoming
       // armies, growth multipliers and losses; a transfer itself creates no units.

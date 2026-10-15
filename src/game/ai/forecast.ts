@@ -15,7 +15,10 @@ export function forecastBattle(state: SimulationState, horizonMs: number): Simul
   for (let remaining = horizonMs; remaining > 0;) {
     const eventMs = Math.min(...next.transfers.map(t => t.elapsedMs < 0
       ? -t.elapsedMs : t.durationMs - traveledTime(t)));
-    const step = Math.min(remaining, hasOpposingTransfers(next) || hasSlowZones(next) ? SIMULATION_STEP_MS
+    // A quiet ground queue is not a quiet world: preparation, air pulses,
+    // home loss and Defender recharge can all change combat between arrivals.
+    const cityEvents = next.territories.some(c => c.cityType === 'airfield' || c.cityType === 'defender');
+    const step = Math.min(remaining, cityEvents || hasOpposingTransfers(next) || hasSlowZones(next) ? SIMULATION_STEP_MS
       : Math.max(SIMULATION_STEP_MS, Math.ceil(eventMs / SIMULATION_STEP_MS) * SIMULATION_STEP_MS));
     next = advanceWorldStep(next, step);
     remaining -= step;
