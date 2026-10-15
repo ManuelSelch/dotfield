@@ -64,9 +64,9 @@ test('pause controls stay compact over the visible map and restart immediately s
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('Ready to grow?')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
-    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units.');
+    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units. Production city.');
     await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(0);
     await page.clock.runFor(1100);
-    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 37 units.');
+    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 37 units. Production city.');
   }
 });

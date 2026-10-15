@@ -8,9 +8,9 @@ for (const width of [320, 430]) {
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
     await page.goto('/tests/fixtures/round.html?shield-battle');
     const target = page.getByRole('list', { name: 'Territory details' }).getByRole('listitem').filter({ hasText: /^target:/ });
-    await expect(target).toContainText('12 units. Shields: 3 active charges');
+    await expect(target).toContainText('12 units. Production city. Shields: 3 active charges');
     await page.clock.runFor(2400);
-    await expect(target).toContainText('12 units. Shields: 2 active charges');
+    await expect(target).toContainText('12 units. Production city. Shields: 2 active charges');
     await expect(page.getByRole('button', { name: /^Select target region/ })).toHaveAttribute('aria-label', /Shields: 2 active charges; each blocks one hostile troop-arrival batch/);
     await page.screenshot({ path: `test-results/capture-shield-${width}.png` });
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
@@ -23,16 +23,16 @@ for (const width of [320, 430]) {
     await expect(target).toHaveText(paused!);
     await page.getByRole('button', { name: 'Resume', exact: true }).click();
     await page.clock.runFor(650);
-    await expect(target).toContainText('12 units. Shields: 1 active charge');
+    await expect(target).toContainText('12 units. Production city. Shields: 1 active charge');
     await page.clock.runFor(600);
-    await expect(target).toContainText('12 units. Shields depleted');
+    await expect(target).toContainText('12 units. Production city. Shields depleted');
     await page.clock.runFor(650);
-    await expect(target).toContainText('7 units. Shields depleted');
+    await expect(target).toContainText('7 units. Production city. Shields depleted');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await page.reload();
-    await expect(target).toContainText('7 units. Shields depleted');
+    await expect(target).toContainText('7 units. Production city. Shields depleted');
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
-    await expect(target).toHaveText('target: Neutral, 2 units.');
+    await expect(target).toHaveText('target: Neutral, 2 units. Production city.');
   });
 }
 

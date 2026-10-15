@@ -2,7 +2,11 @@
 
 A small personal territory-conquest game, built one milestone at a time.
 
-## Current milestone: fresh generated matches
+## Current milestone: city conversion and reusable air transport
+
+Tap an owned city for **Production / Defender / Airfield** conversion controls (10 / 20 / 30 troops; leave one behind). Defender cities stop producing troops and regenerate batch-blocking shields; Airfields stop producing troops and support one reusable airplane carrying up to **100 troops**. Choose **Fly**, then any target city—even across rivers and mountains. The plane docks, delivers five troops per pulse, and returns empty. Capture Shield and existing features coexist. See the [implemented controls, rules and limitations](docs/city-conversion/IMPLEMENTATION.md).
+
+## Fresh generated matches
 
 Choose **6–30 cities**, **1–4 enemies**, neutral **Industry** (Factories), optional **River & bridges**, a contested **Artillery** city, and optional seeded-random **Watchtower** and **Slow Zone** features. Mountains are an optional field feature, On by default; the default field has 14 cities. Compact selectors leave the field preview prominent; **Reroll** sits beside **Play**. Reroll changes the preview; Play generates a fresh layout. **Restart** and **Play again** repeat the same field, while **New map** in pause/results generates another with the same settings. No simulation or AI runs on Home.
 
@@ -10,11 +14,11 @@ Collapsible **Your upgrades** and **Enemy settings** offer independent Industry,
 
 The original field has one player, one opponent and eleven neutral cities. City radius is 14 board units; troop radius/spacing are 3/8. Counters scale from 14 logical units with an 11-pixel minimum; compact feature badges keep dense fields readable. Smaller counters and circles leave room for more routes without pan/zoom. Whole regions remain touch targets. These sizes are shared with travel and collision simulation, not cosmetic-only scaling.
 
-React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent territories each generate **one unit per active second**; neutral defenders stay unchanged. Automatic production stops at **50 troops per city**, including upgraded cities and every faction. Reinforcements can raise a city above 50 without being reduced; production resumes only after its garrison falls below 50. Full cities do not bank fractional production. Below the limit, partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
+React + TypeScript + Vite, with Tailwind CSS layout utilities, Mantine UI components, a responsive Canvas 2D field, and independent TypeScript simulation. Player and opponent Production cities each generate **one unit per active second**; neutral defenders stay unchanged. Automatic production stops at **50 troops per city**, including upgraded cities and every faction. Reinforcements can raise a city above 50 without being reduced; production resumes only after its garrison falls below 50. Full cities do not bank fractional production. Below the limit, partial growth is preserved, and the accessible territory descriptions track whole-unit counts.
 
 Drag from **anywhere inside a player-owned city region** to another region to order all available units except one. You no longer need to touch either circle precisely. A new valid order from the same city replaces every unlaunched group and sends all troops still inside the city except one to the new target, including newly grown units. Already airborne groups keep their original target and positions. The new order launches its first group immediately and restarts the 600-ms cadence; invalid/self/off-board drops do not cancel an existing order. The drag guide shows the route without a numeric dispatch label. Units are reserved for the order but deducted only as groups of up to five launch, 600 ms apart. Queued troops remain defenders; capturing their source cancels unlaunched groups. Groups travel border-to-border, spread over the first 30% of flight and converge over the final 20% before impact. Each arriving batch immediately reinforces a friendly region or reduces hostile defenders one-for-one. Ownership changes only when attackers exceed defenders; ties leave the current owner at zero.
 
-**Mouse only:** alternatively, primary-click a player region with at least two troops, then primary-click a distinct region to send the same all-but-one order (including friendly reinforcement). Selection clears after dispatch; source re-click or Escape cancels. Mouse movement of at least 5 CSS pixels starts a drag from the pressed source instead; it never adds a second click order. Touch/pen remain drag-only; tapping does not select a persistent source. Resizing the board, pausing, interruptions, reset/Home, round completion, or a captured/depleted source clear pending selection. Keyboard region controls retain Enter/Space dispatch and Escape cancellation, coordinated with mouse selection.
+**Mouse only:** alternatively, primary-click a player region with at least two troops, then primary-click a distinct region to send the same all-but-one order (including friendly reinforcement). Selection clears after dispatch; source re-click or Escape cancels. With city management enabled, movement of at least 8 CSS pixels starts a drag from the pressed source instead; it never adds a second click order. Touch/pen taps open management rather than selecting a persistent ground source; dragging still dispatches ground troops. Resizing the board, pausing, interruptions, reset/Home, round completion, or a captured/depleted source clear pending selection. Keyboard region controls retain Enter/Space dispatch and Escape cancellation, coordinated with mouse selection.
 
 Opposing dots now destroy each other **one-for-one on contact during travel**; friendly dots pass through. Surviving dots keep their original slots in the group, so losses leave holes rather than rearranging the formation. Only survivors reach the region and deal damage. Collision geometry is shared with rendering in board coordinates, so screen size/pixel density does not change the outcome. Movement is swept between fixed simulation steps, including exact launch/impact boundaries; contacts resolve chronologically, then by stable dot IDs on ties.
 
@@ -50,7 +54,7 @@ Keyboard: Tab to a region, Enter/Space to select a friendly source, then focus a
 
 ## Session lifecycle and mobile controls
 
-`src/game/session.ts` exposes a UI-independent `createSession(map, ai, rules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)` and `dispatch`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
+`src/game/session.ts` exposes a UI-independent `createSession(map, ai, rules)` controller: `start`, `pause`, `resume`, `restart`, `setHidden`, `frame(timestamp)`, `dispatch`, `convert` and `fly`. Sessions begin ready; paused/hidden/ready sessions reject orders and do not advance growth, launch queues, travel or AI. Resume rebaselines the clock without catching up; restart creates a fresh ready state and clock, clearing fractional timing, orders and AI deadlines. Terminal outcomes cannot be resumed.
 
 The board adapter uses this controller for simulation frames, player dispatch and background suspension. Play mounts a fresh session for a newly generated map. Home unmounts it and disposes the animation, input and visibility listeners. A compact **pause icon** sits above the field; **Restart** is available only in the pause screen. Pause cancels active selection and freezes growth, launches, travel, collisions and AI; the paused screen offers **Resume**, **Restart**, **New map** and **Home**. Backgrounding never overrides a manual pause. Resume excludes paused time without catch-up.
 
@@ -66,6 +70,7 @@ The opponent is deterministic and browser-independent. Small modules under `src/
 - `logistics.ts`: terrain/bridge-aware front distances, stable staging priorities, conservative source protection and faction-wide army accounting for production relief.
 - `decision.ts`: enumerates legal candidates, compares forecasts, and picks one useful order; waits if none are worthwhile.
 - `tick.ts`: schedules decisions on active simulation time, not rendering frames or wall-clock timers.
+- `actions.ts` / `mobility.ts`: shared typed ground/conversion/airlift actions, conservative production-base safeguards and bounded Airfield supply.
 
 Prototype cadence: first decision after **1.8 seconds**, then every **1.8 seconds**; armies must have at least six units to send. Busy sources wait for their existing groups to finish. The policy considers travel time, defender growth, incoming groups, source exposure and existing captures, without extra resources or knowledge of future player input. It does not stop making decisions simply because it is winning or losing.
 
@@ -118,6 +123,8 @@ Small modules are grouped by feature.
 - `src/game/upgrades/`: typed stat/starting-feature effect catalog and pure round-setup compiler; no progression dependencies.
 - `src/game/features/`: typed city features, immutable snapshots, local production and deterministic Watchtower/Artillery firing.
 - `src/game/clock.ts`: fixed-step timing with fractional carry and background rebaselining.
+- `src/game/cityConversion.ts`, `aircraft.ts`, `aircraftState.ts`, `restoreAircraft.ts`: conversion commands, one-plane lifecycle, direct travel/delivery and strict aircraft save validation.
+- `src/board/CityControls.tsx`, `drawAircraft.ts`: approved conversion/targeting bar and top-down Dock & pulse rendering.
 - `src/game/dispatch.ts`, `launch.ts`, `route.ts`, `travel.ts`, `combat.ts`: shared faction orders, reservations, staggered launches, border travel and arrival resolution.
 - `src/game/movement.ts`, `dots.ts`: shared board-space movement, eased formations and stable dot slots.
 - `src/game/sweep.ts`, `contacts.ts`, `collisions.ts`: swept-circle math, individual contact detection and deterministic one-for-one destruction.

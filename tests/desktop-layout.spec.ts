@@ -48,7 +48,7 @@ for (const viewport of [
     await page.mouse.move(regionSource.x, regionSource.y); await page.mouse.down();
     await page.mouse.move(regionTarget.x, regionTarget.y); await page.mouse.up();
     await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
-    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
+    await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
     await expect(page.getByRole('group', { name: 'Game controls' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Paused' })).toHaveCount(0);

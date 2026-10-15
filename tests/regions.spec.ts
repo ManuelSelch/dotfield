@@ -30,7 +30,7 @@ for (const [width, height, dpr] of [[320, 568, 1], [430, 932, 3]]) {
       expect(await pixel(page, regionTarget)).toEqual([213, 227, 210]);
       await page.screenshot({ path: `test-results/city-region-selection-${width}.png` });
       await page.mouse.up();
-      await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units.');
+      await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
       await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
       await page.clock.runFor(7800);
       await expect(page.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText(/centre: You, \d+ units\./);

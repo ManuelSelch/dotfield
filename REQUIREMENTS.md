@@ -63,7 +63,7 @@ Implemented items describe the current baseline; unresolved product targets are 
 - A small set of varied maps or constrained map generation.
 - Implemented Industry/Factory/Watchtower/Slow Zone/Capture shield and seeded generated maps; authored maps remain regression scenarios. Progression remains later work.
 - Implemented event-only round persistence, pause/resume and production PWA caching; expand persistence regression coverage and test real-device install/offline behavior.
-- Planned owned-city conversion into Production, Defender, or Airfield and reusable air transport. See [City Conversion and Air Transport](docs/city-conversion/REQUIREMENTS.md) for the full focused plan, proposed balance policies, and unresolved decisions. Only delivery mockup option C is visually approved; production implementation has not started.
+- Owned-city conversion into Production, Defender, or Airfield and reusable air transport are implemented and verified on the isolated feature branch. All initial defaults and control mockups are approved. See [City Conversion and Air Transport](docs/city-conversion/REQUIREMENTS.md) and [behavior contract](docs/city-conversion/IMPLEMENTATION.md).
 
 ### Out of Scope
 
@@ -194,14 +194,14 @@ Implemented items describe the current baseline; unresolved product targets are 
 - Restart/replay must reset the current map, not silently return to the original field.
 - Keep the fixed screen, no pan/zoom or scrolling. Duration and human tactical balance need playtesting; do not infer them from symmetry or automated checks.
 
-### FR-11: City conversion and air transport — planned
+### FR-11: City conversion and air transport
 
 - Convert an existing owned city, rather than creating a new city, at a troop cost. Production generates troops; Defender generates no troops and uses shield-based defense; Airfield generates no troops and prepares airplanes.
 - Capture Shield coexists with these city types. Do not remove or silently replace existing upgrade features.
-- Tap an owned city for quick conversion controls while preserving ordinary drag dispatch. The conversion/flight controls still require mockup review.
-- One reusable airplane per Airfield transports troops to any city across rivers and mountains, then returns empty to its original home. Capacity 100 is the proposed initial tuning value.
+- Tap an owned city for quick conversion controls while preserving ordinary drag dispatch. Conversion/flight controls revision 1 is approved and implemented.
+- One reusable airplane per Airfield transports troops to any city across rivers and mountains, then returns empty to its original home. Capacity 100 is the confirmed initial tuning value.
 - Approved top-down delivery is Dock & pulse, option C revision 1: plane at city edge, five-troop combat batches with city pulses, no short ground-dot unloading path.
-- The full [focused requirements and 11-slice implementation plan](docs/city-conversion/REQUIREMENTS.md) distinguish confirmed behavior from open prices, Defender/network stacking, flight timing, controls, and capture policies. This plan supersedes older touch-tap and all-owned-cities-grow requirements only when the feature is implemented; current production behavior remains unchanged for now.
+- The full [focused requirements and 11-slice implementation plan](docs/city-conversion/REQUIREMENTS.md) record the approved initial rules and controls. This feature supersedes older touch-tap and all-owned-cities-grow requirements: taps open management, and only Production cities grow troops. See the [behavior contract](docs/city-conversion/IMPLEMENTATION.md) for costs, timers, shield coexistence, capture policies, AI and persistence.
 
 ### Interface and quality requirements
 
@@ -292,8 +292,8 @@ Status: production PWA infrastructure implemented; target-device validation pend
 Description: Validate cached offline launch, installed safe areas and update behavior after initial online loading. Event-only round persistence is implemented independently; its expanded regression matrix remains test-repair slice 3.
 
 ### 12. City conversion and reusable air transport
-Status: planned; Dock & pulse delivery mockup approved, other control mockups and rule decisions pending.
-Description: Follow the separately numbered [11-slice city-conversion plan](docs/city-conversion/REQUIREMENTS.md) for Production/Defender/Airfield conversion, shield coexistence, one-plane lifecycle, combat delivery, save/accounting, mobile controls, rendering, AI and integrated playtests. Do not treat delivery approval as authorization to implement every proposed rule.
+Status: implemented and automatically verified on isolated feature branch; manual balance/device acceptance pending.
+Description: Follow the separately numbered [11-slice city-conversion plan](docs/city-conversion/REQUIREMENTS.md) for Production/Defender/Airfield conversion, shield coexistence, one-plane lifecycle, combat delivery, save/accounting, mobile controls, rendering, AI and integrated playtests. User explicitly approved all eight initial defaults and both delivery/control mockups.
 
 The former duplicated milestone 9 is normalized to consecutive steps; focused desktop, persistence, special-city and city-conversion slice numbers are unchanged. Human playtesting remains the acceptance gate for duration, fairness and real-device usability.
 

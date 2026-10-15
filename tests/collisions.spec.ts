@@ -38,11 +38,11 @@ for (const [width, height, dpr] of [[320, 568, 1], [430, 932, 3]]) {
       const hole = await pixelAt(page, dotPosition(player, 2, time));
       expect(hole).not.toEqual([38, 124, 114]);
       expect(hole).not.toEqual([189, 98, 78]);
-      await expect(page.getByRole('listitem').filter({ hasText: /^enemy-source:/ })).toHaveText('enemy-source: Opponent, 1 units.');
+      await expect(page.getByRole('listitem').filter({ hasText: /^enemy-source:/ })).toHaveText('enemy-source: Opponent, 1 units. Production city.');
       await page.screenshot({ path: `test-results/dot-collision-${width}.png` });
       await page.clock.runFor(2500);
       await expect(transfers.getByRole('listitem')).toHaveCount(0);
-      await expect(page.getByRole('listitem').filter({ hasText: /^enemy-source:/ })).toHaveText('enemy-source: You, 3 units.');
+      await expect(page.getByRole('listitem').filter({ hasText: /^enemy-source:/ })).toHaveText('enemy-source: You, 3 units. Production city.');
     });
   });
 }

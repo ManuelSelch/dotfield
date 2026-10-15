@@ -18,7 +18,7 @@ test('restores the active round instead of returning to Home after reload', asyn
   expect(eventSave.state.elapsedMs).toBe(0);
   expect(eventSave.state.transfers).toHaveLength(0);
   await test.info().attach('event-save-before-reload', { body: JSON.stringify(eventSave), contentType: 'application/json' });
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 32 units.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 32 units. Production city.');
 
   // No periodic save: actual reload must flush the unsaved growth and order.
   await page.reload();

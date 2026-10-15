@@ -22,7 +22,7 @@ for (const width of [320, 430]) {
     await page.clock.runFor(10000);
     await expect(plant).toHaveText(before!);
     await page.getByRole('button', { name: 'Restart', exact: true }).click();
-    await expect(plant).toContainText('west-north: Neutral, 14 units. Factory inactive');
+    await expect(plant).toContainText('west-north: Neutral, 14 units. Production city. Factory inactive');
   });
 }
 

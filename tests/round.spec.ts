@@ -39,11 +39,11 @@ test('victory freezes the board and replay resets units, troops, outcome and clo
 
   await page.getByRole('button', { name: 'Play again' }).click();
   await expect(result).toHaveCount(0);
-  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 20 units.');
-  await expect(details.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText('centre: Opponent, 1 units.');
+  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 20 units. Production city.');
+  await expect(details.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText('centre: Opponent, 1 units. Production city.');
   await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(1100);
-  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 21 units.');
+  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 21 units. Production city.');
   await attack(page);
   await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(4);
   await page.clock.runFor(6500);
