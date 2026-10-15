@@ -1,9 +1,9 @@
 # City conversion controls
 
-- Revision: **2**.
-- Review status: **approved**, revision 2. User replied “yes” to the revision 2 preview and explicit implementation-approval question. This approves the permanent fixed-height strip and removal of Ground; revision 1 gameplay and flight rules remain unchanged.
+- Revision: **4**.
+- Review status: **approved**, revision 4. User explicitly replied “looks good. implement it” to the single-row preview. Approved scope: no empty second row or city/garrison header, compact status inside the selected type button, separate Fly/Cancel/close, and permanent 12px map/card gap.
 - Approval evidence: user replied “yes approved” to the revision 1 preview and explicit implementation-approval question. This covers the compact conversion bar, Fly/target/cancel flow and associated reviewed states. **Dock & pulse, revision 1** in [airplane delivery](../airplane-delivery/DESIGN.md) remains separately approved; A/B treatments remain rejected.
-- Cleanup: revision 1 preview PID57952 stopped and verified previously. Revision 2 Vite PID15630 was verified against command, workspace and listener, stopped gracefully, process/listener absence confirmed and runtime record removed before production work. Approved sources preserved.
+- Cleanup: revision 1 preview PID57952 stopped and verified previously. Revision 2 Vite PID15630 was verified against command, workspace and listener, stopped gracefully, process/listener absence confirmed and runtime record removed before production work. Revision 4 Vite PID24462 was verified against its command/workspace, stopped gracefully, and process/listener absence confirmed; runtime record removed before production implementation. Approved sources preserved.
 - Scope: isolated slice 1 control study for [city conversion requirements](../../docs/city-conversion/REQUIREMENTS.md). Plain HTML/CSS/JS, deterministic fake data and disposable local state. No production implementation, dependencies, settings, requirements or shared package changes.
 
 ## Design question
@@ -14,8 +14,8 @@ Can a compact three-action city bar coexist with normal ground dragging while ma
 
 - Small top-down six-city board, muted green/teal player palette, terracotta enemy, blue-grey river and faceted mountain. City circles use the current **14 logical-unit radius** in a 360-unit board, not larger combat/hit geometry.
 - City buttons have 44 CSS px hit areas even where circles are smaller. Board regions also accept taps/drags; river/mountain/outside taps do not select a city.
-- Permanent bottom-of-board strip: selected city/type/garrison; Production / Defender / Airfield; plane status and Fly (or Cancel). No Ground button, confirmation dialog, long press, nested menus or management sheet.
-- Empty, selected, preparation, away and targeting states reserve the same 162px plus safe-area height, with three fixed rows. Closing the selection shows “Tap a city to convert · drag to send troops” without moving the battlefield. Long city labels truncate; availability reasons remain accessible via descriptions. Buttons remain at least 44px high. Production integration must also reserve this space from initial render, including pause/round end, rather than conditionally resizing the canvas.
+- Single-row card: Production / Defender / Airfield conversion buttons, optional Fly/Cancel and close. No city/type/garrison header, redundant Production/growth status or second row. Selected city details remain available to assistive technology. Current Production says “Current”; Defender’s subtitle shows recharge info; current Airfield’s subtitle shows compact readiness/flight state, with fuller details in its accessible description/title. No Ground button or nested menus.
+- Card is 66px plus safe area, down from revision 3’s114px and the implemented162px. A permanent12px map/card gap remains. All states reserve identical one-row space, including empty, targeting, busy, pause and round end. No unused bottom row. Buttons remain at least44px high; narrow screens use smaller labels to retain all three types and separate Fly/Cancel/close controls.
 - Same layout centered at desktop width; no alternative A/B layout. Tab/focus states remain visible, all cities are native keyboard buttons. Reduced motion suppresses travel transitions and decorative pulse expansion, not fake count updates.
 
 ## Interactions
@@ -54,8 +54,8 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 - Type badges use compact text glyphs, not final artwork. Delivery glyph/positions are illustrative; no native Safari/PWA assurance. Static busy states omit the away plane's position/cargo.
 - Ownership-loss sample demonstrates cleared UI, not a live capture event. No live pause/Home/restart/round-end integration is represented; Reset clears pending illustrative flight timers and state.
 - Reduced-motion travel snaps to positions; timed count changes still occur. No per-pulse focus movement; status is a polite live region.
-- Verification is **JavaScript syntax and source checks only**. No server, HTTP serving check, browser automation, screenshots, visual review, interaction execution or device testing was performed by this task. Parent session handles preview and user review.
+- Mockup verification: JavaScript syntax/source and HTTP serving checks. User performed visual review; no mockup browser automation or screenshots were run. Production verification: 701 unit tests, 110 standard browser tests, 2 PWA tests, typecheck/production build and diff checks pass. Real-device verification remains manual.
 
 ## Approval checkpoint
 
-Revisions 1 and 2 explicitly approved. Revision 2 covers the permanent fixed-height strip and removal of Ground; revision 1 source remains preserved in Git. Gameplay and Dock & pulse rules remain unchanged.
+Revisions 1, 2 and 4 explicitly approved. Revision 4 approval: “looks good. implement it”. Gameplay, fixed-layout behavior and Dock & pulse rules remain unchanged; prior approved revisions are preserved in Git.

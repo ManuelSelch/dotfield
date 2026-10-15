@@ -32,7 +32,11 @@ export function cityControlsModel(state: CityControlsState) {
   const flyReason = state.planePhase !== 'ready' ? 'Plane must be ready.'
     : state.troops < 2 ? 'Need at least 2 troops; leave 1 behind.'
       : `Board ${Math.min(state.capacity, Math.max(0, state.troops - 1))} troops; leave at least 1 behind.`;
-  return { types, reason, planeText, flyReason,
+  const currentText = state.cityType === 'airfield'
+    ? state.targeting ? 'Pick target' : ({ preparing: 'Preparing', ready: `Ready · ${state.capacity}`,
+      outbound: 'Away', unloading: 'Unloading', returning: 'Returning', turnaround: 'Turnaround' })[state.planePhase ?? 'preparing']
+    : state.cityType === 'defender' ? state.detail?.split(' · ')[0] || 'Shield · 10s' : 'Current';
+  return { types, reason, planeText, flyReason, currentText,
     flyDisabled: state.cityType !== 'airfield' || state.planePhase !== 'ready' || state.troops < 2 || !!state.targeting,
     groundDisabled: state.troops < 2 || !!state.targeting };
 }

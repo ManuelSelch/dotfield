@@ -43,12 +43,12 @@ for (const viewport of [
     expect(pauseBox!.x + pauseBox!.width).toBeLessThanOrEqual(viewport.width);
     expect(box!.width).toBeGreaterThanOrEqual(280);
     const stripBox = (await page.locator('.city-action-strip').boundingBox())!;
-    expect(stripBox.height).toBe(162);
+    expect(stripBox.height).toBe(66);
     // The permanent strip consumes part of the former Canvas space on short phones.
     expect(box!.height + stripBox.height).toBeGreaterThanOrEqual(300);
-    expect(Math.abs(box!.y + box!.height - stripBox.y)).toBeLessThan(1);
+    expect(stripBox.y - (box!.y + box!.height)).toBeCloseTo(12, 1);
     const bottomInset = await page.locator('.app-safe-area').evaluate(el => parseFloat(getComputedStyle(el).paddingBottom));
-    expect(box!.height).toBeCloseTo(viewport.height - box!.y - stripBox.height - bottomInset, 0);
+    expect(box!.height).toBeCloseTo(viewport.height - box!.y - stripBox.height - 12 - bottomInset, 0);
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
     expect(await page.evaluate(() => ({

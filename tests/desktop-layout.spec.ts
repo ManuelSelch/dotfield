@@ -13,10 +13,10 @@ async function assertLayout(page: Page) {
   // Logical 3:4 geometry is fitted inside a stable Canvas with the action strip
   // reserved from the start, rather than resizing the Canvas on selection.
   const strip = (await page.locator('.city-action-strip').boundingBox())!;
-  expect(strip.height).toBe(162);
+  expect(strip.height).toBe(66);
   const box = (await canvas.boundingBox())!;
   expect(box.height).toBeGreaterThan(100);
-  expect(Math.abs(box.y + box.height - strip.y)).toBeLessThan(1);
+  expect(strip.y - (box.y + box.height)).toBeCloseTo(12, 1);
   const viewport = page.viewportSize()!;
   expect(box.x).toBeGreaterThanOrEqual(16);
   expect(box.y).toBeGreaterThanOrEqual(0);

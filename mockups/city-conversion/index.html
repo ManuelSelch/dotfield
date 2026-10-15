@@ -8,7 +8,7 @@
 </head>
 <body>
   <main>
-    <header><a href="./">DOTFIELD</a><span>Fixed action strip · revision 2 · in review</span></header>
+    <header><a href="./">DOTFIELD</a><span>Single-row action strip · revision 4 · in review</span></header>
     <section class="review" aria-label="Mockup review states">
       <label for="scenario">Review state</label>
       <select id="scenario">
@@ -40,10 +40,9 @@
       <div class="field-help" id="hint">Tap your city to manage · drag to send by ground</div>
       <div class="dock-space">
         <section id="dock" aria-label="Selected city controls" hidden>
-          <div class="selection"><div><strong id="city-name"></strong><span id="city-detail"></span></div><button id="close" aria-label="Close city controls">×</button></div>
-          <div id="type-actions" class="types" aria-label="Convert city"></div>
+          <div class="selection"><div id="type-actions" class="types" aria-label="Convert city"></div><button id="fly" hidden>Fly</button><button id="cancel" hidden>Cancel</button><button id="close" aria-label="Close city controls">×</button></div>
           <p id="reason"></p>
-          <div class="flight"><span id="plane-status"></span><button id="fly" hidden>Fly</button><button id="cancel" hidden>Cancel</button></div>
+          <span id="plane-status" class="sr-status"></span>
         </section>
         <p id="empty">Tap a city to convert · drag to send troops</p>
       </div>
@@ -52,7 +51,7 @@
     <footer>
       <p>Initial tuning: prices 10 / 20 / 30 · plane capacity 100 · confirmed rules, simulated here.</p>
       <p>Keyboard: Tab to a city, Enter to select. Escape to cancel or close. Fly → tap any other city.</p>
-      <p>Revision 2: permanent fixed-height strip, no Ground button. Close or change selections to check that the battlefield stays still.</p>
+      <p>Revision 4: single row, no empty bottom area. Flight/shield status sits inside the selected type button; 12px map gap retained.</p>
     </footer>
   </main>
   <script type="module" src="./main.js"></script>

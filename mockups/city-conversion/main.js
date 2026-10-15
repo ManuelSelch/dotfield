@@ -42,22 +42,25 @@ function render() {
     : mode === 'ground' ? 'Choose a same-bank city for ground dispatch · Escape to cancel'
       : 'Tap your city to manage · drag to send by ground';
   if (!active) return;
-  $('#city-name').textContent = `${city.name} · ${city.type}`;
-  $('#city-detail').textContent = `${city.troops} garrison troops · ${city.type === 'Production' ? 'Troop growth' : 'No troop growth'}`;
+  $('#dock').setAttribute('aria-description', `${city.name}, ${city.type}, ${city.troops} garrison troops`);
   const busy = ['outbound', 'unloading', 'returning'].includes(city.phase);
   for (const button of document.querySelectorAll('[data-type]')) {
     const type = button.dataset.type;
     const current = type === city.type;
     button.setAttribute('aria-pressed', String(current));
     button.disabled = current || busy || !!mode || city.troops <= prices[type];
-    button.querySelector('small').textContent = current ? 'Current · no charge' : `${prices[type]} troops`;
-    button.setAttribute('aria-describedby', 'reason');
+    const planeLabel = ({ preparing: 'Preparing', ready: 'Ready · 100', outbound: 'Away', unloading: 'Unloading', returning: 'Returning', turnaround: 'Turnaround' })[city.phase] || 'Preparing';
+    button.querySelector('small').textContent = current
+      ? type === 'Airfield' ? mode ? 'Pick target' : planeLabel : type === 'Defender' ? 'Shield · 10s' : 'Current'
+      : `${prices[type]} troops`;
+    button.title = current && type === 'Airfield' ? phaseText(city) : button.querySelector('small').textContent;
+    button.setAttribute('aria-describedby', current && type === 'Airfield' ? 'reason plane-status' : 'reason');
   }
   $('#reason').textContent = mode ? 'Targeting active. Cancel before changing city type.'
     : busy ? 'Conversion unavailable while the plane is away. Ground orders still work.'
       : `Instant conversion; leave 1 troop. ${city.troops <= 30 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
   $('#plane-status').textContent = mode ? 'Tap any other city to fly · Escape to cancel' : city.type === 'Airfield' ? phaseText(city)
-    : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : 'Production · normal growth (not simulated)';
+    : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : '';
   $('#fly').hidden = city.type !== 'Airfield' || !!mode;
   $('#fly').disabled = city.phase !== 'ready' || city.troops < 2;
   $('#fly').title = city.phase !== 'ready' ? 'Plane must be ready' : 'Board up to 100; leave 1 troop';
