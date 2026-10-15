@@ -1,6 +1,8 @@
 import type { SimulationState } from '../game/types';
 import type { DragSelection } from './drag';
 import { drawTerritoryBackgrounds, drawTerritoryCounters } from './drawTerritories';
+import { drawAircraft } from './drawAircraft';
+export { hasAircraftAnimation } from './drawAircraft';
 import { drawCaptureShields } from './drawCaptureShields';
 import { drawCityFeatures } from './drawCityFeatures';
 import { drawDrag } from './drawDrag';
@@ -11,11 +13,13 @@ import { drawRiver } from './drawRiver';
 import { drawMountains } from './drawMountains';
 import { drawArtilleryCoverage, drawArtilleryShots } from './drawArtillery';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
+import { shieldRechargeSource } from '../game/features/networkShields';
 
 const regionCaches = new WeakMap<HTMLCanvasElement, ReturnType<typeof createRegionCache>>();
 const connectivityCaches = new WeakMap<HTMLCanvasElement, {
   key: string; river: SimulationState['river']; rules: SimulationState['rules'];
   ids: ReadonlySet<string>; networks: ReadonlyMap<string, ReadonlySet<string>>;
+  shieldCapacities: ReadonlyMap<string, number>;
 }>();
 const MAX_BUSY_PIXEL_RATIO = 2;
 const BUSY_TRANSFER_THRESHOLD = 12;
@@ -42,7 +46,7 @@ export function drawBoard(
   let getRegions = regionCaches.get(canvas);
   if (!getRegions) { getRegions = createRegionCache(); regionCaches.set(canvas, getRegions); }
   const homesKey = Object.entries(state.homeCityIds ?? {}).map(([id, home]) => `${id}:${home}`).join('|');
-  const ownershipKey = `${homesKey}|${state.territories.map(city => `${city.id}:${city.owner}:${city.x}:${city.y}`).join('|')}`;
+  const ownershipKey = `${homesKey}|${state.territories.map(city => `${city.id}:${city.owner}:${city.cityType ?? 'production'}:${city.x}:${city.y}`).join('|')}`;
   let connectivity = connectivityCaches.get(canvas);
   if (!connectivity || connectivity.key !== ownershipKey || connectivity.river !== state.river
     || connectivity.rules !== state.rules) {
@@ -54,7 +58,8 @@ export function drawBoard(
       }
     }
     connectivity = { key: ownershipKey, river: state.river, rules: state.rules,
-      ids: networks.get('player') ?? new Set(), networks };
+      ids: networks.get('player') ?? new Set(), networks,
+      shieldCapacities: new Map(state.territories.map(city => [city.id, shieldRechargeSource(state, city.id).capacity])) };
     connectivityCaches.set(canvas, connectivity);
   }
   drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection,
@@ -74,10 +79,12 @@ export function drawBoard(
   drawArtilleryCoverage(ctx, state, width, height);
   drawTerritoryBackgrounds(ctx, state, width, height);
   drawTransfers(ctx, state, width, height);
+  drawAircraft(ctx, state, width, height,
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawTerritoryCounters(ctx, state, width, height);
   drawCaptureShields(ctx, state, width, height,
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  drawCityFeatures(ctx, state, width, height, connectivity.networks);
+  drawCityFeatures(ctx, state, width, height, connectivity.networks, connectivity.shieldCapacities);
   drawArtilleryShots(ctx, state, width, height, typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawDrag(ctx, state.territories, selection, width, height, state.river, state.terrain);
 }

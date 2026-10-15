@@ -3,16 +3,12 @@ import { BASE_FACTION_RULES, getFactionRules } from '../game/rules';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
 import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon, drawArtilleryIcon, drawDefenseShieldIcon } from './upgradeIcons';
-import { connectedTerritoryIds } from '../game/connectedTerritories';
-import { connectedDefenseTierForSize } from '../game/connectedDefense';
+import { shieldRechargeSource } from '../game/features/networkShields';
+import { drawAirplaneIcon } from './drawAircraft';
 import { TERRITORY_RADIUS } from '../game/settings';
 
 export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number,
-  connectedNetworks?: ReadonlyMap<string, ReadonlySet<string>>) {
-  const networks = connectedNetworks ?? new Map(Object.entries(state.rules.factions).flatMap(([factionId, rules]) => {
-    if (!rules.connectedDefense) return [];
-    return [[factionId, connectedTerritoryIds(state.territories, factionId, state.homeCityIds?.[factionId], state.river)] as const];
-  }));
+  _connectedNetworks?: ReadonlyMap<string, ReadonlySet<string>>, shieldCapacities?: ReadonlyMap<string, number>) {
   for (const city of projectBoard(state.territories, width, height)) {
     const radius = Math.max(5, city.radius * 0.34);
     const offset = Math.max(city.radius * 0.9, city.fontSize / 2 + radius + 2);
@@ -48,20 +44,29 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
       }
     }
     // Faction-wide production boost only: Factory's local multiplier never adds a chevron.
-    if (city.owner !== 'neutral' && getFactionRules(state, city.owner).unitsPerSecond > BASE_FACTION_RULES.unitsPerSecond) {
+    if ((!city.cityType || city.cityType === 'production') && city.owner !== 'neutral'
+      && getFactionRules(state, city.owner).unitsPerSecond > BASE_FACTION_RULES.unitsPerSecond) {
       badge(-1, true, drawChevronIcon);
     }
-    const connectedIds = city.owner !== 'neutral' && getFactionRules(state, city.owner).connectedDefense
-      ? networks.get(city.owner) : undefined;
-    const defenseTier = connectedIds ? connectedDefenseTierForSize(connectedIds.size) : 0;
-    if (defenseTier > 0 && connectedIds?.has(city.id)) {
+    if (city.cityType === 'airfield') badge(-1, city.owner !== 'neutral', ctx => {
+      // Runway stays in the badge; neither this marker nor the plane changes hit geometry.
+      ctx.beginPath(); ctx.moveTo(-4, 4); ctx.lineTo(4, 4); ctx.stroke();
+      ctx.scale(0.45, 0.45); drawAirplaneIcon(ctx);
+    });
+    const defenseTier = shieldCapacities?.get(city.id) ?? shieldRechargeSource(state, city.id).capacity;
+    if (defenseTier > 0 || city.cityType === 'defender') {
       const iconSize = Math.max(12, Math.min(18, city.radius * 0.9));
-      const centerX = Math.max(iconSize / 2 + 1, Math.min(width - iconSize / 2 - 1, city.x));
-      const centerY = Math.max(iconSize / 2 + 1, Math.min(height - iconSize / 2 - 1, city.y + city.radius * 0.85));
+      // Defender owns the upper-left type slot; network-only shields stay below the city.
+      // Both use the same one numbered capacity badge, never two additive shield markers.
+      const defender = city.cityType === 'defender';
+      const centerX = Math.max(iconSize / 2 + 1, Math.min(width - iconSize / 2 - 1, city.x - (defender ? offset : 0)));
+      const centerY = Math.max(iconSize / 2 + 1, Math.min(height - iconSize / 2 - 1,
+        city.y + (defender ? -offset : city.radius + 8)));
       const palette = factionPalette(city.owner);
       ctx.save(); ctx.fillStyle = palette.fill; ctx.strokeStyle = palette.ink;
       ctx.translate(centerX - iconSize / 2, centerY - iconSize / 2); ctx.scale(iconSize / 24, iconSize / 24);
-      drawDefenseShieldIcon(ctx, defenseTier as 1 | 2 | 3, palette.ink); ctx.restore();
+      ctx.globalAlpha = city.owner === 'neutral' ? 0.45 : 1;
+      drawDefenseShieldIcon(ctx, defenseTier as 0 | 1 | 2 | 3, palette.ink); ctx.restore();
     }
   }
 }

@@ -132,6 +132,30 @@ describe('city upgrade indicators', () => {
     expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['1', '2', '3']);
     expect(ctx.stroke).toHaveBeenCalledTimes(3);
   });
+  it('uses one Defender capacity badge even with a network, preserving stacked features', () => {
+    const initial = seed(['factory', 'industry', 'defensive-network'], [
+      { id: 'gun', kind: 'artillery', range: 90, fireIntervalMs: 2000 },
+    ]);
+    const state = { ...initial, territories: [...initial.territories,
+      ...[160, 220, 280].map((x, i) => ({ ...initial.territories[0], id: `ally-${i}`, x, features: [] })),
+    ] };
+    const ctx = render({ ...state, territories: state.territories.map(c => c.id === host.id
+      ? { ...c, cityType: 'defender' as const } : c) });
+    expect(ctx.fillText.mock.calls.map(([value]) => value)).toEqual(['3', '1', '1', '1']);
+    const shieldTop = ctx.translate.mock.calls[2][1];
+    expect(shieldTop + 12).toBeLessThan(host.y - 7); // Type badge above/left, never over the counter.
+    expect(ctx.translate.mock.calls[2][0]).toBeLessThan(host.x - 7);
+    expect(new Set(ctx.translate.mock.calls.map(call => call.join(','))).size).toBe(ctx.translate.mock.calls.length);
+    expect(ctx.arc).toHaveBeenCalledTimes(5); // Factory and Artillery, plus three allies' Industry; no false Defender growth.
+  });
+  it('marks Airfields above/left without replacing garrison or attached features', () => {
+    const state = seed(['factory', 'industry']);
+    const ctx = render({ ...state, territories: state.territories.map(c => c.id === host.id
+      ? { ...c, cityType: 'airfield' as const } : c) });
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y < host.y])).toEqual([[true, true], [false, true]]);
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
   it('supports two stacked chevrons for a future level without enabling that level', () => {
     const ctx = context(); drawChevronIcon(ctx as unknown as CanvasRenderingContext2D, 2);
     expect(ctx.moveTo).toHaveBeenCalledTimes(2); expect(ctx.lineTo).toHaveBeenCalledTimes(4);

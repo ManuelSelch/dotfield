@@ -29,7 +29,7 @@ export function drawArtilleryIcon(ctx: CanvasRenderingContext2D) {
 const TABLER_SHIELD_PATH = 'M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3';
 let tablerShield: Path2D | null | undefined;
 
-export function drawDefenseShieldIcon(ctx: CanvasRenderingContext2D, tier: 1 | 2 | 3, numberColor: string) {
+export function drawDefenseShieldIcon(ctx: CanvasRenderingContext2D, tier: 0 | 1 | 2 | 3, numberColor: string) {
   if (tablerShield === undefined) tablerShield = typeof Path2D === 'undefined' ? null : new Path2D(TABLER_SHIELD_PATH);
   ctx.lineWidth = 1.6; ctx.lineJoin = 'round';
   if (tablerShield) {
