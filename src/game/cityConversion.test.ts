@@ -4,6 +4,7 @@ import { convertCity } from './cityConversion';
 import { advanceGrowth } from './growth';
 import { getTerritoryGrowthRate } from './features/growthRate';
 import { dispatchUnits } from './dispatch';
+import type { CityType } from './types';
 
 const opening = () => createSimulation([{ id: 'a', owner: 'player', units: 101, x: 0, y: 0 }, { id: 'b', owner: 'enemy', units: 20, x: 200, y: 0 }]);
 describe('city conversion', () => {
@@ -17,6 +18,23 @@ describe('city conversion', () => {
     expect(convertCity(state, 'b', 'defender')).toBe(state);
     expect(convertCity({ ...state, roundStatus: 'victory' }, 'a', 'defender').territories).toBe(state.territories);
     expect(convertCity({ ...state, territories: state.territories.map(c => ({ ...c, units: 20 })) }, 'a', 'defender').territories[0].cityType).toBe('production');
+  });
+  it.each([
+    ['production', 'defender', 20], ['production', 'airfield', 30],
+    ['defender', 'production', 10], ['defender', 'airfield', 30],
+    ['airfield', 'production', 10], ['airfield', 'defender', 20],
+  ] as const)('converts %s to %s for %i without changing city identity or granting charges', (sourceType, targetType, cost) => {
+    const base = createSimulation([{ id: 'a', owner: 'player', cityType: sourceType as CityType, units: cost + 1,
+      x: 30, y: 70, features: [{ id: 'factory', kind: 'factory', productionMultiplier: 2 }] }]);
+    const state = { ...base, territories: base.territories.map(c => ({ ...c, growthRemainder: 725 })) };
+    const next = convertCity(state, 'a', targetType);
+    expect(next.territories[0]).toMatchObject({ cityType: targetType, units: 1, x: 30, y: 70, growthRemainder: 0 });
+    expect(next.territories[0].features).toBe(state.territories[0].features);
+    expect(next.homeCityIds).toBe(state.homeCityIds);
+    expect(next.captureShields).toEqual({});
+    expect(convertCity(next, 'a', targetType)).toBe(next);
+    const grown = advanceGrowth(next, 1000);
+    expect(grown.territories[0].units).toBe(targetType === 'production' ? 3 : 1);
   });
   it('cancels only unlaunched source reservations and gates growth selectors', () => {
     const queued = dispatchUnits(opening(), 'a', 'b');

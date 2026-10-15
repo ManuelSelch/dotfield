@@ -106,6 +106,21 @@ describe('aircraft', () => {
     expect(state.territories[1]).toMatchObject({ owner: 'player', units: 4 });
     expect(state.aircraft?.home.cargo).toBe(0);
   });
+  it('uses stable home-ID ordering for simultaneous pulses and cancels a captured home before its pulse', () => {
+    const state = createSimulation([{ id: 'z', owner: 'enemy', cityType: 'airfield', units: 101, x: 98, y: 0 },
+      { id: 'a', owner: 'player', cityType: 'airfield', units: 101, x: 0, y: 0 }],
+      { factions: { player: { unitsPerSecond: 0, travelSpeed: 35, batchIntervalMs: 600 },
+        enemy: { unitsPerSecond: 0, travelSpeed: 35, batchIntervalMs: 600 } } });
+    const prepared = advanceWorldStep(state, 20000);
+    const first = launchAircraft(prepared, 'z', 'a', 'enemy');
+    const both = launchAircraft(first, 'a', 'z');
+    const result = advanceWorldStep(both, 1400);
+    expect(result.territories.find(c => c.id === 'a')).toMatchObject({ owner: 'player', units: 1 });
+    expect(result.territories.find(c => c.id === 'z')).toMatchObject({ owner: 'player', units: 4 });
+    expect(result.airDeliveries).toHaveLength(1);
+    expect(result.airDeliveries?.[0].homeId).toBe('a');
+    expect(result.aircraft?.z).toMatchObject({ phase: 'preparing', cargo: 0, owner: 'player', elapsedMs: 0 });
+  });
   it('ignores terrain, Slow Zones, Watchtowers and Artillery while airborne', () => {
     const base = ready();
     const state: SimulationState = { ...base, terrain: { bounds: { minX: -20, minY: -100, maxX: 360, maxY: 480 },
