@@ -55,9 +55,9 @@ function render() {
   }
   $('#reason').textContent = mode ? 'Targeting active. Cancel before changing city type.'
     : busy ? 'Conversion unavailable while the plane is away. Ground orders still work.'
-      : `Proposed instant conversion; leave 1 troop. ${city.troops <= 30 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
+      : `Instant conversion; leave 1 troop. ${city.troops <= 30 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
   $('#plane-status').textContent = city.type === 'Airfield' ? phaseText(city)
-    : city.type === 'Defender' ? 'Shields · rules awaiting confirmation' : 'Production · normal growth (not simulated)';
+    : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : 'Production · normal growth (not simulated)';
   $('#fly').hidden = city.type !== 'Airfield' || !!mode;
   $('#fly').disabled = city.phase !== 'ready' || city.troops < 2;
   $('#fly').title = city.phase !== 'ready' ? 'Plane must be ready' : 'Board up to 100; leave 1 troop';
@@ -77,7 +77,7 @@ function targetMode(next) {
   if (!city || city.owner !== 'you') return;
   if (next === 'fly' && (city.phase !== 'ready' || city.troops < 2)) return;
   mode = next; render();
-  tell(next === 'fly' ? `Fly from ${city.name}: tap a target. Up to 100 troops, leaving one behind. Proposal only.` : 'Choose a target for an ordinary ground order.');
+  tell(next === 'fly' ? `Fly from ${city.name}: tap a target. Up to 100 troops, leaving one behind. Simulated here.` : 'Choose a target for an ordinary ground order.');
   focusCity(cities.find(candidate => candidate.id !== selected).id);
 }
 function selectCity(id) {
@@ -162,7 +162,7 @@ function reset() {
   if (state === 'returning') cities[1].phase = 'returning';
   if (state === 'lost') { cities[0].owner = 'enemy'; selected = null; }
   if (state === 'targeting') mode = 'fly';
-  render(); tell(state === 'lost' ? 'Ownership lost: actionable selection cleared. Enemy taps cannot reopen it.' : 'Fake state restored. All prices and restrictions are proposals.');
+  render(); tell(state === 'lost' ? 'Ownership lost: actionable selection cleared. Enemy taps cannot reopen it.' : 'Fake state restored. Confirmed initial rules; no live game simulation.');
 }
 // Create semantic keyboard controls with compact visuals and 44px hit areas.
 $('#cities').innerHTML = seed.map(city => `<button class="city" data-city="${city.id}" style="left:${city.x / 3.6}%;top:${city.y / 3.6}%"><span class="dot"></span><span class="badge" aria-hidden="true"></span><span class="label" aria-hidden="true">${city.name}</span></button>`).join('');
@@ -173,7 +173,7 @@ $('#type-actions').addEventListener('click', event => {
   const city = byId(selected), type = button.dataset.type;
   if (!city || city.owner !== 'you' || mode || city.type === type || city.troops <= prices[type] || ['outbound', 'unloading', 'returning'].includes(city.phase)) return;
   city.troops -= prices[type]; city.type = type; city.phase = type === 'Airfield' ? 'preparing' : null;
-  render(); tell(`${city.name} converted to ${type} for ${prices[type]} troops. Instant conversion is a proposal.`);
+  render(); tell(`${city.name} converted to ${type} for ${prices[type]} troops. Instant conversion simulated.`);
   focusCity(city.id);
 });
 $('#board').addEventListener('pointerdown', event => {

@@ -7,7 +7,7 @@
 
 ## Design question
 
-Can a compact three-action city bar coexist with normal ground dragging while making explicit air dispatch clear on phone and desktop? Review conversion cost readability, disabled reasons, Fly targeting and cancellation. The rules remain proposals pending answers to all eight focused requirement questions.
+Can a compact three-action city bar coexist with normal ground dragging while making explicit air dispatch clear on phone and desktop? Review conversion cost readability, disabled reasons, Fly targeting and cancellation. The user confirmed all eight recommended rule defaults during this task. This review concerns control layout and interaction, not reopening those rule decisions.
 
 ## Layout and visual language
 
@@ -20,9 +20,9 @@ Can a compact three-action city bar coexist with normal ground dragging while ma
 ## Interactions
 
 - Tap an owned city/region, then choose another type for immediate fake conversion. Current type is highlighted and cannot charge again. Prices are visible even when unaffordable.
-- Proposed fake prices: Production **10**, Defender **20**, Airfield **30**; preserve one troop, no refund. New Airfield shows preparing; new Defender shows no invented shield charges. Production/growth and preparation clocks are not simulated.
-- Ready Airfield: **Fly → target tap** to any distinct city, including enemy/neutral and across geography. **Cancel** or **Escape** exits without boarding. Plane capacity **100** is proposed; launch boards up to capacity, leaving one garrison troop.
-- Busy Airfield displays its phase; Fly is unavailable until ready, conversion is unavailable while away/unloading/returning, but ordinary ground dispatch remains available. These restrictions are proposals, not confirmed policy.
+- Confirmed initial prices (simulated here): Production **10**, Defender **20**, Airfield **30**; preserve one troop, no refund. New Airfield shows preparing; new Defender shows no invented shield charges. Production/growth and preparation clocks are not simulated.
+- Ready Airfield: **Fly → target tap** to any distinct city, including enemy/neutral and across geography. **Cancel** or **Escape** exits without boarding. Plane capacity **100** is the confirmed initial tuning;  launch boards up to capacity, leaving one garrison troop.
+- Busy Airfield displays its phase; Fly is unavailable until ready, conversion is unavailable while away/unloading/returning, but ordinary ground dispatch remains available. These restrictions match the confirmed initial implementation defaults.
 - Ground drag from an owned region shows a dashed guide and dispatches on release; drag never opens conversion or launches a plane. A simple 8px movement threshold separates tap/drag. Ground crossing of this illustrative river is blocked; no automatic detours.
 - Desktop click-to-click ground order: select city → **Ground…** → target; **G** is a shortcut. Enter/Space activates focused cities/actions. **Escape** cancels targeting first, then closes the bar; close/cancel restores source-city focus. Target mode puts focus on another city for keyboard navigation.
 - Enemy/neutral cities cannot open management; their native buttons expose `aria-disabled` outside targeting, remain navigable for city information, and become valid flight/ground targets in targeting mode.
@@ -48,7 +48,7 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 
 ## Fake behavior, limitations and unresolved rules
 
-- All eight [open questions](../../docs/city-conversion/REQUIREMENTS.md#open-questions) remain awaiting confirmation: (1) conversion cost/timing, (2) Defender pool/recharge/stacking, (3) plane capacity/timing, (4) Fly/boarding policy, (5) captured type/home-plane loss, (6) queue/reset/busy restrictions, (7) aircraft effect interactions, (8) default match availability. Nothing in this mockup settles them.
+- All eight recommended defaults were explicitly confirmed: user selected “Yes—use all recommended defaults”. See focused requirements R11. This mockup still uses fake data and simplified mechanics; rule approval does not imply visual approval of these controls.
 - No production code imports, application dependencies, API/network calls, storage, Home settings, generated maps, AI, save/replay, upgrades, combat shields, exact terrain legality or pause/round lifecycle. Ground dispatch only subtracts troops and reports a fake order; travel/combat are omitted. Flight combat is intentionally simplified; Defender shields are not simulated. Timing is wall-clock illustration, not deterministic gameplay or approved balance.
 - Type badges use compact text glyphs, not final artwork. Delivery glyph/positions are illustrative; no native Safari/PWA assurance. Static busy states omit the away plane's position/cargo.
 - Ownership-loss sample demonstrates cleared UI, not a live capture event. No live pause/Home/restart/round-end integration is represented; Reset clears pending illustrative flight timers and state.
@@ -57,4 +57,4 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 
 ## Approval checkpoint
 
-Ask after user review: **“Approve this revision for implementation, or continue iterating?”** Record explicit approval and exact revision here before production controls. Do not infer approval from the previously approved delivery style, a planning request or this handoff. All gameplay decisions still require confirmation before their relevant implementation slices.
+Ask after user review: **“Approve this revision for implementation, or continue iterating?”** Record explicit approval and exact revision here before production controls. Do not infer approval from the previously approved delivery style, a planning request or this handoff. Gameplay defaults are confirmed; production controls still require this visual approval.
