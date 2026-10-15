@@ -10,6 +10,7 @@ import { resolveCombat } from '../combat';
 import { dispatchUnits } from '../dispatch';
 import { forecastBattle } from '../ai/forecast';
 import { TERRITORIES } from '../../board/map';
+import { snapshotTerritories } from '../features/snapshot';
 
 const setup = () => compileRoundSetup(TERRITORIES, { player: ['industry'] });
 const units = (state: ReturnType<typeof createSimulation>, id: string) => state.territories.find(n => n.id === id)!.units;
@@ -19,7 +20,7 @@ describe('Industry setup', () => {
     const seed = setup(); const state = advanceGrowth(createSimulation(seed.territories, seed.rules), 4000);
     expect(units(state, 'south')).toBe(41); expect(units(state, 'north')).toBe(40);
     expect(units(state, 'centre')).toBe(20); expect(BASE_FACTION_RULES.unitsPerSecond).toBe(1);
-    expect(seed.territories).toEqual(TERRITORIES); expect(seed.territories[0]).not.toBe(TERRITORIES[0]);
+    expect(seed.territories).toEqual(snapshotTerritories(TERRITORIES)); expect(seed.territories[0]).not.toBe(TERRITORIES[0]);
     expect(compileRoundSetup(TERRITORIES, {}).rules.factions.player.unitsPerSecond).toBe(1);
   });
   it('deduplicates selections and keeps different faction configurations independent', () => {

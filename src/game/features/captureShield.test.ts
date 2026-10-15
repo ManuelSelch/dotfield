@@ -9,6 +9,7 @@ import { forecastBattle } from '../ai/forecast';
 import { advanceWorldStep } from '../worldStep';
 import { readSavedGame, writeSavedGame } from '../persistence';
 import type { SimulationState, Transfer } from '../types';
+import { snapshotTerritories } from './snapshot';
 
 const cities = [
   { id: 'home', owner: 'player', units: 36, x: 50, y: 100 },
@@ -32,7 +33,8 @@ describe('Capture shield', () => {
     expect(setup.rules.factions.player.captureShieldBatches).toBe(3);
     expect(setup.rules.factions.enemy.captureShieldBatches).toBe(0);
     expect(createSimulation(setup.territories, setup.rules).captureShields).toEqual({});
-    expect(setup.territories).toEqual(cities);
+    expect(setup.territories).toEqual(snapshotTerritories(cities));
+    expect(cities[0]).not.toHaveProperty('cityType');
   });
   it('grants three charges only after successful capture, not a tie or reinforcement', () => {
     let state = arrive(setup(), 'player', 2);

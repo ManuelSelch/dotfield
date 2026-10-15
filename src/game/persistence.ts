@@ -5,7 +5,9 @@ import { canDirectTerrainOrder } from './terrain/directOrder';
 import { isGeneratedMatch, type GeneratedMatch } from './matchPreferences';
 import { createRules } from './rules';
 import { restoreCaptureShields } from './features/captureShield';
-import { restoreNetworkShieldTimers } from './features/networkShields';
+import { restoreNetworkShieldTimers, shieldRechargeSource } from './features/networkShields';
+import { restoreAircraft } from './restoreAircraft';
+import { DEFENDER_SHIELD_CAPACITY } from './settings';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -21,7 +23,7 @@ export interface SavedGame {
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isSavedGame(value: unknown): value is SavedGame {
@@ -37,12 +39,18 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
   try {
     const raw = (storage ?? window.localStorage).getItem(SAVED_GAME_KEY);
     if (!raw) return null;
-    const parsed: unknown = JSON.parse(raw);
-    if (!isSavedGame(parsed)) return null;
-    if (!isGeneratedMatch(parsed.generated)) delete (parsed as { generated?: unknown }).generated;
-    snapshotTerritories(parsed.territories);
-    snapshotTerritories(parsed.state.territories);
+    const candidate: unknown = JSON.parse(raw);
+    if (!isSavedGame(candidate)) return null;
+    if (!isGeneratedMatch(candidate.generated)) delete (candidate as { generated?: unknown }).generated;
+    const territories = snapshotTerritories(candidate.territories);
+    const live = snapshotTerritories(candidate.state.territories) as SimulationState['territories'];
+    if (!Number.isFinite(candidate.state.elapsedMs) || candidate.state.elapsedMs < 0
+      || live.length !== territories.length
+      || live.some(city => !territories.some(c => c.id === city.id && c.x === city.x && c.y === city.y)
+        || !Number.isFinite(city.growthRemainder) || city.growthRemainder < 0 || city.growthRemainder >= 1000)) return null;
+    const parsed = { ...candidate, territories, state: { ...candidate.state, territories: live } };
     const rules = createRules(parsed.state.rules);
+    if ([...territories, ...live].some(c => c.owner !== 'neutral' && !Object.hasOwn(rules.factions, c.owner))) return null;
     let terrain = parsed.state.terrain === undefined ? undefined : createTerrain(parsed.state.terrain);
     let river = parsed.state.river === undefined ? undefined : createRiver(parsed.state.river, parsed.territories);
     if (river) createRiver(river, parsed.state.territories);
@@ -89,11 +97,24 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
         return home ? [[factionId, home.id]] : [];
       }));
     }
+    if ((parsed.state.captureShields !== undefined && !isObject(parsed.state.captureShields))
+      || (parsed.state.networkShieldTimers !== undefined && !isObject(parsed.state.networkShieldTimers))) return null;
     const normalized: SimulationState = { ...parsed.state, rules, homeCityIds,
       ...(terrain ? { terrain } : {}), ...(river ? { river } : {}),
-      captureShields: restoreCaptureShields({ ...parsed.state, rules }),
+      // Defender-earned charges survive conversion away, even without a faction shield upgrade.
+      // Widen only the validation ceiling; do not change saved gameplay rules or grant charges.
+      captureShields: restoreCaptureShields({ ...parsed.state, rules: { factions: Object.fromEntries(
+        Object.entries(rules.factions).map(([id, faction]) => [id, { ...faction,
+          captureShieldBatches: Math.max(DEFENDER_SHIELD_CAPACITY, faction.captureShieldBatches ?? 0) }]),
+      ) } }),
       networkShieldTimers: restoreNetworkShieldTimers({ ...parsed.state, rules }) };
-    return { ...parsed, state: normalized };
+    for (const [id, timer] of Object.entries(normalized.networkShieldTimers ?? {})) {
+      const active = shieldRechargeSource(normalized, id);
+      if ((timer.capacity !== undefined && timer.capacity !== active.capacity)
+        || (timer.source !== undefined && timer.source !== active.source)
+        || (timer.resetAtMs !== undefined && (timer.elapsedMs !== 0 || timer.resetAtMs !== normalized.elapsedMs))) return null;
+    }
+    return { ...parsed, state: { ...normalized, ...restoreAircraft(normalized) } };
   } catch {
     return null;
   }

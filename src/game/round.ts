@@ -11,6 +11,9 @@ export function evaluateRound(state: SimulationState): SimulationState {
     // Unlaunched groups are counted through their source, not as airborne survivors.
     if (transfer.units > 0 && transfer.elapsedMs >= 0) alive.add(transfer.owner);
   }
+  for (const plane of Object.values(state.aircraft ?? {})) {
+    if (plane.cargo > 0 && (plane.phase === 'outbound' || plane.phase === 'unloading')) alive.add(plane.owner);
+  }
   const player = alive.has('player');
   if (player && alive.size > 1) return state;
   return { ...state, roundStatus: player ? 'victory' : alive.size > 0 ? 'defeat' : 'draw' };

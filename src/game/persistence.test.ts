@@ -8,6 +8,7 @@ import { generateMap } from '../board/generateMap';
 import { defaultMatchPreferences } from './matchPreferences';
 import { advanceWorldStep } from './worldStep';
 import { createTerrain } from './terrain/terrain';
+import { snapshotTerritories } from './features/snapshot';
 
 function storage() {
   const values = new Map<string, string>();
@@ -24,7 +25,7 @@ describe('round persistence', () => {
     const target = storage();
     const state = createSimulation(TERRITORIES);
     writeSavedGame({ state, territories: TERRITORIES, ai: {}, phase: 'running' }, target);
-    expect(readSavedGame(target)).toEqual({ state, territories: TERRITORIES, ai: {}, phase: 'running' });
+    expect(readSavedGame(target)).toEqual({ state, territories: snapshotTerritories(TERRITORIES), ai: {}, phase: 'running' });
   });
 
   it('backfills original home city IDs when restoring a legacy save', () => {
