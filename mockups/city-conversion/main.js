@@ -56,13 +56,11 @@ function render() {
   $('#reason').textContent = mode ? 'Targeting active. Cancel before changing city type.'
     : busy ? 'Conversion unavailable while the plane is away. Ground orders still work.'
       : `Instant conversion; leave 1 troop. ${city.troops <= 30 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
-  $('#plane-status').textContent = city.type === 'Airfield' ? phaseText(city)
+  $('#plane-status').textContent = mode ? 'Tap any other city to fly · Escape to cancel' : city.type === 'Airfield' ? phaseText(city)
     : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : 'Production · normal growth (not simulated)';
   $('#fly').hidden = city.type !== 'Airfield' || !!mode;
   $('#fly').disabled = city.phase !== 'ready' || city.troops < 2;
   $('#fly').title = city.phase !== 'ready' ? 'Plane must be ready' : 'Board up to 100; leave 1 troop';
-  $('#ground').hidden = !!mode;
-  $('#ground').disabled = city.troops < 2;
   $('#cancel').hidden = !mode;
 }
 function close() {
@@ -211,7 +209,6 @@ $('#cities').addEventListener('click', event => {
   if (event.detail === 0) selectCity(cityAt(event.target));
 });
 $('#fly').onclick = () => targetMode('fly');
-$('#ground').onclick = () => targetMode('ground');
 $('#cancel').onclick = () => { mode = null; render(); focusCity(selected); tell('Targeting cancelled. No troops boarded.'); };
 $('#close').onclick = close;
 $('#scenario').onchange = () => {
@@ -227,9 +224,6 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     if (mode) { mode = null; render(); focusCity(selected); tell('Targeting cancelled. No troops boarded.'); }
     else close();
-  }
-  if (event.key.toLowerCase() === 'g' && !['SELECT', 'INPUT', 'TEXTAREA'].includes(event.target.tagName) && selected && !mode) {
-    event.preventDefault(); targetMode('ground');
   }
 });
 const requested = new URLSearchParams(location.search).get('state');

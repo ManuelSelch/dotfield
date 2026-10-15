@@ -64,9 +64,9 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
    Keep this reservation in sync with AppHeader and FieldCanvas controls. */
 .app-shell--playing { max-width: none; width: min(100cqw, calc((100cqh - 109px) * .75)); }
 .app-shell--playing .field-viewport { flex: none; width: 100%; aspect-ratio: 3 / 4; margin-block: auto; }
-/* Management stays below the field, never obscuring city targets. Fit the Canvas
-   into the remaining height while keeping the quick-action bar full width. */
-.app-shell--playing:has(.city-controls) .field-viewport { flex: 1 1 0; min-height: 0; aspect-ratio: auto; margin-block: 0; }
+/* Reserve management space from the first render, even without a selection.
+   The logical 3:4 field fits inside this stable Canvas; no selection/targeting reflow. */
+.app-shell--playing:has(.city-action-strip) .field-viewport { flex: 1 1 0; min-height: 0; aspect-ratio: auto; margin-block: 0; }
 
 @media (min-width: 600px) {
   .app-safe-area { padding-top: max(32px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }

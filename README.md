@@ -4,7 +4,7 @@ A small personal territory-conquest game, built one milestone at a time.
 
 ## Current milestone: city conversion and reusable air transport
 
-Tap an owned city for **Production / Defender / Airfield** conversion controls (10 / 20 / 30 troops; leave one behind). Defender cities stop producing troops and regenerate batch-blocking shields; Airfields stop producing troops and support one reusable airplane carrying up to **100 troops**. Choose **Fly**, then any target city—even across rivers and mountains. The plane docks, delivers five troops per pulse, and returns empty. Capture Shield and existing features coexist. See the [implemented controls, rules and limitations](docs/city-conversion/IMPLEMENTATION.md).
+The permanent bottom strip keeps the map stable when selecting or closing cities. Tap an owned city for **Production / Defender / Airfield** conversion controls (10 / 20 / 30 troops; leave one behind). Defender cities stop producing troops and regenerate batch-blocking shields; Airfields stop producing troops and support one reusable airplane carrying up to **100 troops**. Choose **Fly**, then any target city—even across rivers and mountains. The plane docks, delivers five troops per pulse, and returns empty. Capture Shield and existing features coexist. See the [implemented controls, rules and limitations](docs/city-conversion/IMPLEMENTATION.md).
 
 ## Fresh generated matches
 
@@ -30,7 +30,7 @@ Baseline tuning is in `src/game/settings.ts`; geometry, batch size and simulatio
 
 ## Responsive battlefield layout
 
-The game screen fits a centered **3:4 battlefield** to both available width and height. Its header, troop composition and pause control align with the board; widescreen margins stay outside the Canvas and its interactive regions. Phones retain safe-area padding and the page remains scroll-locked. Resizing updates rendering and input geometry without replacing the active session or changing simulation distances. Home uses the approved settings-first mobile layout with fixed Play and an internally scrolling preview/settings area; desktop puts settings left and preview right. Mouse click-to-click input remains available during gameplay.
+The game screen fits a centered logical **3:4 battlefield** to the available Canvas width and height. A permanent fixed-height city-action strip is reserved below it, including when nothing is selected or the round is paused/finished; selection and flight targeting never resize or move the map. On short screens the field fits inside the remaining Canvas with noninteractive margins. Its header, troop composition and pause control align with the Canvas. Phones retain safe-area padding and the page remains scroll-locked. Resizing updates rendering and input geometry without replacing the active session or changing simulation distances. Home uses the approved settings-first mobile layout with fixed Play and an internally scrolling preview/settings area; desktop puts settings left and preview right. Mouse click-to-click input remains available during gameplay.
 
 Approved designs are preserved in `mockups/desktop-battlefield/` and `mockups/random-map/`. `tests/desktop-layout.spec.ts`, `tests/desktop-home.spec.ts` and `tests/mouse-orders.spec.ts` cover proportions, generated setup retention, authored gameplay scenarios, input-mode coordination, lifecycle cancellation, overlays and live/paused resizing. Real-iPhone Safari verification remains a follow-up.
 

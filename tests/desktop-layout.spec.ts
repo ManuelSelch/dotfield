@@ -10,11 +10,13 @@ async function start(page: Page) {
 
 async function assertLayout(page: Page) {
   const canvas = page.getByRole('img', { name: 'Territory board' });
-  await expect.poll(async () => {
-    const box = (await canvas.boundingBox())!;
-    return Math.abs(box.width / box.height - 0.75);
-  }).toBeLessThan(0.002);
+  // Logical 3:4 geometry is fitted inside a stable Canvas with the action strip
+  // reserved from the start, rather than resizing the Canvas on selection.
+  const strip = (await page.locator('.city-action-strip').boundingBox())!;
+  expect(strip.height).toBe(162);
   const box = (await canvas.boundingBox())!;
+  expect(box.height).toBeGreaterThan(100);
+  expect(Math.abs(box.y + box.height - strip.y)).toBeLessThan(1);
   const viewport = page.viewportSize()!;
   expect(box.x).toBeGreaterThanOrEqual(16);
   expect(box.y).toBeGreaterThanOrEqual(0);
@@ -38,7 +40,7 @@ for (const viewport of [
   { width: 768, height: 1024 }, { width: 1280, height: 720 },
   { width: 1440, height: 900 }, { width: 1280, height: 480 },
 ]) {
-  test(`proportional battlefield and aligned controls at ${viewport.width}×${viewport.height}`, async ({ page }) => {
+  test(`fitted battlefield and aligned controls at ${viewport.width}×${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await start(page);
     const box = await assertLayout(page);

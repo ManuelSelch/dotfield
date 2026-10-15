@@ -4,7 +4,7 @@
 
 Give players a meaningful choice between troop production, defense, and air mobility by converting existing cities at a troop cost. Introduce reusable, capacity-limited airplanes that transport troops to any city across rivers and mountains, while keeping mobile controls quick and the top-down battlefield readable.
 
-Status: implemented and automatically verified in the isolated `feat/city-conversion` worktree using subagents; not merged or pushed. Verification: 694 unit tests/80 files, all 102 standard Chromium browser tests serially, TypeScript/production build, two production PWA tests, and diff checks pass. Real-iPhone and human balance/duration playtesting remain manual. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md), then requested “now use subagents and worktrees to implement it” and confirmed “Yes—use all recommended defaults”. All eight rule questions are resolved by that confirmation. The conversion/flight control mockup revision 1 is also explicitly approved (“yes approved”); its owned preview was stopped and sources preserved before production UI work.
+Status: implemented and automatically verified in the isolated `feat/city-conversion` worktree using subagents; not merged or pushed. Verification: 694 unit tests/80 files, all 108 standard Chromium browser tests serially, TypeScript/production build, two production PWA tests, and diff checks pass. Real-iPhone and human balance/duration playtesting remain manual. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md), then requested “now use subagents and worktrees to implement it” and confirmed “Yes—use all recommended defaults”. All eight rule questions are resolved by that confirmation. The conversion/flight control mockup revision 1 is also explicitly approved (“yes approved”); its owned preview was stopped and sources preserved before production UI work.
 
 ## Scope
 
@@ -80,15 +80,15 @@ Status: implemented and automatically verified in the isolated `feat/city-conver
 
 ### R6. Quick conversion and flight controls
 
-- **Confirmed interaction:** tap an owned city to open a compact bottom conversion bar with Production, Defender, and Airfield choices. A second tap on a type performs the conversion without a confirmation dialog.
+- **Confirmed interaction, revision 2:** permanently reserve the compact bottom strip at a fixed height in every selection, flight, pause and round-end state. Nothing selected shows “Tap a city to convert · drag to send troops”; tapping an owned city populates Production, Defender, and Airfield choices. A second tap on a type performs the conversion without a confirmation dialog. Remove the Ground button; preserve drag, desktop click-to-click and keyboard ground orders. Selection/targeting must not move or resize the battlefield.
 - Show current type, troop price, and unaffordable/temporarily unavailable states. The current type is highlighted and cannot incur another charge. Explain disabled reasons in accessible text.
 - Keep all three type actions comfortably tappable (at least 44 CSS px high), account for mobile safe areas, and retain readable counts. Avoid long-press, nested menus, and a large management panel.
 - A tap is not a drag. Dragging from a region still issues an ordinary order without accidentally converting a city or opening the bar on release. Water/outside taps do not select a city.
-- Tapping outside dismisses the bar. Ownership loss, pause, restart, Home, round end, and invalid source state clear actionable selection. No click-through when dismissing or opening controls.
+- Tapping outside clears the selected controls but leaves the fixed-height strip and its hint. Ownership loss, pause, restart, Home, round end, and invalid source state clear actionable selection. No click-through when dismissing or opening controls.
 - Air transport needs an explicit, discoverable send action so a legal same-bank target can receive either ground troops or air cargo. The approved workflow is a Fly action followed by a target tap.
 - Busy planes must not prevent ordinary ground dispatch from an airfield. Show preparing/ready/away/returning state without requiring another menu.
 - Integrate desktop click-to-click, keyboard city controls, Escape, focus restoration, and screen-reader city/airplane details. Do not sacrifice existing desktop commands to make taps work.
-- Conversion bar, flight targeting/cancel flow, and busy/unaffordable states are approved in control mockup revision 1; delivery remains approved under option C. Preserve both approved sources.
+- Conversion bar, flight targeting/cancel flow, and busy/unaffordable states were approved in control mockup revision 1. Revision 2 explicitly approves the fixed strip and removal of Ground (user replied “yes” to the preview/implementation question). Its owned preview was identity-verified and stopped before implementation. Delivery remains approved under option C; preserve approved sources.
 
 ### R7. Existing feature and combat boundaries
 
@@ -176,7 +176,7 @@ Status: implemented and unit/browser-tested.
 Description: After slice 6, integrate types/planes/cargo into snapshots, restore validation, worker serialization, troop composition, elimination, and round setup/restart/replay. Preserve event-only persistence. Verify legacy defaults, corrupt/mismatched references, duplicate-plane rejection, mid-preparation/outbound/unloading/return/turnaround reload, pause/background freeze, last-city loss, and exact opening reset. Complete this before exposing playable controls so active saves cannot silently lose new state.
 
 ### 8. Conversion Bar and Flight Controls
-Status: approved revision 1 implemented; mobile and mixed desktop-input regression tests pass.
+Status: approved revision 2 implemented; mobile, mixed desktop-input and fixed-map geometry regression tests pass.
 Description: After slices 1 and 7, implement only the approved compact conversion UI and air targeting flow using shared commands. Preserve mobile full-region dragging, existing desktop click-to-click and keyboard commands, safe areas, pause controls, and click-through prevention. Add accessible cost/readiness/cargo/state descriptions. Verify browser interactions on narrow mobile and desktop, insufficient/busy states, source capture, outside/Escape cancellation, and zero unintended conversions during ground dispatch. Keep incomplete renderer/AI integration out of normal releases until subsequent slices pass.
 
 ### 9. Aircraft and Defender Rendering
@@ -188,7 +188,7 @@ Status: implemented and unit/real-worker browser-tested; human tactical balance 
 Description: After slices 6–7, extend forecast/worker decisions and production-aware logistics for nonproducing city types and complete flights. Add conservative conversion spending/production-base safeguards, Defender placement, Airfield supply, partial/full flights, barrier attacks, and original-home defense without switching loops. Use the exact player commands and physics. Verify deterministic pure/worker/browser scenarios across multiple factions, useful cross-barrier attacks, home-loss risk, strong/weak positions, and unchanged legal ground staging.
 
 ### 11. Integrated Playtest and Documentation
-Status: automated integration and documentation complete (694 unit tests, 102 browser tests, 2 PWA tests, production/typecheck build and diff checks pass); real-iPhone and human balance/duration acceptance remain manual.
+Status: automated integration and documentation complete (694 unit tests, 108 browser tests, 2 PWA tests, production/typecheck build and diff checks pass); real-iPhone and human balance/duration acceptance remain manual.
 Description: After slices 8–10, enable the complete feature, run full unit/browser/build/PWA checks, and document actual rules/controls/tuning and saved-round behavior. Playtest 100-capacity flights versus Defender/Capture Shield/network combinations, conversion-loop risks, no-producer situations, battlefield clutter, and short-round pacing. Check actual iPhone tap/drag, safe areas, interruption, installed/offline use and performance. Adjust only centralized tuning with explicit balance feedback; mark automated evidence separately from manual/human acceptance and commit verified slices without pushing automatically.
 
 ## Open Questions

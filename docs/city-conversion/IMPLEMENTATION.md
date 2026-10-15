@@ -2,9 +2,9 @@
 
 ## Controls
 
-- Tap an owned city to open the compact conversion bar; tap a type to convert immediately. The current type is free/no-op. Unaffordable types are disabled.
+- A permanent fixed-height bottom strip reserves its space from the initial render. With no selection it says “Tap a city to convert · drag to send troops”. Tap an owned city to populate Production / Defender / Airfield; tap a type to convert immediately. The current type is free/no-op. Unaffordable types are disabled. There is no Ground button.
 - Production costs 10 troops, Defender 20, Airfield 30. Every conversion leaves at least one troop. There is no refund.
-- Dragging remains a ground order. Desktop click-to-click and keyboard city activation remain available. Ground orders obey mountains and paired river bridges.
+- Dragging remains a ground order. Desktop click-to-click and keyboard city activation remain available. Ground orders obey mountains and paired river bridges. Selection, conversion, targeting/cancellation, closing and pausing keep the same map rectangle/backing resolution. Short screens fit the logical 3:4 field into the remaining Canvas space; controls never overlap city targets.
 - A ready Airfield exposes **Fly**. Choose Fly, then activate any other city. Cancel/Escape exits targeting without boarding. A flight carries up to 100 troops while leaving one at home.
 - Close/outside/Escape dismisses management. Pause, background, ownership loss, restart and round end clear actionable selection.
 
@@ -50,6 +50,6 @@ Capturing the home destroys its old plane and undelivered cargo immediately. Alr
 
 - [Full requirements](REQUIREMENTS.md).
 - Approved delivery: [Dock & pulse option C](../../mockups/airplane-delivery/DESIGN.md).
-- Approved conversion/targeting: [controls revision 1](../../mockups/city-conversion/DESIGN.md).
-- Verified checkpoint: **694 unit tests in 80 files**, **102 standard Chromium browser tests** (`npx playwright test --workers=1`), **2 production PWA tests**, TypeScript/production build, and whitespace/link checks pass. Full browser output: `/tmp/dotfield-city-final-browser.log`; PWA output: `/tmp/dotfield-city-pwa-verified.log`.
+- Approved conversion/targeting: [controls revision 2](../../mockups/city-conversion/DESIGN.md).
+- Verified checkpoint: **694 unit tests in 80 files**, **108 standard Chromium browser tests** (`npx playwright test --workers=1`), **2 production PWA tests**, TypeScript/production build, and whitespace/link checks pass. Full browser output: `/tmp/dotfield-strip-full-browser.log`; PWA output: `/tmp/dotfield-strip-pwa.log`.
 - Automated tests cover core physics, resource conservation, persistence, workers, mobile controls and full trips. Concurrency-heavy browser runs showed timing-sensitive failures; the full serial checkpoint passes without retries. Real-iPhone Safari/installed-PWA readability and performance, and human balance/duration remain manual acceptance. Initial values are centralized playtest tuning, not validated balance.

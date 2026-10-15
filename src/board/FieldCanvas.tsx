@@ -71,14 +71,19 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
-      {selectedCity && <CityControls name={selectedCity.id} cityType={cityType(selectedCity)} troops={selectedCity.units}
-        planePhase={plane?.phase ?? null} capacity={AIRCRAFT_CAPACITY} costs={CITY_CONVERSION_COST}
-        targeting={session.citySelection?.targeting ?? null}
-        detail={plane?.cargo ? `${plane.cargo} aboard`
-          : plane && ['preparing', 'turnaround'].includes(plane.phase) ? `${Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000)}s remaining`
-          : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
-        onConvert={session.convert} onFly={() => session.target('fly')} onGround={() => session.target('ground')}
-        onCancel={session.cancelTarget} onClose={session.closeCity} />}
+      <div className="city-action-strip">
+        {selectedCity ? <CityControls name={selectedCity.id} cityType={cityType(selectedCity)} troops={selectedCity.units}
+          planePhase={plane?.phase ?? null} capacity={AIRCRAFT_CAPACITY} costs={CITY_CONVERSION_COST}
+          targeting={session.citySelection?.targeting ?? null}
+          detail={plane?.cargo ? `${plane.cargo} aboard`
+            : plane && ['preparing', 'turnaround'].includes(plane.phase) ? `${Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000)}s remaining`
+            : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
+          onConvert={session.convert} onFly={() => session.target('fly')}
+          onCancel={session.cancelTarget} onClose={session.closeCity} />
+          : <p className="city-action-strip__hint">{state.roundStatus !== 'playing' ? 'Round complete'
+            : phase === 'paused' ? 'Resume to manage cities'
+            : 'Tap a city to convert · drag to send troops'}</p>}
+      </div>
       <TerritoryDetails state={state} territories={state.territories} captureShields={state.captureShields} shieldCapacities={shieldCapacities} />
       <TransferDetails state={state} />
     </>

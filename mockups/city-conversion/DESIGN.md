@@ -1,9 +1,9 @@
 # City conversion controls
 
-- Revision: **1**.
-- Review status: **approved**, revision 1.
+- Revision: **2**.
+- Review status: **approved**, revision 2. User replied “yes” to the revision 2 preview and explicit implementation-approval question. This approves the permanent fixed-height strip and removal of Ground; revision 1 gameplay and flight rules remain unchanged.
 - Approval evidence: user replied “yes approved” to the revision 1 preview and explicit implementation-approval question. This covers the compact conversion bar, Fly/target/cancel flow and associated reviewed states. **Dock & pulse, revision 1** in [airplane delivery](../airplane-delivery/DESIGN.md) remains separately approved; A/B treatments remain rejected.
-- Cleanup: agent-owned managed preview PID57952 verified against command/workspace, stopped gracefully, process/listener absence verified and runtime record removed. Approved sources preserved.
+- Cleanup: revision 1 preview PID57952 stopped and verified previously. Revision 2 Vite PID15630 was verified against command, workspace and listener, stopped gracefully, process/listener absence confirmed and runtime record removed before production work. Approved sources preserved.
 - Scope: isolated slice 1 control study for [city conversion requirements](../../docs/city-conversion/REQUIREMENTS.md). Plain HTML/CSS/JS, deterministic fake data and disposable local state. No production implementation, dependencies, settings, requirements or shared package changes.
 
 ## Design question
@@ -14,8 +14,8 @@ Can a compact three-action city bar coexist with normal ground dragging while ma
 
 - Small top-down six-city board, muted green/teal player palette, terracotta enemy, blue-grey river and faceted mountain. City circles use the current **14 logical-unit radius** in a 360-unit board, not larger combat/hit geometry.
 - City buttons have 44 CSS px hit areas even where circles are smaller. Board regions also accept taps/drags; river/mountain/outside taps do not select a city.
-- Compact bottom-of-board bar: selected city/type/garrison; Production / Defender / Airfield; short availability reason; plane state and Fly / Ground actions. No confirmation dialog, long press, nested menus or management sheet.
-- Bar lives in normal document flow so narrow/short viewports can scroll without obscuring the field. Mobile safe-area inset is included beneath controls. All action controls are at least 44 CSS px high.
+- Permanent bottom-of-board strip: selected city/type/garrison; Production / Defender / Airfield; plane status and Fly (or Cancel). No Ground button, confirmation dialog, long press, nested menus or management sheet.
+- Empty, selected, preparation, away and targeting states reserve the same 162px plus safe-area height, with three fixed rows. Closing the selection shows “Tap a city to convert · drag to send troops” without moving the battlefield. Long city labels truncate; availability reasons remain accessible via descriptions. Buttons remain at least 44px high. Production integration must also reserve this space from initial render, including pause/round end, rather than conditionally resizing the canvas.
 - Same layout centered at desktop width; no alternative A/B layout. Tab/focus states remain visible, all cities are native keyboard buttons. Reduced motion suppresses travel transitions and decorative pulse expansion, not fake count updates.
 
 ## Interactions
@@ -25,7 +25,7 @@ Can a compact three-action city bar coexist with normal ground dragging while ma
 - Ready Airfield: **Fly → target tap** to any distinct city, including enemy/neutral and across geography. **Cancel** or **Escape** exits without boarding. Plane capacity **100** is the confirmed initial tuning;  launch boards up to capacity, leaving one garrison troop.
 - Busy Airfield displays its phase; Fly is unavailable until ready, conversion is unavailable while away/unloading/returning, but ordinary ground dispatch remains available. These restrictions match the confirmed initial implementation defaults.
 - Ground drag from an owned region shows a dashed guide and dispatches on release; drag never opens conversion or launches a plane. A simple 8px movement threshold separates tap/drag. Ground crossing of this illustrative river is blocked; no automatic detours.
-- Desktop click-to-click ground order: select city → **Ground…** → target; **G** is a shortcut. Enter/Space activates focused cities/actions. **Escape** cancels targeting first, then closes the bar; close/cancel restores source-city focus. Target mode puts focus on another city for keyboard navigation.
+- Ground orders remain available via dragging (and existing desktop/keyboard behavior in production); no separate Ground button or G shortcut in the study. Enter/Space activates focused cities/actions. **Escape** cancels flight targeting first, then clears selection without collapsing the reserved strip. Close/cancel restores source-city focus.
 - Enemy/neutral cities cannot open management; their native buttons expose `aria-disabled` outside targeting, remain navigable for city information, and become valid flight/ground targets in targeting mode.
 - Outside tap closes selection; water/mountain taps cancel selection/targeting without spending troops. Ownership-loss review state clears actionable selection. No opening/dismissing tap passes through to conversion/launch.
 - Illustrative successful flight docks at target edge, applies five-troop city pulses (final partial batch if needed), then returns empty. No ground dots, orbit or drop effect. Cargo is separate from garrison. This reuses the approved treatment, not its source or the full combat simulation.
@@ -58,4 +58,4 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 
 ## Approval checkpoint
 
-Revision 1 explicitly approved for implementation. Gameplay defaults and control visual review are now confirmed. Preserve this source as the reference; any material control/layout change requires renewed approval.
+Revisions 1 and 2 explicitly approved. Revision 2 covers the permanent fixed-height strip and removal of Ground; revision 1 source remains preserved in Git. Gameplay and Dock & pulse rules remain unchanged.
