@@ -3,7 +3,7 @@ import type { Territory } from '../game/types';
 import { bindDrag } from './bindDrag';
 
 afterEach(() => vi.unstubAllGlobals());
-function harness() {
+function harness(options: import('./cityInputOptions').CityInputOptions = {}) {
   vi.stubGlobal('document', { hidden: false });
   let nodes: readonly Territory[] = [
     { id: 'source', owner: 'player', units: 36, x: 180, y: 420 },
@@ -19,7 +19,7 @@ function harness() {
     releasePointerCapture: (id: number) => captures.delete(id),
   }) as unknown as HTMLCanvasElement;
   const select = vi.fn(), dispatch = vi.fn();
-  const input = bindDrag(canvas, () => nodes, select, dispatch);
+  const input = bindDrag(canvas, () => nodes, select, dispatch, undefined, options);
   function pointer(type: string, x: number, y: number, pointerType = 'mouse', extras = {}) {
     canvas.dispatchEvent(Object.assign(new Event(type, { cancelable: true }), {
       clientX: x, clientY: y, pointerType, pointerId: 1, button: 0, isPrimary: true, ...extras,
@@ -29,6 +29,45 @@ function harness() {
   return { input, select, dispatch, pointer, click, captures,
     changeSource: (owner: Territory['owner'], units: number) => { nodes = nodes.map(n => n.id === 'source' ? { ...n, owner, units } : n); } };
 }
+
+describe('optional city management input', () => {
+  it('opens an owned one-troop city on touch/pen/mouse tap without dispatch', () => {
+    for (const type of ['touch', 'pen', 'mouse']) {
+      const tap = vi.fn(), h = harness({ onOwnedCityTap: tap });
+      h.changeSource('player', 1); h.click(180, 420, type);
+      expect(tap).toHaveBeenCalledExactlyOnceWith('source');
+      expect(h.dispatch).not.toHaveBeenCalled();
+    }
+  });
+  it('separates jitter from drag on touch and never opens the bar for a drag', () => {
+    const tap = vi.fn(), h = harness({ onOwnedCityTap: tap });
+    h.pointer('pointerdown', 180, 420, 'touch'); h.pointer('pointerup', 186, 422, 'touch');
+    expect(tap).toHaveBeenCalledOnce(); tap.mockClear();
+    h.pointer('pointerdown', 180, 420, 'touch'); h.pointer('pointerup', 180, 240, 'touch');
+    expect(tap).not.toHaveBeenCalled(); expect(h.dispatch).toHaveBeenCalledExactlyOnceWith('source', 'target');
+  });
+  it('routes fly and ground target taps without a default order or management tap', () => {
+    for (const mode of ['fly', 'ground'] as const) {
+      const target = vi.fn(), tap = vi.fn();
+      const h = harness({ getTargetMode: () => mode, onTargetTap: target, onOwnedCityTap: tap });
+      h.click(180, 60, 'touch'); h.click(60, 240);
+      expect(target.mock.calls).toEqual([['enemy', mode], ['friendly', mode]]);
+      expect(h.dispatch).not.toHaveBeenCalled(); expect(tap).not.toHaveBeenCalled();
+    }
+  });
+  it('ignores target-mode drags and calls outside dismissal without an order', () => {
+    const target = vi.fn(), outside = vi.fn();
+    const h = harness({ getTargetMode: () => 'fly', onTargetTap: target, onOutsideTap: outside });
+    h.pointer('pointerdown', 180, 420, 'touch'); h.pointer('pointerup', 180, 240, 'touch');
+    expect(target).not.toHaveBeenCalled(); expect(h.dispatch).not.toHaveBeenCalled();
+    h.click(400, 240); expect(outside).toHaveBeenCalledOnce();
+  });
+  it('does not open a city captured during a tap', () => {
+    const tap = vi.fn(), h = harness({ onOwnedCityTap: tap });
+    h.pointer('pointerdown', 180, 420, 'touch'); h.changeSource('enemy', 36); h.pointer('pointerup', 180, 420, 'touch');
+    expect(tap).not.toHaveBeenCalled(); expect(h.dispatch).not.toHaveBeenCalled();
+  });
+});
 
 describe('mouse-only click and pointer drag input', () => {
   it('persists full-region source selection then dispatches exactly once and clears', () => {

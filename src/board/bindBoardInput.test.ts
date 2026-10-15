@@ -5,15 +5,21 @@ import { bindKeyboard } from './bindKeyboard';
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
 vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.clearAllMocks(); vi.unstubAllGlobals(); });
-function harness() {
+function harness(options: import('./cityInputOptions').CityInputOptions = {}) {
   const root = new EventTarget();
   vi.stubGlobal('document', root);
   const canvas = { parentElement: root } as unknown as HTMLCanvasElement;
   const onSelection = vi.fn();
-  const input = bindBoardInput(canvas, () => [], onSelection, vi.fn());
+  const input = bindBoardInput(canvas, () => [], onSelection, vi.fn(), undefined, options);
   return { root, input, onSelection, pointer: vi.mocked(bindDrag).mock.results.at(-1)!.value,
     keyboard: vi.mocked(bindKeyboard).mock.results.at(-1)!.value };
 }
+it('forwards optional management and target adapters to both input paths', () => {
+  const options = { onOwnedCityTap: vi.fn(), getTargetMode: () => 'fly' as const };
+  harness(options);
+  expect(vi.mocked(bindDrag).mock.lastCall?.[5]).toBe(options);
+  expect(vi.mocked(bindKeyboard).mock.lastCall?.[5]).toBe(options);
+});
 it('Escape cancels mouse selection and cleanup removes its listener', () => {
   const h = harness();
   const escape = () => h.root.dispatchEvent(Object.assign(new Event('keydown'), { key: 'Escape' }));

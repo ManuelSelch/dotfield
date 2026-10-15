@@ -1,9 +1,11 @@
 import type { Territory } from '../game/types';
 import type { DragSelection } from './drag';
 import { screenPoint } from './layout';
+import type { CityInputOptions } from './cityInputOptions';
 
 export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTerritories: () => readonly Territory[],
-  onSelection: (selection: DragSelection | null) => void, onDispatch: (source: string, target: string) => void) {
+  onSelection: (selection: DragSelection | null) => void, onDispatch: (source: string, target: string) => void,
+  options: CityInputOptions = {}) {
   let sourceId: string | null = null;
   let focusId: string | null = null;
   const cityId = (event: Event) => (event.target as Element).closest<HTMLButtonElement>('button[data-city-id]')?.dataset.cityId;
@@ -33,6 +35,10 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
     const id = cityId(event);
     const node = getTerritories().find(n => n.id === id);
     if (!node || document.hidden) return;
+    const targetMode = options.getTargetMode?.();
+    if (targetMode) { cancel(); options.onTargetTap?.(node.id, targetMode); return; }
+    if (!sourceId && node.owner === 'player') options.onOwnedCityTap?.(node.id);
+    else if (!sourceId && node.owner !== 'player') options.onOutsideTap?.();
     if (sourceId && sourceId !== id) {
       const source = sourceId;
       cancel(); onDispatch(source, node.id); focusId = node.id; notify();
