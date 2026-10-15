@@ -37,7 +37,7 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
     if (!node || document.hidden) return;
     const targetMode = options.getTargetMode?.();
     if (targetMode) { cancel(); options.onTargetTap?.(node.id, targetMode); return; }
-    if (!sourceId && node.owner === 'player') options.onOwnedCityTap?.(node.id);
+    if (!sourceId && node.owner === 'player') options.onOwnedCityTap?.(node.id, 'keyboard');
     else if (!sourceId && node.owner !== 'player') options.onOutsideTap?.();
     if (sourceId && sourceId !== id) {
       const source = sourceId;
@@ -48,7 +48,7 @@ export function bindKeyboard(root: HTMLElement, canvas: HTMLCanvasElement, getTe
   }
   function key(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      event.preventDefault(); const focused = focusId; cancel(); focusId = focused; notify();
+      event.preventDefault(); cancel();
     }
     // Native buttons provide Enter/Space activation through click, including screen readers.
   }

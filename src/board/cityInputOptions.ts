@@ -3,7 +3,7 @@ import type { CityTargetMode } from './cityControlsModel';
 /** Optional adapters; omitted options preserve legacy desktop/keyboard/drag behavior. */
 export interface CityInputOptions {
   /** Includes owned cities with only one troop. Called on tap, never drag. */
-  onOwnedCityTap?: (cityId: string) => void;
+  onOwnedCityTap?: (cityId: string, origin?: 'mouse' | 'touch' | 'pen' | 'keyboard') => void;
   /** Board water/outside or a non-owned city outside targeting. No default order follows. */
   onOutsideTap?: () => void;
   /** Read live state. While active, taps are routed exclusively to onTargetTap. */

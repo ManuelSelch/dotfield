@@ -35,7 +35,7 @@ describe('optional city management input', () => {
     for (const type of ['touch', 'pen', 'mouse']) {
       const tap = vi.fn(), h = harness({ onOwnedCityTap: tap });
       h.changeSource('player', 1); h.click(180, 420, type);
-      expect(tap).toHaveBeenCalledExactlyOnceWith('source');
+      expect(tap).toHaveBeenCalledExactlyOnceWith('source', type);
       expect(h.dispatch).not.toHaveBeenCalled();
     }
   });

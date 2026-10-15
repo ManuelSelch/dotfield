@@ -90,13 +90,14 @@ export function bindDrag(
     }
     if (!id) { if (!press.dragging) options.onOutsideTap?.(); return; }
     if (!press.dragging && !prior) {
-      if (id === press.sourceId && owned(id)) options.onOwnedCityTap?.(id);
+      if (id === press.sourceId && owned(id)) options.onOwnedCityTap?.(id, press.mouse ? 'mouse' : event.pointerType === 'pen' ? 'pen' : 'touch');
       else if (!owned(id)) { options.onOutsideTap?.(); return; }
     }
     if (press.dragging) {
       if (press.sourceId && id !== press.sourceId && eligible(press.sourceId)) onDispatch(press.sourceId, id);
     } else if (prior) {
-      if (id !== prior.sourceId && eligible(prior.sourceId)) onDispatch(prior.sourceId, id);
+      if (id === prior.sourceId) options.onOutsideTap?.();
+      else if (eligible(prior.sourceId)) onDispatch(prior.sourceId, id);
     } else if (press.mouse && id === press.sourceId && eligible(id)) {
       const bounds = canvas.getBoundingClientRect();
       // Persistent clicks show just the source highlight, not a stale pointer route.

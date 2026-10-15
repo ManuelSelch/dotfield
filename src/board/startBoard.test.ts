@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { drawBoard } from './drawBoard';
 import { startBoard } from './startBoard';
 import { bindDrag } from './bindDrag';
+import { bindKeyboard } from './bindKeyboard';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { SimulationState } from '../game/types';
@@ -29,12 +30,16 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   let onResize = () => {};
   vi.stubGlobal('ResizeObserver', class { constructor(callback: () => void) { onResize = callback; } observe = observe; disconnect = disconnect; });
   let bounds = { width: 360, height: 480 };
-  const canvas = { parentElement: new EventTarget(), getBoundingClientRect: () => bounds } as HTMLCanvasElement;
+  const focus = vi.fn();
+  const parentElement = Object.assign(new EventTarget(), {
+    querySelectorAll: () => [{ dataset: { cityId: 'south' }, focus }],
+  });
+  const canvas = { parentElement, getBoundingClientRect: () => bounds } as unknown as HTMLCanvasElement;
   const onCounts = vi.fn();
   const onSnapshot = vi.fn();
   const onCitySelection = vi.fn();
   const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection });
-  return { onCitySelection, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
+  return { focus, onCitySelection, setBounds: (width: number, height: number) => { bounds = { width, height }; }, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
 }
 
 describe('board lifecycle adapter', () => {
@@ -49,6 +54,48 @@ describe('board lifecycle adapter', () => {
     expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
     board.stop.pause();
     expect(board.onCitySelection).toHaveBeenLastCalledWith(null);
+    board.stop();
+  });
+  it('keeps management open for a mouse source replacing keyboard selection, but toggles on touch', () => {
+    const board = harness();
+    const options = vi.mocked(bindDrag).mock.lastCall![5]!;
+    options.onOwnedCityTap!('south', 'keyboard');
+    options.onOwnedCityTap!('south', 'mouse');
+    board.resize(360, 300);
+    expect(board.onCitySelection).toHaveBeenLastCalledWith({ cityId: 'south', targeting: null });
+    expect(vi.mocked(bindDrag).mock.results.at(-1)!.value.cancel).not.toHaveBeenCalled();
+    options.onOwnedCityTap!('south', 'touch');
+    expect(board.onCitySelection).toHaveBeenLastCalledWith(null);
+    board.stop();
+  });
+  it('clears keyboard highlights after restoring focus on targeting cancellation and close', async () => {
+    const board = harness();
+    const options = vi.mocked(bindDrag).mock.lastCall![5]!;
+    const select = vi.mocked(bindKeyboard).mock.lastCall![3];
+    const keyboard = vi.mocked(bindKeyboard).mock.results.at(-1)!.value;
+    keyboard.cancel.mockImplementation(() => select(null));
+    board.focus.mockImplementation(() => select({ sourceId: '', focusId: 'south', targetId: null, point: { x: 180, y: 440 } }));
+    options.onOwnedCityTap!('south', 'mouse');
+    board.stop.target('ground'); board.stop.cancelTarget();
+    expect(board.focus).toHaveBeenCalledOnce();
+    expect(vi.mocked(drawBoard).mock.lastCall![5]).toBeNull();
+    board.stop.closeCity();
+    await Promise.resolve(); // Post-management-layout repaint must also stay clear.
+    expect(board.focus).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(drawBoard).mock.lastCall![5]).toBeNull();
+    board.stop();
+  });
+  it('repaints after management removal commits its restored layout without an observer callback', async () => {
+    const board = harness();
+    vi.mocked(bindDrag).mock.lastCall![5]!.onOwnedCityTap!('south', 'mouse');
+    board.resize(360, 300);
+    board.onCitySelection.mockImplementation(selection => {
+      if (!selection) queueMicrotask(() => board.setBounds(360, 480));
+    });
+    board.stop.closeCity();
+    await Promise.resolve();
+    expect(vi.mocked(drawBoard).mock.lastCall!.slice(2, 4)).toEqual([360, 480]);
+    expect(vi.mocked(drawBoard).mock.lastCall![5]).toBeNull();
     board.stop();
   });
   it('cancels explicit targeting and rejects a fly command before readiness', () => {

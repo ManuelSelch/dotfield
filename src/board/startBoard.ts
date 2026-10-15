@@ -1,12 +1,14 @@
 import { createSession, type SessionPhase } from '../game/session';
 import type { CityType, RulesInput, SimulationState, Territory } from '../game/types';
 import type { CityTargetMode } from './cityControlsModel';
+import type { CityInputOptions } from './cityInputOptions';
 import { screenPoint } from './layout';
 import type { AiConfigurations } from '../game/ai/tick';
 import type { DragSelection } from './drag';
 import { bindBoardInput } from './bindBoardInput';
 import { drawBoard } from './drawBoard';
 import { hasShieldFlash } from './drawCaptureShields';
+import { hasAircraftAnimation } from './drawAircraft';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
@@ -57,9 +59,13 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (restoreFocus) focusCity();
     if (!citySelection) return;
     citySelection = null; options.onCitySelection?.(null);
+    // React removes the management bar after this event. Repaint at the restored
+    // size even if focus forced an interim layout before ResizeObserver delivery.
+    queueMicrotask(() => { if (!disposed) redraw(); });
   }
-  function openCity(cityId: string) {
+  function openCity(cityId: string, origin?: Parameters<NonNullable<CityInputOptions['onOwnedCityTap']>>[1]) {
     if (!session.active || !state.territories.some(c => c.id === cityId && c.owner === 'player')) return;
+    if ((origin === 'touch' || origin === 'pen') && citySelection?.cityId === cityId && !citySelection.targeting) { clearCity(); return; }
     citySelection = { cityId, targeting: null }; options.onCitySelection?.(citySelection);
   }
   let frameId = 0;
@@ -93,6 +99,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
         return;
       }
       state = next;
+      clearCity();
       onState(state);
       redraw();
     }, () => state.river, {
@@ -122,8 +129,9 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     redraw();
   }
   function cancelTarget() {
-    drag.cancel();
     if (citySelection) { citySelection = { ...citySelection, targeting: null }; options.onCitySelection?.(citySelection); focusCity(); }
+    // Restoring DOM focus can create a keyboard highlight; clear it afterwards.
+    drag.cancel();
   }
   function onCityKey(event: KeyboardEvent) {
     if (event.key === 'Escape' && citySelection) {
@@ -164,7 +172,9 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       || Object.keys(state.aircraft ?? {}).length !== Object.keys(previous.aircraft ?? {}).length
       || Object.values(state.aircraft ?? {}).some(p => {
         const old = previous.aircraft?.[p.homeId];
-        return !old || old.phase !== p.phase || old.cargo !== p.cargo || old.owner !== p.owner || old.tripId !== p.tripId;
+        return !old || old.phase !== p.phase || old.cargo !== p.cargo || old.owner !== p.owner || old.tripId !== p.tripId
+          || (['preparing', 'turnaround'].includes(p.phase)
+            && Math.ceil((p.durationMs - p.elapsedMs) / 1000) !== Math.ceil((old.durationMs - old.elapsedMs) / 1000));
       })
       || state.roundStatus !== previous.roundStatus;
     if (citySelection && !managedCity()) clearCity();
@@ -173,18 +183,18 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (state.roundStatus !== previous.roundStatus) options.onSnapshot?.(session.state, session.phase, true);
     if (changed || selection || state.transfers.length || previous.transfers.length
       || hasShieldFlash(state) || hasShieldFlash(previous)
-      || Object.values(state.aircraft ?? {}).some(p => ['outbound', 'unloading', 'returning'].includes(p.phase))
-      || Object.values(previous.aircraft ?? {}).some(p => ['outbound', 'unloading', 'returning'].includes(p.phase))
-      || (state.airDeliveries?.length ?? 0) > 0 || (previous.airDeliveries?.length ?? 0) > 0) redraw();
+      || hasAircraftAnimation(state) || hasAircraftAnimation(previous)) redraw();
     if (session.active) frameId = requestAnimationFrame(frame);
   }
   if (aiWorker) {
     aiWorker.onmessage = (event: MessageEvent<AiWorkerResponse>) => {
-      const { requestId: id, factionId, order } = event.data;
-      if (!pendingAi.delete(id) || disposed) return;
-      if (order && session.active) {
-        state = session.dispatchFaction(order.sourceId, order.targetId, factionId);
+      const { requestId: id, factionId, action } = event.data;
+      if (pendingAi.get(id) !== factionId || !pendingAi.delete(id) || disposed) return;
+      if (action && session.active) {
+        session.setHidden(document.hidden);
+        state = session.applyFactionAction(action, factionId);
         drag.validate();
+        if (citySelection && !managedCity()) clearCity();
         onState(state);
         redraw();
       }
