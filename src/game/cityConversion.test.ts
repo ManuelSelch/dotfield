@@ -36,6 +36,16 @@ describe('city conversion', () => {
     const grown = advanceGrowth(next, 1000);
     expect(grown.territories[0].units).toBe(targetType === 'production' ? 3 : 1);
   });
+  it('allows converting a plane at home during turnaround, but never while away', () => {
+    const base = convertCity(opening(), 'a', 'airfield');
+    const plane = base.aircraft!.a;
+    const home = { ...base, aircraft: { a: { ...plane, phase: 'turnaround' as const, durationMs: 10000 } } };
+    expect(convertCity(home, 'a', 'production').territories[0].cityType).toBe('production');
+    for (const phase of ['outbound', 'unloading', 'returning'] as const) {
+      const away = { ...base, aircraft: { a: { ...plane, phase } } };
+      expect(convertCity(away, 'a', 'production')).toBe(away);
+    }
+  });
   it('cancels only unlaunched source reservations and gates growth selectors', () => {
     const queued = dispatchUnits(opening(), 'a', 'b');
     const next = convertCity(queued, 'a', 'airfield');
