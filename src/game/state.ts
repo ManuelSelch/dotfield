@@ -4,6 +4,7 @@ import { snapshotTerritories } from './features/snapshot';
 import { createRiver, type River } from './river';
 import { createTerrain } from './terrain/terrain';
 import type { Terrain } from './terrain/types';
+import { createAircraft } from './aircraft';
 
 export function createSimulation(
   territories: readonly Territory[],
@@ -34,6 +35,9 @@ export function createSimulation(
     transfers: [],
     arrivals: [],
     nextTransferId: 1,
+    aircraft: Object.fromEntries(opening.filter(c => c.cityType === 'airfield' && c.owner !== 'neutral').map(c => [c.id, createAircraft(c)])),
+    nextAircraftTripId: 1,
+    airDeliveries: [],
     captureShields: {},
     networkShieldTimers: {},
     watchtowerElapsedMs: Object.fromEntries(opening.flatMap(city => (city.features ?? [])
@@ -43,6 +47,6 @@ export function createSimulation(
       const home = opening.find(city => city.owner === id);
       return home ? [[id, home.id]] : [];
     })),
-    territories: opening.map((node) => ({ ...node, growthRemainder: 0 })),
+    territories: opening.map((node) => ({ ...node, cityType: node.cityType ?? 'production', growthRemainder: 0 })),
   };
 }

@@ -2,7 +2,7 @@ import { getFactionRules } from '../rules';
 import type { SimulationState, Territory } from '../types';
 
 export function getTerritoryGrowthRate(state: SimulationState, city: Territory): number {
-  if (city.owner === 'neutral') return 0;
+  if (city.owner === 'neutral' || (city.cityType ?? 'production') !== 'production') return 0;
   let rate = getFactionRules(state, city.owner).unitsPerSecond;
   for (const feature of city.features ?? []) {
     if (feature.kind === 'factory') rate *= feature.productionMultiplier;

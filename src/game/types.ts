@@ -6,7 +6,33 @@ export type FactionId = string;
 export type Owner = FactionId | 'neutral';
 export type Faction = FactionId;
 
+export type CityType = 'production' | 'defender' | 'airfield';
+export type AircraftPhase = 'preparing' | 'ready' | 'outbound' | 'unloading' | 'returning' | 'turnaround';
+export interface Aircraft {
+  readonly homeId: string;
+  readonly owner: FactionId;
+  readonly tripId: number;
+  readonly phase: AircraftPhase;
+  readonly cargo: number;
+  readonly targetId?: string;
+  readonly position: Point;
+  readonly from: Point;
+  readonly to: Point;
+  readonly elapsedMs: number;
+  readonly durationMs: number;
+}
+export interface AirDelivery {
+  readonly homeId: string;
+  readonly tripId: number;
+  readonly targetId: string;
+  readonly owner: FactionId;
+  readonly units: number;
+  readonly atMs: number;
+  readonly result: 'blocked' | 'reinforced' | 'defended' | 'captured';
+}
+
 export interface Territory {
+  readonly cityType?: CityType;
   readonly id: string;
   readonly owner: Owner;
   readonly units: number;
@@ -69,6 +95,10 @@ export interface CaptureShieldState {
 export interface NetworkShieldTimer {
   readonly owner: Owner;
   readonly elapsedMs: number;
+  /** Optional for legacy timers; prevents carrying progress across a changed recharge policy. */
+  readonly capacity?: number;
+  readonly source?: 'defender' | 'network';
+  readonly resetAtMs?: number;
 }
 
 export interface ArtilleryShot {
@@ -79,6 +109,10 @@ export interface ArtilleryShot {
 }
 
 export interface SimulationState {
+  readonly aircraft?: Readonly<Record<string, Aircraft>>;
+  readonly nextAircraftTripId?: number;
+  /** Committed delivery feedback, retained for one simulation second. */
+  readonly airDeliveries?: readonly AirDelivery[];
   readonly terrain?: Terrain;
   // Optional for legacy saves created before Artillery existed.
   readonly artilleryTimers?: Readonly<Record<string, { readonly owner: Owner; readonly elapsedMs: number }>>;
