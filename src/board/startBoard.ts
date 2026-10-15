@@ -113,7 +113,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
         const next = mode === 'fly' ? session.fly(source.id, targetId) : session.dispatch(source.id, targetId);
         if (next === state) { options.onFeedback?.('Order unavailable. Choose another target or cancel.'); return; }
         state = next; citySelection = { cityId: source.id, targeting: null };
-        options.onCitySelection?.(citySelection); onState(state); focusCity(); redraw();
+        options.onCitySelection?.(citySelection); onState(state); options.onSnapshot?.(state, session.phase, true); focusCity(); redraw();
       },
     });
   function target(mode: CityTargetMode) {
@@ -196,6 +196,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
         drag.validate();
         if (citySelection && !managedCity()) clearCity();
         onState(state);
+        options.onSnapshot?.(state, session.phase, true);
         redraw();
       }
     };
@@ -257,7 +258,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       if (disposed || !managedCity() || citySelection?.targeting) return;
       session.setHidden(document.hidden);
       const next = session.convert(citySelection!.cityId, type);
-      if (next !== state) { state = next; drag.cancel(); onState(state); focusCity(); redraw(); }
+      if (next !== state) { state = next; drag.cancel(); onState(state); options.onSnapshot?.(state, session.phase, true); focusCity(); redraw(); }
     },
     target, cancelTarget,
     closeCity() { clearCity(true); drag.cancel(); },

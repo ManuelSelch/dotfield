@@ -1,6 +1,6 @@
 # Upgrade effects
 
-Pre-game faction upgrades, without currency, purchases, levels or unlocks. Player and AI upgrades are selected independently. Watchtower and Slow Zone are now shared On the field settings, not faction upgrades. Match choices persist in local storage, while a saved active round restores its compiled rules/features.
+Pre-game faction upgrades, without currency, purchases, levels or unlocks. Player and AI upgrades are selected independently. Slow Zone is a shared On the field setting; Watchtower and Artillery are mutually-exclusive buildable city roles, not upgrades or map toggles. Match choices persist locally; active rounds restore their compiled rules and role state.
 
 | Upgrade | Simple effect | What it changes | Status |
 |---|---|---|---|
@@ -8,7 +8,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 | Industry | Owned cities produce 25% faster: 1.25 instead of 1 unit/sec. | Rewards expansion and holding territory. Applies to newly captured cities too; other factions and neutral production are unchanged. | Implemented |
 | Quick march | Troops move 20% faster. | Faster attacks and defensive reinforcement; still vulnerable to collisions. | Proposed |
 | Rapid deployment | Launch groups every 450 ms instead of 600 ms. | Commits armies sooner, but also empties the source sooner. | Proposed |
-| Watchtower | On the field: places one tower on a seeded-random city; it destroys nearby hostile airborne dots within a 72-field-unit radius. | Creates visible defensive coverage; the tower switches sides on capture and can be used against its former owner. | Implemented as a field setting |
+| Watchtower / Artillery | In-game city role: Watchtower (30 troops) shoots hostile ground dots at 4/s within 150 units; Artillery (40 troops) shoots the nearest enemy garrison at 3/s within 150 units, mountain-blocked. | Stops troop growth; exclusive with all other roles. Capture transfers control and resets cooldown. | Implemented city roles; see [city conversion](../city-conversion/IMPLEMENTATION.md) |
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | On the field: a seeded random city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented as a field setting |
 | Capture shield | Each newly captured city blocks its first three hostile arriving batches without losing garrison (normally 15 troops). | Helps establish a foothold; qualifying recapture grants three fresh charges. Defensive Network can recharge the shared charges. | Implemented; independently selectable for every faction |
@@ -41,14 +41,13 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Overlapping eligible zones use only the strongest slowdown (smallest multiplier), never multiplicative stacking. Current multiplier is 0.5.
 - Live simulation, collisions, Watchtower target positions and AI forecasts use the same boundary-aware trajectory. Queued launch timing and garrison units are unaffected.
 
-## Watchtower scope
+## Watchtower and Artillery city-role scope
 
-- Off by default in On the field; when enabled, one seeded-random city from the full field receives a tower. Its fixed 72-unit radius is drawn as a subtle owner-tinted circle; a distinct tower silhouette marks the host. Neutral towers remain inactive until captured.
-- Every 250 ms, the tower destroys at most one hostile airborne dot currently within range (up to four per second). It selects the nearest eligible individual dot; ties resolve deterministically by transfer ID and stable formation slot. It never targets friendly units or stationary garrisons.
-- The tower's firing timer is continuous even while no target is in range. It does not bank missed shots; an in-range target is destroyed at the next 250ms cadence boundary.
-- Tower ownership follows the current owner of its host city. Capturing a tower immediately turns it against the original owner; recapture turns it back. Neutral-owned towers do not fire.
-- Fire resolution is part of the shared fixed-step physical simulation used in live rounds and forecasts. A tower kill removes one dot/slot, not an entire dispatched group.
-- The radius uses fixed 360×480 field coordinates and scales with the board. The coverage circle is visual only; it does not change touch regions, launch boundaries or collision geometry.
+- These are buildable, mutually exclusive nonproducing city roles, not Home/On the field settings or stackable features. Watchtower costs30 and Artillery40; each leaves one troop. Only Production grows troops.
+- Watchtower fires every250ms at one nearest hostile ground dot in range150 (4/s); stable transfer/slot tie-breaking applies. Artillery fires every1000/3ms at the nearest positive nonneutral hostile city garrison in range150 (3/s); mountains block shots. Artillery alone cannot capture. Neutral weapon roles are inactive.
+- A successful build/conversion and every capture/recapture starts a full cooldown. Firing resolves on shared physical event boundaries and forecasts use identical mechanics. Airplanes and embarked cargo are immune while airborne.
+- Canvas displays current-owner coverage/badges and short accessible role details. Coverage does not change touch regions or collision geometry.
+- Old attached weapons migrate into city roles (Artillery wins ambiguous legacy dual weapons), old timer keys are restored by city ID, and former Home toggles/free generated weapon placements are removed. See [city conversion implementation](../city-conversion/IMPLEMENTATION.md).
 
 ## Defensive Network scope
 
@@ -80,4 +79,4 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
 - Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
-See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, Watchtower, Slow Zone, Capture shield and Defensive Network are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.
+See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.

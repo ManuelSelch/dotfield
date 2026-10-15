@@ -2,16 +2,16 @@ import type { SimulationState } from '../game/types';
 import { artilleryTarget, ARTILLERY_FEEDBACK_MS } from '../game/features/artillery';
 import { projectBoard } from './layout';
 import { factionPalette } from './palette';
-import { TERRITORY_RADIUS } from '../game/settings';
+import { ARTILLERY_RANGE, TERRITORY_RADIUS } from '../game/settings';
 
 export function drawArtilleryCoverage(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number) {
   const cities = projectBoard(state.territories, width, height);
-  for (const city of cities) for (const feature of city.features ?? []) {
-    if (feature.kind !== 'artillery') continue;
+  for (const city of cities) {
+    if (city.cityType !== 'artillery') continue;
     ctx.save(); ctx.fillStyle = factionPalette(city.owner).fill; ctx.strokeStyle = factionPalette(city.owner).fill;
-    ctx.globalAlpha = 0.035; ctx.beginPath(); ctx.arc(city.x, city.y, feature.range * city.radius / TERRITORY_RADIUS, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.035; ctx.beginPath(); ctx.arc(city.x, city.y, ARTILLERY_RANGE * city.radius / TERRITORY_RADIUS, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = city.owner === 'neutral' ? 0.25 : 0.4; ctx.lineWidth = 1; ctx.setLineDash([3, 5]); ctx.stroke();
-    const target = artilleryTarget(state, state.territories.find(c => c.id === city.id)!, feature);
+    const target = artilleryTarget(state, state.territories.find(c => c.id === city.id)!);
     const projected = target && cities.find(c => c.id === target.id);
     if (projected) {
       ctx.strokeStyle = factionPalette(projected.owner).fill; ctx.globalAlpha = 0.5; ctx.setLineDash([2, 3]);

@@ -14,15 +14,15 @@ describe('match preferences', () => {
       aiBehaviors: { enemy: 'aggressive' as const, 'enemy-4': 'defensive' as const } };
     let raw = '';
     writeMatchPreferences(value, { setItem: (key, data) => { expect(key).toBe(MATCH_PREFERENCES_KEY); raw = data; } });
-    expect(readMatchPreferences({ getItem: () => raw })).toEqual(value);
+    expect(readMatchPreferences({ getItem: () => raw })).toEqual({ ...value,
+      map: { cities: 24, enemies: 1, industry: true, river: true, mountains: false, slowZone: true } });
     expect(() => writeMatchPreferences(value, { setItem: () => { throw Error('full'); } })).not.toThrow();
   });
-  it('rejects saved map settings without the required field-feature flags', () => {
+  it('migrates legacy weapon toggles away while keeping other saved map settings', () => {
     const defaults = defaultMatchPreferences();
-    const { watchtower: _omitted, ...oldMap } = defaults.map;
-    const oldPreferences = { ...defaults, map: oldMap };
-    expect(isMatchPreferences(oldPreferences)).toBe(false);
-    expect(readMatchPreferences({ getItem: () => JSON.stringify(oldPreferences) })).toEqual(defaults);
+    const oldPreferences = { ...defaults, map: { ...defaults.map, artillery: true, watchtower: true } };
+    expect(isMatchPreferences(oldPreferences)).toBe(true);
+    expect(readMatchPreferences({ getItem: () => JSON.stringify(oldPreferences) }).map).toEqual(defaults.map);
     const { mountains: _mountains, ...withoutMountains } = defaults.map;
     const olderPreferences = { ...defaults, map: withoutMountains };
     expect(isMatchPreferences(olderPreferences)).toBe(false);

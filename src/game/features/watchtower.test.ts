@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceWorldStep } from '../worldStep';
 import { createSimulation } from '../state';
 import { forecastBattle } from '../ai/forecast';
+import { resolveArrivalBatch } from '../combat';
 import type { SimulationState, Transfer } from '../types';
 
 const tower = { id: 'tower', kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 };
@@ -25,12 +26,13 @@ describe('Watchtower', () => {
       { id: 'away', owner: 'enemy', x: 200, y: 100, units: 10 },
     ])).toThrow();
   });
-  it('retains authored towers as immutable city features', () => {
+  it('migrates authored Watchtowers into an exclusive role with per-city cooldown', () => {
     const state = createSimulation([
       { id: 'start', owner: 'player', x: 100, y: 100, units: 10, features: [tower] },
       { id: 'foe', owner: 'enemy', x: 200, y: 100, units: 10 },
     ]);
-    expect(state.territories[0].features).toEqual([tower]);
+    expect(state.territories[0]).toMatchObject({ cityType: 'watchtower', features: [] });
+    expect(state.weaponTimers?.start).toEqual({ owner: 'player', elapsedMs: 0 });
     expect(state.territories[1].features).toBeUndefined();
   });
   it('destroys one in-range hostile dot every 250ms, preserving survivor slots', () => {
@@ -40,6 +42,18 @@ describe('Watchtower', () => {
     expect(state.transfers[0].dotSlots).toHaveLength(1);
     state = advanceWorldStep(state, 250);
     expect(state.transfers).toHaveLength(0);
+  });
+  it('restarts a complete cooldown when a Watchtower is captured', () => {
+    const initial = createSimulation([
+      { id: 'home', owner: 'neutral', cityType: 'watchtower', x: 100, y: 100, units: 1 },
+      { id: 'away', owner: 'enemy', x: 160, y: 100, units: 10 },
+    ]);
+    const captured = resolveArrivalBatch(initial, { targetId: 'home', owner: 'player', units: 2 }).state;
+    expect(captured.weaponTimers?.home).toEqual({ owner: 'player', elapsedMs: 0 });
+    const transfer: Transfer = { ...armed().transfers[0], owner: 'enemy', units: 3, dotSlots: [0, 1, 2] };
+    const state = { ...captured, transfers: [transfer] };
+    expect(advanceWorldStep(state, 249).transfers[0].units).toBe(3);
+    expect(advanceWorldStep(state, 250).transfers[0].units).toBe(2);
   });
   it('does not fire on friendly transfers or transfers outside its range', () => {
     const state = armed();
@@ -74,6 +88,6 @@ describe('Watchtower', () => {
     const split = advanceWorldStep(advanceWorldStep(state, 125), 125);
     const bulk = advanceWorldStep(state, 250);
     expect(split.transfers).toEqual(bulk.transfers);
-    expect(split.watchtowerElapsedMs).toEqual(bulk.watchtowerElapsedMs);
+    expect(split.weaponTimers).toEqual(bulk.weaponTimers);
   });
 });

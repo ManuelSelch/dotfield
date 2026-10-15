@@ -4,7 +4,7 @@
 
 Add tactical choices to Dotfield through meaningful routes and contested locations, while retaining short rounds and simple city-to-city dragging. Players should choose between securing a crossing, pursuing production, applying siege pressure, and opening a route behind the enemy.
 
-Status: slices 1, 2, 4 and 5 are implemented, and generated matches can combine an optional central mountain ridge with optional river bridges. The user skipped Gatehouse (slice 3) for now and explicitly waived a Factory mockup. Slice 4 adds current-owner Factory benefits and a separate two-open-bridge contested Factory map; existing authored layouts remain unchanged. Slice 5 implements approved Artillery revision 1, ownership-aware cadence, mountain shot/order blocking and a separate Siege map. Portal (slice 6) is next.
+Status: slices 1, 2, 4 and 5 have historical implementations; generated matches combine optional central mountains with river bridges, and slice5's attached/generated Artillery model is superseded by buildable exclusive city roles. The authored Siege layout remains a regression/migration fixture. Current Artillery/Watchtower costs, role/cooldown rules and Home toggle removal are specified in [city conversion](../city-conversion/IMPLEMENTATION.md). Gatehouse (slice3) remains skipped and Factory mockup waived; Portal is next.
 
 ## Scope
 
@@ -14,7 +14,7 @@ Status: slices 1, 2, 4 and 5 are implemented, and generated matches can combine 
 - Rivers that can only be crossed at explicitly defined bridges.
 - Straight same-bank orders and explicit cross-bank orders only between paired bridge cities. Players stage troops manually; no automatic river detours or onward forwarding.
 - Gatehouse cities controlling a bridge or mountain pass.
-- Artillery cities attacking stationary hostile city garrisons, distinct from Watchtowers attacking airborne troops.
+- Buildable Artillery roles attacking stationary hostile city garrisons, distinct from Watchtower roles attacking hostile ground troops.
 - Linked Portal cities offering explicit army transport when one faction controls both endpoints.
 - Map-authored Factories and starting-city Factory upgrades using the same current-owner production benefit and the same Factory name/icon.
 - An initial river scenario with two crossings and a contested factory; separate later scenarios for mountains, Artillery and Portals.

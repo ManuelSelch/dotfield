@@ -108,7 +108,7 @@ describe('conversion and flight actions', () => {
 
   it('places a Defender at a held front, not on the original home or every city', () => {
     const state = createSimulation([city('home', 'enemy', 40, 0, 500), city('rear', 'enemy', 40, 0, 400),
-      city('front', 'enemy', 50, 0, 0), city('target', 'player', 150, 120)], { unitsPerSecond: 0 });
+      city('front', 'enemy', 50, 0, 0), city('target', 'player', 150, 160)], { unitsPerSecond: 0 });
     const action = chooseAction(state);
     expect(action).toMatchObject({ type: 'convert', cityId: 'front', cityType: 'defender' });
     const next = applyAiAction(state, action!, 'enemy');
@@ -123,7 +123,32 @@ describe('conversion and flight actions', () => {
     const state = { ...initial, rules: { factions: { ...initial.rules.factions,
       enemy: { ...initial.rules.factions.enemy, connectedDefense: true } } } };
     expect(shieldRechargeSource(state, 'front').capacity).toBe(3);
-    expect(chooseAction(state)?.type).not.toBe('convert');
+    expect(chooseAction(state)).toMatchObject({ type: 'convert', cityType: 'artillery' });
+  });
+
+  it('converts an unthreatened producer into Artillery only for a useful in-range enemy garrison', () => {
+    const cities = [city('home', 'enemy', 50, 0, 400), city('rear', 'enemy', 50, 0, 300),
+      city('gun-site', 'enemy', 50, 0, 0), city('target', 'player', 100, 100, 0)];
+    const state = createSimulation(cities, { unitsPerSecond: 0 });
+    const action = chooseAction(state);
+    expect(action).toMatchObject({ type: 'convert', cityId: 'gun-site', cityType: 'artillery' });
+    const built = applyAiAction(state, action!, 'enemy');
+    expect(built.territories.find(city => city.id === 'gun-site')).toMatchObject({ cityType: 'artillery', units: 10 });
+    expect(forecastBattle(built, 10_000).territories.find(city => city.id === 'target')!.units).toBeLessThan(100);
+    expect(chooseAction(built)).not.toMatchObject({ type: 'convert', cityType: 'artillery' });
+  });
+
+  it('builds a Watchtower only when it will actually destroy hostile ground troops', () => {
+    const cities = [city('home', 'enemy', 50, 0, 400), city('rear', 'enemy', 50, 0, 300),
+      city('tower-site', 'enemy', 50, 0, 100), city('raid-source', 'player', 100, 200, 0),
+      city('raid-target', 'player', 100, 0, 200)];
+    const initial = createSimulation(cities, { unitsPerSecond: 0 });
+    const state = dispatchUnits(initial, 'raid-source', 'raid-target', 'player');
+    const action = chooseAction(state);
+    expect(action).toMatchObject({ type: 'convert', cityId: 'tower-site', cityType: 'watchtower' });
+    const built = applyAiAction(state, action!, 'enemy');
+    expect(built.territories.find(city => city.id === 'tower-site')).toMatchObject({ cityType: 'watchtower', units: 20 });
+    expect(chooseAction(built)).not.toMatchObject({ type: 'convert', cityType: 'watchtower' });
   });
 
   it('supplies a preparing airfield for barrier attacks but does not overfill a busy plane base', () => {

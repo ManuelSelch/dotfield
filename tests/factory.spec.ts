@@ -21,9 +21,10 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
       await expect(city(enemyId)).toHaveText(`${enemyId}: Opponent, ${mapIndex === 4 ? 31 : 37} units. Production city.`);
       for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'neutral')) {
         const factory = node.features?.find(feature => feature.kind === 'factory');
-        const label = factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : node.features?.some(feature => feature.kind === 'artillery')
-          ? ' Artillery inactive, nearest hostile garrison within 150 units, one defender every 333.3333333333333 ms. Mountains block shots; troops must capture cities.' : '';
-        await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units. Production city.${label}`);
+        const role = node.cityType === 'artillery' || node.features?.some(feature => feature.kind === 'artillery');
+        const label = role ? ' Artillery inactive while neutral; no troop growth. Fires at enemy garrisons within 150 units, up to 3 shots per second; mountains block shots.'
+          : factory ? ` Factory inactive (${factory.productionMultiplier}× production).` : '';
+        await expect(city(node.id)).toHaveText(`${node.id}: Neutral, ${node.units} units.${role ? label : ` Production city.${label}`}`);
       }
       for (const node of MAPS[mapIndex].territories.filter(node => node.owner === 'player' && node.id !== 'south')) {
         await expect(city(node.id)).toContainText(`You, ${node.units + Math.floor(1.7 * (stack ? 1.25 : 1))} units.`);

@@ -1,44 +1,38 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import { CityControls, type CityControlsProps } from './CityControls';
 const props: CityControlsProps = {
   name: 'Orchard', cityType: 'production', troops: 48, planePhase: null, capacity: 100,
-  costs: { production: 10, defender: 20, airfield: 30 }, targeting: null,
-  onConvert: vi.fn(), onFly: vi.fn(), onCancel: vi.fn(), onClose: vi.fn(),
+  costs: { production: 10, defender: 20, airfield: 30, watchtower: 30, artillery: 40 }, targeting: null,
+  onConvert: () => {}, onFly: () => {}, onCancel: () => {},
 };
-it('renders one row of controls without a visible header or redundant production status', () => {
+it('renders five named icon controls and accessible current-city details without a visible header', () => {
   const html = renderToStaticMarkup(createElement(CityControls, props));
   expect(html).toContain('aria-description="Orchard, Production, 48 garrison troops"');
-  expect(html).not.toContain('city-controls__selection');
+  expect(html).toContain('aria-label="Build Watchtower for 30 troops; leave 1 behind.');
+  expect(html).toContain('aria-label="Build Artillery for 40 troops; leave 1 behind.');
+  expect((html.match(/class="city-controls__icon"/g) ?? []).length).toBe(5);
+  expect(html).toContain('<small>✓</small>');
+  expect(html).not.toContain('garrison troops</span>');
   expect(html).not.toContain('Production · troop growth');
-  expect(html).not.toContain('city-controls__flight');
-  expect(html).toContain('<small>Current</small>');
-  expect(html).toContain('aria-pressed="true"');
-  expect(html).toContain('20 troops');
-  expect(html).toContain('30 troops');
-  expect(html).toContain('aria-describedby=');
-  expect(html).toContain('Close city controls');
   expect(html).not.toContain('Ground…');
-  expect(html).not.toContain('>Fly<');
-});
-it('renders Fly only for airfields and Cancel instead of dispatch during targeting', () => {
-  const ready = { ...props, cityType: 'airfield' as const, planePhase: 'ready' as const };
-  expect(renderToStaticMarkup(createElement(CityControls, ready))).toContain('>Fly<');
-  const html = renderToStaticMarkup(createElement(CityControls, { ...ready, targeting: 'fly' }));
-  expect(html).toContain('>Cancel<');
-  expect(html).toContain('Tap any other city to fly');
-  expect(html).not.toContain('>Fly<');
-  expect(html).not.toContain('Ground…');
+  expect(html).not.toContain('Close city controls');
 });
 it.each([
-  ['preparing', 'Preparing'], ['ready', 'Ready · 100'], ['outbound', 'Away'],
-  ['unloading', 'Unloading'], ['returning', 'Returning'], ['turnaround', 'Turnaround'],
-] as const)('shows compact %s status inside the selected Airfield button', (planePhase, label) => {
+  ['preparing', '20s'], ['ready', 'Ready'], ['outbound', 'Away'],
+  ['unloading', 'Unload'], ['returning', 'Return'], ['turnaround', '10s'],
+] as const)('shows compact %s Airfield status', (planePhase, label) => {
   const html = renderToStaticMarkup(createElement(CityControls, { ...props, cityType: 'airfield', planePhase }));
-  expect(html).toContain(`<span>Airfield</span><small>${label}</small>`);
+  expect(html).toContain(`<small>${label}</small>`);
 });
-it('shows authoritative shield status in the selected Defender button', () => {
-  const html = renderToStaticMarkup(createElement(CityControls, { ...props, cityType: 'defender', detail: '2/3 shields · defender recharge 10s' }));
-  expect(html).toContain('<span>Defender</span><small>2/3 shields</small>');
+it('shows Defender shield data and the available Fly/Cancel action', () => {
+  const defender = renderToStaticMarkup(createElement(CityControls, { ...props, cityType: 'defender', detail: '2/3 shields · defender recharge 10s' }));
+  expect(defender).toContain('<small>2/3 shields</small>');
+  const ready = { ...props, cityType: 'airfield' as const, planePhase: 'ready' as const };
+  expect(renderToStaticMarkup(createElement(CityControls, ready))).toContain('>Fly</button>');
+  const targeted = renderToStaticMarkup(createElement(CityControls, { ...ready, targeting: 'fly' }));
+  expect(targeted).toContain('>Cancel</button>');
+  expect(targeted).toContain('Tap any other city to fly');
+  expect(targeted).not.toContain('>Fly</button>');
 });

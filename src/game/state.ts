@@ -40,8 +40,9 @@ export function createSimulation(
     airDeliveries: [],
     captureShields: {},
     networkShieldTimers: {},
-    watchtowerElapsedMs: Object.fromEntries(opening.flatMap(city => (city.features ?? [])
-      .filter(feature => feature.kind === 'watchtower').map(feature => [feature.id, 0]))),
+    weaponTimers: Object.fromEntries(opening.filter(city => city.cityType === 'watchtower' || city.cityType === 'artillery').map(city => [city.id,
+      { owner: city.owner, elapsedMs: 0 }])),
+    artilleryShots: [],
     rules: resolved,
     homeCityIds: Object.fromEntries(factionIds.flatMap(id => {
       const home = opening.find(city => city.owner === id);

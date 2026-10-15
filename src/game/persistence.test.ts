@@ -9,6 +9,7 @@ import { defaultMatchPreferences } from './matchPreferences';
 import { advanceWorldStep } from './worldStep';
 import { createTerrain } from './terrain/terrain';
 import { snapshotTerritories } from './features/snapshot';
+import { ARTILLERY_FIRE_INTERVAL_MS } from './settings';
 
 function storage() {
   const values = new Map<string, string>();
@@ -74,11 +75,11 @@ describe('round persistence', () => {
   it('restores Artillery cadence and terrain, pauses without firing, and replays fresh', () => {
     const target = storage();
     const territories = [
-      { id: 'gun', owner: 'player', x: 180, y: 240, units: 20, features: [{ id: 'cannon', kind: 'artillery' as const, range: 150, fireIntervalMs: 2000 }] },
-      { id: 'foe', owner: 'enemy', x: 180, y: 170, units: 5 },
+      { id: 'gun', owner: 'player', cityType: 'artillery' as const, x: 180, y: 240, units: 20 },
+      { id: 'foe', owner: 'enemy', x: 180, y: 170, units: 20 },
     ];
     const terrain = createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, barriers: [], crossings: [] });
-    const state = advanceWorldStep(createSimulation(territories, { unitsPerSecond: 0 }, undefined, terrain), 1950);
+    const state = advanceWorldStep(createSimulation(territories, { unitsPerSecond: 0 }, undefined, terrain), ARTILLERY_FIRE_INTERVAL_MS - 10);
     writeSavedGame({ state, territories, ai: null, phase: 'paused' }, target);
     const saved = readSavedGame(target)!;
     expect(saved.state).toEqual(state);
@@ -86,15 +87,42 @@ describe('round persistence', () => {
     session.frame(0); session.frame(2000);
     expect(session.state).toEqual(state);
     session.resume(); session.frame(2000); session.frame(2050);
-    expect(session.state.territories[1].units).toBe(4);
+    expect(session.state.territories[1].units).toBe(19);
     session.restart();
     expect(session.state.terrain).toEqual(terrain);
-    expect(session.state.artilleryTimers).toBeUndefined();
-    expect(session.state.territories[1].units).toBe(5);
-    target.setItem(SAVED_GAME_KEY, JSON.stringify({ ...saved, state: { ...saved.state, artilleryTimers: { cannon: { owner: 'player', elapsedMs: -1 } } } }));
+    expect(session.state.weaponTimers?.gun).toEqual({ owner: 'player', elapsedMs: 0 });
+    expect(session.state.territories[1].units).toBe(20);
+    target.setItem(SAVED_GAME_KEY, JSON.stringify({ ...saved, state: { ...saved.state, weaponTimers: { gun: { owner: 'player', elapsedMs: -1 } } } }));
     expect(readSavedGame(target)).toBeNull();
   });
 
+  it('migrates legacy attached weapons to exclusive roles and weapon cooldowns in opening and live state', () => {
+    const target = storage();
+    const tower = { id: 'old-tower-feature', kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 };
+    const gun = { id: 'old-gun-feature', kind: 'artillery' as const, range: 150, fireIntervalMs: 1000 / 3 };
+    const territories = [
+      { id: 'tower', owner: 'player', x: 50, y: 80, units: 30, features: [tower] },
+      { id: 'gun', owner: 'enemy', x: 200, y: 300, units: 30, features: [gun] },
+    ];
+    const created = createSimulation(territories, { unitsPerSecond: 0 });
+    const legacyState = { ...created, territories: created.territories.map(city => ({ ...city,
+      cityType: 'production' as const, ...(city.id === 'tower' ? { features: [tower] } : city.id === 'gun' ? { features: [gun] } : {}) })),
+      watchtowerElapsedMs: { 'old-tower-feature': 125 },
+      artilleryTimers: { 'old-gun-feature': { owner: 'enemy', elapsedMs: 100 } } };
+    const { weaponTimers: _timers, ...oldState } = legacyState;
+    writeSavedGame({ state: oldState, territories, ai: null, phase: 'paused' }, target);
+    const saved = readSavedGame(target)!;
+    expect(saved.territories.map(city => city.cityType)).toEqual(['watchtower', 'artillery']);
+    expect(saved.territories.every(city => city.features?.length === 0)).toBe(true);
+    expect(saved.state.territories.map(city => city.cityType)).toEqual(['watchtower', 'artillery']);
+    expect(saved.state.weaponTimers).toEqual({
+      tower: { owner: 'player', elapsedMs: 125 }, gun: { owner: 'enemy', elapsedMs: 100 },
+    });
+    const capturedLegacy = { ...oldState, territories: oldState.territories.map(city => city.id === 'tower'
+      ? { ...city, owner: 'enemy' as const } : city), watchtowerElapsedMs: { 'old-tower-feature': 125 } };
+    writeSavedGame({ state: capturedLegacy, territories, ai: null, phase: 'paused' }, target);
+    expect(readSavedGame(target)?.state.weaponTimers?.tower).toEqual({ owner: 'enemy', elapsedMs: 0 });
+  });
   it('storage failures are nonfatal for reads, writes and clearing', () => {
     const fail = () => { throw new Error('Storage unavailable'); };
     expect(readSavedGame({ getItem: fail })).toBeNull();

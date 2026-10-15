@@ -1,6 +1,13 @@
 // Disposable control study: local fake data, no production imports or persistence.
 const $ = selector => document.querySelector(selector);
-const prices = { Production: 10, Defender: 20, Airfield: 30 };
+const prices = { Production: 10, Defender: 20, Airfield: 30, Watchtower: 30, Artillery: 40 };
+const roleIcons = {
+  Production: '<path d="M3 21V10l6 4v-4l6 4V3h4v18H3Z"/><path d="M6 17h1m4 0h1m4 0h1"/>',
+  Defender: '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/>',
+  Airfield: '<path d="m12 3 2 6 7 4v2l-7-2v5l2 2v1l-4-1-4 1v-1l2-2v-5l-7 2v-2l7-4 2-6Z"/>',
+  Watchtower: '<path d="M5 21h14M7 21V10H5V4h3v3h3V4h2v3h3V4h3v6h-2v11M10 21v-5a2 2 0 0 1 4 0v5"/>',
+  Artillery: '<path d="m7 13 12-8 2 3-12 8M12 15l7 6M3 21h18"/><circle cx="7" cy="17" r="4"/>',
+};
 const seed = [
   { id: 'a', name: 'Orchard', x: 78, y: 68, owner: 'you', type: 'Production', troops: 48 },
   { id: 'b', name: 'Meadow', x: 78, y: 189, owner: 'you', type: 'Airfield', troops: 126, phase: 'ready' },
@@ -18,7 +25,8 @@ const focusCity = id => document.querySelector(`button[data-city="${id}"]`)?.foc
 function phaseText(city) {
   return ({ ready: 'Plane ready · capacity 100', preparing: 'Preparing plane · illustrative 20s',
     outbound: 'Plane away · ground available', unloading: 'Docked · unloading', returning: 'Returning empty',
-    turnaround: 'Turnaround · illustrative 10s' })[city.phase] || '';
+    turnaround: 'Turnaround · illustrative 10s' })[city.phase]
+    || ({ Watchtower: 'Range 150 · shoots 4 hostile ground troops/s', Artillery: 'Range 150 · 3 shots/s at enemy cities; mountains block shots' })[city.type] || '';
 }
 function render() {
   // Stable city buttons preserve keyboard focus during status changes.
@@ -26,7 +34,7 @@ function render() {
     const button = document.querySelector(`button[data-city="${city.id}"]`);
     button.className = `city ${city.owner}`;
     button.querySelector('.dot').textContent = city.troops;
-    button.querySelector('.badge').textContent = city.type === 'Airfield' ? '✈' : city.type === 'Defender' ? '◇' : '';
+    button.querySelector('.badge').textContent = ({ Airfield: '✈', Defender: '◇', Watchtower: '♜', Artillery: '⊕' })[city.type] || '';
     button.setAttribute('aria-pressed', String(selected === city.id));
     button.setAttribute('aria-disabled', String(city.owner !== 'you' && !mode));
     button.setAttribute('aria-label', `${city.name}, ${city.owner === 'you' ? 'owned' : city.owner}, ${city.type}, ${city.troops} troops. ${phaseText(city)}${city.owner !== 'you' && !mode ? ' Cannot manage.' : ''}`);
@@ -49,18 +57,21 @@ function render() {
     const current = type === city.type;
     button.setAttribute('aria-pressed', String(current));
     button.disabled = current || busy || !!mode || city.troops <= prices[type];
-    const planeLabel = ({ preparing: 'Preparing', ready: 'Ready · 100', outbound: 'Away', unloading: 'Unloading', returning: 'Returning', turnaround: 'Turnaround' })[city.phase] || 'Preparing';
+    const planeLabel = ({ preparing: '20s', ready: 'Ready', outbound: 'Away', unloading: 'Unload', returning: 'Return', turnaround: '10s' })[city.phase] || '20s';
     button.querySelector('small').textContent = current
-      ? type === 'Airfield' ? mode ? 'Pick target' : planeLabel : type === 'Defender' ? 'Shield · 10s' : 'Current'
-      : `${prices[type]} troops`;
-    button.title = current && type === 'Airfield' ? phaseText(city) : button.querySelector('small').textContent;
+      ? type === 'Airfield' ? mode ? 'Target' : planeLabel : ({ Defender: '10s', Watchtower: '4/s', Artillery: '3/s' })[type] || '✓'
+      : prices[type];
+    const description = current ? `${type}, current role. ${phaseText(city) || 'No conversion charge.'}`
+      : `Convert to ${type} for ${prices[type]} troops; leave at least one behind.`;
+    button.title = description;
+    button.setAttribute('aria-label', description);
     button.setAttribute('aria-describedby', current && type === 'Airfield' ? 'reason plane-status' : 'reason');
   }
   $('#reason').textContent = mode ? 'Targeting active. Cancel before changing city type.'
     : busy ? 'Conversion unavailable while the plane is away. Ground orders still work.'
-      : `Instant conversion; leave 1 troop. ${city.troops <= 30 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
+      : `Instant conversion; leave 1 troop. ${city.troops <= 40 ? 'Dimmed types need more troops.' : 'No refund when switching.'}`;
   $('#plane-status').textContent = mode ? 'Tap any other city to fly · Escape to cancel' : city.type === 'Airfield' ? phaseText(city)
-    : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : '';
+    : city.type === 'Defender' ? 'Shields · capacity 3, recharge 10s (not simulated)' : phaseText(city);
   $('#fly').hidden = city.type !== 'Airfield' || !!mode;
   $('#fly').disabled = city.phase !== 'ready' || city.troops < 2;
   $('#fly').title = city.phase !== 'ready' ? 'Plane must be ready' : 'Board up to 100; leave 1 troop';
@@ -157,6 +168,8 @@ function reset() {
   document.querySelectorAll('.pulse').forEach(el => el.classList.remove('pulse'));
   const state = $('#scenario').value;
   if (state === 'poor') cities[0].troops = 12;
+  if (state === 'watchtower') cities[0].type = 'Watchtower';
+  if (state === 'artillery') cities[0].type = 'Artillery';
   if (['ready', 'busy', 'preparing', 'returning', 'targeting'].includes(state)) selected = 'b';
   if (state === 'busy') cities[1].phase = 'outbound';
   if (state === 'preparing') cities[1].phase = 'preparing';
@@ -167,7 +180,7 @@ function reset() {
 }
 // Create semantic keyboard controls with compact visuals and 44px hit areas.
 $('#cities').innerHTML = seed.map(city => `<button class="city" data-city="${city.id}" style="left:${city.x / 3.6}%;top:${city.y / 3.6}%"><span class="dot"></span><span class="badge" aria-hidden="true"></span><span class="label" aria-hidden="true">${city.name}</span></button>`).join('');
-$('#type-actions').innerHTML = Object.keys(prices).map(type => `<button data-type="${type}"><span>${type}</span><small></small></button>`).join('');
+$('#type-actions').innerHTML = Object.keys(prices).map(type => `<button data-type="${type}"><span class="role-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false">${roleIcons[type]}</svg></span><small></small></button>`).join('');
 $('#type-actions').addEventListener('click', event => {
   const button = event.target.closest('[data-type]');
   if (!button || button.disabled) return;
@@ -213,7 +226,6 @@ $('#cities').addEventListener('click', event => {
 });
 $('#fly').onclick = () => targetMode('fly');
 $('#cancel').onclick = () => { mode = null; render(); focusCity(selected); tell('Targeting cancelled. No troops boarded.'); };
-$('#close').onclick = close;
 $('#scenario').onchange = () => {
   const url = new URL(location.href); url.searchParams.set('state', $('#scenario').value);
   history.replaceState(null, '', url); reset();

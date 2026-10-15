@@ -6,7 +6,7 @@ export type FactionId = string;
 export type Owner = FactionId | 'neutral';
 export type Faction = FactionId;
 
-export type CityType = 'production' | 'defender' | 'airfield';
+export type CityType = 'production' | 'defender' | 'airfield' | 'watchtower' | 'artillery';
 export type AircraftPhase = 'preparing' | 'ready' | 'outbound' | 'unloading' | 'returning' | 'turnaround';
 export interface Aircraft {
   readonly homeId: string;
@@ -101,6 +101,11 @@ export interface NetworkShieldTimer {
   readonly resetAtMs?: number;
 }
 
+export interface WeaponTimer {
+  readonly owner: Owner;
+  readonly elapsedMs: number;
+}
+
 export interface ArtilleryShot {
   readonly sourceId: string;
   readonly targetId: string;
@@ -114,8 +119,11 @@ export interface SimulationState {
   /** Committed delivery feedback, retained for one simulation second. */
   readonly airDeliveries?: readonly AirDelivery[];
   readonly terrain?: Terrain;
-  // Optional for legacy saves created before Artillery existed.
-  readonly artilleryTimers?: Readonly<Record<string, { readonly owner: Owner; readonly elapsedMs: number }>>;
+  /** Shared per-city firing cadence for Watchtower and Artillery roles. */
+  readonly weaponTimers?: Readonly<Record<string, WeaponTimer>>;
+  /** Legacy save fields, read only during persistence migration. */
+  readonly artilleryTimers?: Readonly<Record<string, WeaponTimer>>;
+  readonly watchtowerElapsedMs?: Readonly<Record<string, number>>;
   readonly artilleryShots?: readonly ArtilleryShot[];
   readonly river?: River;
   readonly roundStatus: RoundStatus;
@@ -129,7 +137,6 @@ export interface SimulationState {
   readonly transfers: readonly Transfer[];
   readonly arrivals: readonly Transfer[];
   readonly nextTransferId: number;
-  readonly watchtowerElapsedMs: Readonly<Record<string, number>>;
   readonly captureShields: Readonly<Record<string, CaptureShieldState>>;
   /** Partial per-city recharge progress for Defensive Network shields. */
   readonly networkShieldTimers?: Readonly<Record<string, NetworkShieldTimer>>;

@@ -3,7 +3,7 @@ import { advanceTravel } from './travel';
 import { resolveCombat } from './combat';
 import type { SimulationState } from './types';
 import { advanceWatchtowers } from './features/watchtower';
-import { SIMULATION_STEP_MS } from './settings';
+import { ARTILLERY_FIRE_INTERVAL_MS, SIMULATION_STEP_MS, WATCHTOWER_FIRE_INTERVAL_MS } from './settings';
 import { hasSlowZones } from './features/slowZone';
 import { advanceArtillery } from './features/artillery';
 import { advanceNetworkShields, NETWORK_SHIELD_RECHARGE_MS } from './features/networkShields';
@@ -15,7 +15,7 @@ function physicalStep(state: SimulationState, elapsedMs: number) {
   const clocked = advanceAircraftClock(advanceGrowth(state, elapsedMs), elapsedMs);
   const combat = resolveAircraftEvents(resolveCombat(advanceTravel(clocked, elapsedMs)));
   const shielded = advanceNetworkShields(combat, elapsedMs, beforeStep);
-  return advanceArtillery(advanceWatchtowers(shielded, elapsedMs), elapsedMs, state);
+  return advanceArtillery(advanceWatchtowers(shielded, elapsedMs, beforeStep), elapsedMs, state);
 }
 
 // Shared physical update for live rounds and forecasts; never issues AI orders.
@@ -23,7 +23,7 @@ function physicalStep(state: SimulationState, elapsedMs: number) {
 export function advanceWorldStep(state: SimulationState, elapsedMs: number): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');
   if (state.roundStatus !== 'playing' || elapsedMs === 0) return state;
-  const newPhysics = state.territories.some(c => c.cityType === 'airfield' || c.cityType === 'defender');
+  const newPhysics = state.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
   if (newPhysics) {
     state = normalizeAircraft(state);
     const end = state.elapsedMs + elapsedMs;
@@ -42,14 +42,12 @@ export function advanceWorldStep(state: SimulationState, elapsedMs: number): Sim
       }
       // Feature cadence boundaries are physical events too: do not defer a shot
       // past a later capture simply because aircraft shifted its cadence off-grid.
-      for (const city of state.territories) for (const feature of city.features ?? []) {
-        if (feature.kind === 'artillery') {
-          const timer = state.artilleryTimers?.[feature.id];
-          const elapsed = timer?.owner === city.owner ? timer.elapsedMs : 0;
-          step = Math.min(step, feature.fireIntervalMs - elapsed);
-        } else if (feature.kind === 'watchtower') {
-          step = Math.min(step, feature.fireIntervalMs - (state.watchtowerElapsedMs[feature.id] ?? 0));
-        }
+      for (const city of state.territories) {
+        if (city.cityType !== 'artillery' && city.cityType !== 'watchtower') continue;
+        const timer = state.weaponTimers?.[city.id];
+        const elapsed = timer?.owner === city.owner ? timer.elapsedMs : 0;
+        const interval = city.cityType === 'artillery' ? ARTILLERY_FIRE_INTERVAL_MS : WATCHTOWER_FIRE_INTERVAL_MS;
+        step = Math.min(step, interval - elapsed);
       }
       // Zero-duration routes still transition at this timestamp, without advancing the clock.
       if (step <= 1e-7) { state = resolveAircraftEvents(state); step = Math.min(end - state.elapsedMs, 1e-7); }
@@ -58,7 +56,7 @@ export function advanceWorldStep(state: SimulationState, elapsedMs: number): Sim
     return state;
   }
   if ((hasSlowZones(state) || Object.values(state.rules.factions).some(faction => faction.connectedDefense)
-    || state.territories.some(city => city.features?.some(feature => feature.kind === 'watchtower' || feature.kind === 'artillery')))
+    || state.territories.some(city => city.cityType === 'watchtower' || city.cityType === 'artillery'))
     && elapsedMs > SIMULATION_STEP_MS) {
     for (let remaining = elapsedMs; remaining > 0;) {
       const step = Math.min(remaining, SIMULATION_STEP_MS);

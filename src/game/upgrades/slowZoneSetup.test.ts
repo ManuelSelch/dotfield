@@ -34,7 +34,9 @@ describe('Slow Zone setup and lifecycle', () => {
     const a = compileRoundSetup(authored, { player: ['factory', 'industry'] }, base);
     const b = compileRoundSetup(authored, { player: ['industry', 'factory'] }, base);
     expect(a).toEqual(b);
-    expect(a.territories.find(c => c.owner === 'player')!.features!.map(f => f.kind)).toEqual(['watchtower', 'factory']);
+    expect(a.territories.find(c => c.owner === 'player')).toMatchObject({ cityType: 'watchtower', features: [
+      expect.objectContaining({ kind: 'factory' }),
+    ] });
     expect(a.territories.find(c => c.features?.some(f => f.kind === 'slow-zone'))!.id).toBe(MAPS[0].territories[6].id);
   });
   it('keeps the host on restart, freezes paused/hidden movement, and resets travel', () => {

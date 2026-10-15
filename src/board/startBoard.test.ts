@@ -43,7 +43,7 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
 }
 
 describe('board lifecycle adapter', () => {
-  it('opens management, converts through session, and clears it on pause without writing per command', () => {
+  it('opens management, persists converted roles, and clears it on pause', () => {
     const board = harness();
     const options = vi.mocked(bindDrag).mock.lastCall![5]!;
     options.onOwnedCityTap!('south');
@@ -51,7 +51,8 @@ describe('board lifecycle adapter', () => {
     const snapshots = board.onSnapshot.mock.calls.length;
     board.stop.convert('defender');
     expect(board.onCounts.mock.lastCall![0].territories.find((c: { id: string }) => c.id === 'south')).toMatchObject({ cityType: 'defender', units: 16 });
-    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots);
+    expect(board.onSnapshot).toHaveBeenCalledTimes(snapshots + 1);
+    expect(board.onSnapshot).toHaveBeenLastCalledWith(board.onCounts.mock.lastCall![0], 'running', true);
     board.stop.pause();
     expect(board.onCitySelection).toHaveBeenLastCalledWith(null);
     board.stop();

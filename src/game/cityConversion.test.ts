@@ -36,6 +36,20 @@ describe('city conversion', () => {
     const grown = advanceGrowth(next, 1000);
     expect(grown.territories[0].units).toBe(targetType === 'production' ? 3 : 1);
   });
+  it.each([
+    ['production', 'watchtower', 30], ['production', 'artillery', 40],
+    ['watchtower', 'production', 10], ['watchtower', 'artillery', 40],
+    ['artillery', 'production', 10], ['artillery', 'watchtower', 30],
+  ] as const)('builds exclusive weapon role %s → %s for %i, resetting cadence and retaining a troop', (from, to, cost) => {
+    const base = createSimulation([{ id: 'a', owner: 'player', cityType: from, units: cost + 1, x: 10, y: 20 }]);
+    const state = { ...base, weaponTimers: { a: { owner: 'player', elapsedMs: 200 } }, artilleryShots: [{ sourceId: 'a', targetId: 'b', owner: 'player', firedAtMs: 0 }] };
+    const next = convertCity(state, 'a', to);
+    expect(next.territories[0]).toMatchObject({ cityType: to, units: 1, growthRemainder: 0 });
+    expect(next.weaponTimers?.[to === 'watchtower' || to === 'artillery' ? 'a' : 'missing']).toEqual(
+      to === 'watchtower' || to === 'artillery' ? { owner: 'player', elapsedMs: 0 } : undefined);
+    expect(next.artilleryShots).toEqual([]);
+    expect(advanceGrowth(next, 1000).territories[0].units).toBe(to === 'production' ? 2 : 1);
+  });
   it('allows converting a plane at home during turnaround, but never while away', () => {
     const base = convertCity(opening(), 'a', 'airfield');
     const plane = base.aircraft!.a;

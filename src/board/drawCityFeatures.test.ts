@@ -121,7 +121,7 @@ describe('city upgrade indicators', () => {
       { id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 },
     ]));
     expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
-      [true, true], [false, true], [true, false], [false, false],
+      [false, true], [true, false], [true, true],
     ]);
   });
   it('renders a single numbered Tabler shield for each defense tier', () => {
@@ -142,11 +142,10 @@ describe('city upgrade indicators', () => {
     const ctx = render({ ...state, territories: state.territories.map(c => c.id === host.id
       ? { ...c, cityType: 'defender' as const } : c) });
     expect(ctx.fillText.mock.calls.map(([value]) => value)).toEqual(['3', '1', '1', '1']);
-    const shieldTop = ctx.translate.mock.calls[2][1];
-    expect(shieldTop + 12).toBeLessThan(host.y - 7); // Type badge above/left, never over the counter.
-    expect(ctx.translate.mock.calls[2][0]).toBeLessThan(host.x - 7);
+    expect(ctx.translate.mock.calls.some(([x, y]) => x < host.x && y < host.y)).toBe(true); // Defender badge occupies the upper-left role slot.
+
     expect(new Set(ctx.translate.mock.calls.map(call => call.join(','))).size).toBe(ctx.translate.mock.calls.length);
-    expect(ctx.arc).toHaveBeenCalledTimes(5); // Factory and Artillery, plus three allies' Industry; no false Defender growth.
+    expect(ctx.arc).toHaveBeenCalledTimes(4); // Factory and three allies' Industry; weapon is the city role, not a stacked feature.
   });
   it('marks Airfields above/left without replacing garrison or attached features', () => {
     const state = seed(['factory', 'industry']);

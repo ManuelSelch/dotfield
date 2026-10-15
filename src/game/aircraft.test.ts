@@ -125,11 +125,9 @@ describe('aircraft', () => {
     const base = ready();
     const state: SimulationState = { ...base, terrain: { bounds: { minX: -20, minY: -100, maxX: 360, maxY: 480 },
       barriers: [{ id: 'ridge', kind: 'mountain', bounds: { minX: 40, minY: -50, maxX: 60, maxY: 50 } }], crossings: [] },
-      territories: [...base.territories.map(c => c.id !== 'target' ? c : { ...c, features: [
+      territories: [...base.territories.map(c => c.id !== 'target' ? c : { ...c, cityType: 'watchtower' as const, features: [
         { id: 'slow', kind: 'slow-zone' as const, radius: 1000, speedMultiplier: 0.1 },
-        { id: 'tower', kind: 'watchtower' as const, range: 1000, fireIntervalMs: 20 },
-      ] }), { id: 'gun-city', owner: 'enemy', x: 0, y: 60, units: 10, growthRemainder: 0,
-        features: [{ id: 'gun', kind: 'artillery', range: 1000, fireIntervalMs: 200 }] }] };
+      ] }), { id: 'gun-city', owner: 'enemy', cityType: 'artillery' as const, x: 0, y: 60, units: 10, growthRemainder: 0 }] };
     expect(dispatchUnits(state, 'home', 'target')).toBe(state);
     const launched = launchAircraft(state, 'home', 'target');
     expect(launched.aircraft?.home.durationMs).toBe(1200);

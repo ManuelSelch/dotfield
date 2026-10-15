@@ -7,7 +7,7 @@ import { createRules } from './rules';
 import { restoreCaptureShields } from './features/captureShield';
 import { restoreNetworkShieldTimers, shieldRechargeSource } from './features/networkShields';
 import { restoreAircraft } from './restoreAircraft';
-import { DEFENDER_SHIELD_CAPACITY } from './settings';
+import { ARTILLERY_FIRE_INTERVAL_MS, DEFENDER_SHIELD_CAPACITY, WATCHTOWER_FIRE_INTERVAL_MS } from './settings';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
 import type { SimulationState, Territory } from './types';
@@ -35,6 +35,50 @@ function isSavedGame(value: unknown): value is SavedGame {
     && (state.roundStatus === 'playing' || state.roundStatus === 'victory' || state.roundStatus === 'defeat' || state.roundStatus === 'draw');
 }
 
+function restoreWeaponTimers(live: SimulationState['territories'], opening: readonly Territory[], rawState: SimulationState,
+  rules: ReturnType<typeof createRules>): SimulationState['weaponTimers'] | null {
+  const raw = rawState as SimulationState & { watchtowerElapsedMs?: unknown; artilleryTimers?: unknown };
+  const saved = raw.weaponTimers;
+  if (saved !== undefined && !isObject(saved)) return null;
+  const legacyTower = raw.watchtowerElapsedMs;
+  const legacyGuns = raw.artilleryTimers;
+  if (legacyTower !== undefined && !isObject(legacyTower) || legacyGuns !== undefined && !isObject(legacyGuns)) return null;
+  if (saved && Object.keys(saved).some(id => !live.some(city => city.id === id
+    && (city.cityType === 'watchtower' || city.cityType === 'artillery')))) return null;
+  const timers: Record<string, { owner: string; elapsedMs: number }> = {};
+  for (const city of live) {
+    if (city.cityType !== 'watchtower' && city.cityType !== 'artillery') continue;
+    const interval = city.cityType === 'watchtower' ? WATCHTOWER_FIRE_INTERVAL_MS : ARTILLERY_FIRE_INTERVAL_MS;
+    const oldFeature = (rawState.territories.find(c => c.id === city.id)?.features ?? [])
+      .find(feature => feature.kind === city.cityType);
+    let timer = saved?.[city.id];
+    if (timer === undefined && city.cityType === 'artillery') {
+      const old = legacyGuns && (legacyGuns[city.id] ?? (oldFeature && legacyGuns[oldFeature.id]));
+      if (old !== undefined) {
+        if (!isObject(old) || typeof old.owner !== 'string'
+          || (old.owner !== 'neutral' && !Object.hasOwn(rules.factions, old.owner))
+          || typeof old.elapsedMs !== 'number' || !Number.isFinite(old.elapsedMs) || old.elapsedMs < 0 || old.elapsedMs >= interval) return null;
+        timer = { owner: old.owner, elapsedMs: old.elapsedMs };
+      }
+    } else if (timer === undefined && city.cityType === 'watchtower') {
+      const old = legacyTower && (legacyTower[city.id] ?? (oldFeature && legacyTower[oldFeature.id]));
+      if (old !== undefined) {
+        if (typeof old !== 'number' || !Number.isFinite(old) || old < 0 || old >= interval) return null;
+        timer = { owner: city.owner, elapsedMs: old };
+      }
+    }
+    if (timer !== undefined) {
+      const rootCity = opening.find(candidate => candidate.id === city.id);
+      if (!saved?.[city.id] && rootCity && rootCity.owner !== city.owner) timer = { owner: city.owner, elapsedMs: 0 };
+      if (!isObject(timer) || typeof timer.owner !== 'string'
+        || (timer.owner !== 'neutral' && !Object.hasOwn(rules.factions, timer.owner))
+        || typeof timer.elapsedMs !== 'number' || !Number.isFinite(timer.elapsedMs) || timer.elapsedMs < 0 || timer.elapsedMs >= interval) return null;
+      timers[city.id] = { owner: city.owner, elapsedMs: timer.owner === city.owner ? timer.elapsedMs : 0 };
+    } else timers[city.id] = { owner: city.owner, elapsedMs: 0 };
+  }
+  return timers;
+}
+
 export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | null {
   try {
     const raw = (storage ?? window.localStorage).getItem(SAVED_GAME_KEY);
@@ -42,28 +86,25 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
     const candidate: unknown = JSON.parse(raw);
     if (!isSavedGame(candidate)) return null;
     if (!isGeneratedMatch(candidate.generated)) delete (candidate as { generated?: unknown }).generated;
+    const rules = createRules(candidate.state.rules);
     const territories = snapshotTerritories(candidate.territories);
     const live = snapshotTerritories(candidate.state.territories) as SimulationState['territories'];
     if (!Number.isFinite(candidate.state.elapsedMs) || candidate.state.elapsedMs < 0
       || live.length !== territories.length
       || live.some(city => !territories.some(c => c.id === city.id && c.x === city.x && c.y === city.y)
         || !Number.isFinite(city.growthRemainder) || city.growthRemainder < 0 || city.growthRemainder >= 1000)) return null;
-    const parsed = { ...candidate, territories, state: { ...candidate.state, territories: live } };
-    const rules = createRules(parsed.state.rules);
+    const weaponTimers = restoreWeaponTimers(live, territories, candidate.state, rules);
+    if (!weaponTimers) return null;
+    const legacyState = candidate.state as SimulationState & { artilleryTimers?: unknown; watchtowerElapsedMs?: unknown };
+    const { artilleryTimers: _oldArtilleryTimers, watchtowerElapsedMs: _oldWatchtowerTimers, ...currentState } = legacyState;
+    const parsed = { ...candidate, territories, state: { ...currentState, territories: live, weaponTimers } };
     if ([...territories, ...live].some(c => c.owner !== 'neutral' && !Object.hasOwn(rules.factions, c.owner))) return null;
     let terrain = parsed.state.terrain === undefined ? undefined : createTerrain(parsed.state.terrain);
     let river = parsed.state.river === undefined ? undefined : createRiver(parsed.state.river, parsed.territories);
     if (river) createRiver(river, parsed.state.territories);
 
-    if (parsed.state.artilleryTimers !== undefined) {
-      if (!isObject(parsed.state.artilleryTimers)) return null;
-      for (const [id, timer] of Object.entries(parsed.state.artilleryTimers)) {
-        const feature = parsed.state.territories.flatMap(c => c.features ?? []).find(f => f.id === id && f.kind === 'artillery');
-        if (!feature || feature.kind !== 'artillery' || !isObject(timer)
-          || typeof timer.owner !== 'string' || (timer.owner !== 'neutral' && !Object.hasOwn(rules.factions, timer.owner))
-          || typeof timer.elapsedMs !== 'number' || !Number.isFinite(timer.elapsedMs)
-          || timer.elapsedMs < 0 || timer.elapsedMs >= feature.fireIntervalMs) return null;
-      }
+    for (const timer of Object.values(parsed.state.weaponTimers ?? {})) {
+      if (timer.owner !== 'neutral' && !Object.hasOwn(rules.factions, timer.owner)) return null;
     }
     if (parsed.state.artilleryShots !== undefined) {
       if (!Array.isArray(parsed.state.artilleryShots)) return null;
@@ -71,7 +112,7 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
         if (!isObject(shot) || typeof shot.firedAtMs !== 'number' || !Number.isFinite(shot.firedAtMs)
           || shot.firedAtMs < 0 || shot.firedAtMs > parsed.state.elapsedMs
           || typeof shot.owner !== 'string' || !Object.hasOwn(rules.factions, shot.owner)
-          || !parsed.state.territories.some(c => c.id === shot.sourceId && c.features?.some(f => f.kind === 'artillery'))
+          || !parsed.state.territories.some(c => c.id === shot.sourceId && c.cityType === 'artillery')
           || !parsed.state.territories.some(c => c.id === shot.targetId)) return null;
       }
     }

@@ -1,4 +1,5 @@
 import { artilleryTarget } from '../features/artillery';
+import { ARTILLERY_FIRE_INTERVAL_MS } from '../settings';
 import { getTerritoryGrowthRate } from '../features/growthRate';
 import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
@@ -24,10 +25,8 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     // Forecast success and source safety still gate the order; no resource bonus.
     const extraProduction = getTerritoryGrowthRate(proposed, after) - getFactionRules(state, factionId).unitsPerSecond;
     score += Math.max(0, extraProduction) * 10;
-    for (const feature of after.features ?? []) {
-      if (feature.kind === 'artillery' && artilleryTarget(proposed, after, feature)) {
-        score += 10000 / feature.fireIntervalMs;
-      }
+    if (after.cityType === 'artillery' && artilleryTarget(proposed, after)) {
+      score += 10000 / ARTILLERY_FIRE_INTERVAL_MS;
     }
   } else {
     kind = 'reinforce';

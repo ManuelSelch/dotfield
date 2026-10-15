@@ -1,20 +1,16 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { SAVED_GAME_KEY } from '../../src/game/persistence';
 
-export type FieldFeatureName = 'Artillery' | 'Watchtower' | 'Slow Zone' | 'Mountains' | 'River & bridges' | 'Factory';
+export type FieldFeatureName = 'Slow Zone' | 'Mountains' | 'River & bridges' | 'Factory';
 export type PlayerUpgradeName = 'Industry' | 'Capture shield';
 
 const featurePreferences: Record<FieldFeatureName, string> = {
-  Artillery: 'artillery',
-  Watchtower: 'watchtower',
   'Slow Zone': 'slowZone',
   Mountains: 'mountains',
   'River & bridges': 'river',
   Factory: 'industry',
 };
 const featureKinds: Partial<Record<FieldFeatureName, string>> = {
-  Artillery: 'artillery',
-  Watchtower: 'watchtower',
   'Slow Zone': 'slow-zone',
   Factory: 'factory',
 };
@@ -25,8 +21,8 @@ const upgradeIds: Record<PlayerUpgradeName, string> = {
 
 interface SavedMatch {
   generated?: { preferences?: { map?: Record<string, unknown>; upgrades?: Record<string, string[]> } };
-  territories?: { x: number; y: number; features?: { kind: string }[] }[];
-  state?: { rules?: { factions?: Record<string, { unitsPerSecond?: number; captureShieldBatches?: number }> } };
+  territories?: { id: string; x: number; y: number; owner: string; features?: { kind: string }[] }[];
+  state?: { territories?: { id: string; cityType?: string }[]; rules?: { factions?: Record<string, { unitsPerSecond?: number; captureShieldBatches?: number }> } };
 }
 
 interface DriverContext {
@@ -79,6 +75,26 @@ export class HomeDriver {
 
 export class MatchDriver {
   constructor(private readonly page: Page, private readonly context: DriverContext) {}
+
+  async buildRole(role: 'Watchtower' | 'Artillery') {
+    const raw = await this.page.evaluate(key => localStorage.getItem(key), SAVED_GAME_KEY);
+    expect(raw, 'The started match should be saved').not.toBeNull();
+    const match = JSON.parse(raw!) as SavedMatch;
+    const home = match.territories?.find(city => city.owner === 'player');
+    expect(home).toBeDefined();
+    const canvas = this.page.getByRole('img', { name: 'Territory board' });
+    const box = (await canvas.boundingBox())!;
+    const scale = Math.min(box.width / 360, box.height / 480);
+    await this.page.touchscreen.tap(box.x + (box.width - 360 * scale) / 2 + home!.x * scale,
+      box.y + (box.height - 480 * scale) / 2 + home!.y * scale);
+    const cost = role === 'Watchtower' ? 30 : 40;
+    const button = this.page.getByRole('button', { name: new RegExp(`Build ${role} for ${cost} troops`) });
+    await expect(button).toBeEnabled();
+    const bounds = (await button.boundingBox())!;
+    await this.page.touchscreen.tap(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    const after = JSON.parse((await this.page.evaluate(key => localStorage.getItem(key), SAVED_GAME_KEY))!) as SavedMatch;
+    expect(after.state?.territories?.find(city => city.id === home!.id)?.cityType).toBe(role.toLowerCase());
+  }
 
   async shouldUseCurrentPreview() {
     expect(this.context.previewCoordinates, 'The preview should be captured when Play is selected').toBeDefined();

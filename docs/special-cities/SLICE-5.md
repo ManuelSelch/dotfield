@@ -1,5 +1,7 @@
 # Slice 5 — Artillery city
 
+> **Historical implementation note:** this slice originally implemented Artillery as an attached feature and generated Home toggle. The current approved design supersedes that model: Artillery is a mutually-exclusive buildable city role (40 troops; range150; 3 shots/s), with no Home toggle/free generated weapons. Existing attached weapons and saves migrate to roles. See [current city-role behavior](../city-conversion/IMPLEMENTATION.md); the authored Siege layout remains a migration/regression fixture.
+
 ## Approved design
 
 User approved [Artillery mockup revision 1](../../mockups/artillery-city/DESIGN.md) with “looks good. implement it”. Preview stopped and approved sources preserved before production work.

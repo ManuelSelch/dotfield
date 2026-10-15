@@ -2,9 +2,9 @@
 
 ## Goal
 
-Keep faction upgrades independently configurable per player and AI faction, and keep territory features deterministic and shared with AI forecasting. Watchtower and Slow Zone are field-level map settings rather than faction upgrades; Industry, Factory and Capture shield remain independently selectable faction upgrades.
+Keep faction upgrades independently configurable per player and AI faction, with attached map effects deterministic and shared with AI forecasting. Slow Zone remains a field-level map setting; Watchtower and Artillery are buildable exclusive city roles. Industry, Factory and Capture shield remain independently selectable faction upgrades.
 
-Industry, Factory, Watchtower, Slow Zone, Capture Shield and Defensive Network mechanics are implemented; see the [effect catalog](EFFECTS.md). Watchtower and Slow Zone each globally add one seeded-random host. Both are toggled in Home's On the field settings. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/rules.
+Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network mechanics are implemented; see the [effect catalog](EFFECTS.md). Slow Zone remains a seeded Home field setting; no weapon role is freely generated or toggled on Home. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/roles.
 
 ## Scope
 
@@ -30,12 +30,12 @@ Industry, Factory, Watchtower, Slow Zone, Capture Shield and Defensive Network m
 ### Current implementation checkpoint
 
 - `src/game/rules.ts` resolves, validates and freezes independent faction-ID keyed growth/speed/cadence rules. Ownership, hostile collisions, capture, elimination, and AI decision schedules now support arbitrary faction IDs; player remains the sole human faction.
-- `src/game/upgrades/catalog.ts` defines faction-selectable effects; `compile.ts` snapshots the map and resolves each faction's selected IDs. `src/board/generateMap.ts` resolves global Watchtower/Slow Zone field settings into territory features. Home exposes player and per-enemy upgrade checkboxes plus independent Balanced/Aggressive/Defensive AI behavior choices.
+- `src/game/upgrades/catalog.ts` defines faction-selectable effects; `compile.ts` snapshots the map and resolves each faction's selected IDs. `src/board/generateMap.ts` resolves Slow Zone into territory features; legacy Watchtower/Artillery map toggles are ignored. Home exposes player and per-enemy upgrades plus independent AI behaviors.
 - Play compiles a setup once. The board/hook/session forward its rules, and restart/replay keep it. Legacy `{ unitsPerSecond }` overrides remain supported and normalize to both current factions.
 - Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
 - Factory is now a typed territory feature with a stable ID and production multiplier (legacy beneficiary IDs remain readable). Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
 - Factory stays attached on capture and boosts its current non-neutral owner. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
-- Watchtower is implemented as a typed territory feature with 250ms simulation-time firing, shared with AI forecasts. Its current city owner controls it; capturing switches allegiance immediately, and the continuous cadence does not reset. It targets the nearest hostile dot center within 72 field units, removes one stable slot, and draws a subtle coverage circle plus tower silhouette.
+- Historical Watchtower feature behavior is superseded: Watchtower is an exclusive city role, costs30, produces no troops and fires every250ms (range150) at hostile ground dots. Artillery is an exclusive city role, costs40, produces no troops and attacks hostile city garrisons every1000/3ms (range150; mountains block). Both reset cooldown on build/capture, use the shared physical scheduler/forecast and render city coverage/icons. See [city conversion](../city-conversion/IMPLEMENTATION.md).
 - Defensive Network links currently owned shared-border neighbors from each faction's original home (paired bridge endpoints count as neighbors). Network sizes 4–6/7–12/13+ set capacity to 1/2/3 batch-blocking shields per connected city; one shield recharges every 10 seconds in simulation time. Capture Shield charges share this pool, and network recharge never removes charges already above capacity. Partial per-city recharge timers persist with active-round saves and are shared by live simulation and AI forecasts.
 
 ### Historical baseline before Industry
@@ -135,7 +135,7 @@ type TerritoryFeature =
 - Avoid fields such as `isTower`, `towerRange`, `slowRadius`, `shieldHealth` scattered on every territory. A discriminated union keeps per-feature requirements explicit and supports exhaustiveness checks.
 - Generate feature IDs deterministically from the host city and effect instance; validate uniqueness across the round. Restart recreates deadlines/charges, not references to the old runtime object.
 - A central initializer validates definitions and creates runtime state. Modules such as `features/tower.ts` and `features/slowZone.ts` own their mechanics. Start with explicit typed dispatch/handlers, not a general-purpose dynamic plugin loader.
-- Updated Factory policy (special-city slice 4): the structure remains on capture and boosts its current owner, including enemy captors; only neutral hosts are inactive. Confirmed Watchtower policy: follows current city ownership, fires against the former owner after capture; neutral-owned towers do not fire. Its global cadence continues through ownership changes.
+- Updated Factory policy (special-city slice 4): the structure remains on capture and boosts its current owner, including enemy captors; only neutral hosts are inactive. Current weapon-role policy: Watchtower/Artillery follow current ownership, are neutral-inactive, and reset their full firing cooldown on build/capture. No Home weapon toggle remains.
 - Implemented Factory features modify `getTerritoryGrowthRate(state, city)` on top of faction growth, not duplicate the growth loop. Faction effects belong to armies; building effects belong to their host.
 - Feature visuals and accessible descriptions consume domain state, never apply damage or advance cooldowns. Add board feature rendering and describe city features in keyboard/screen-reader controls.
 - Preserve existing Voronoi caching keyed by positions/IDs/dimensions; features do not require rebuilding cells.
@@ -157,9 +157,9 @@ type TerritoryFeature =
 - The board adapter currently publishes on counts/ownership/transfer changes. Include relevant feature-runtime/events in render invalidation so shots can be drawn even if no garrison count changes. Do not send continuous animation through React.
 - AI forecasting must honor tower deaths and slow movement. Special preferences for capturing a strategically useful feature can be added later as an explicit scoring change; correct physics does not automatically make the existing heuristic expert at new mechanics.
 
-### 6. Watchtower (implemented)
+### 6. Watchtower field setting (historical; superseded by buildable city role)
 
-- The global On the field toggle places one Watchtower on a seeded-random city; generated territory features attach during map generation.
+- Historical setting (superseded): the former On the field toggle placed a seeded-random Watchtower feature. Current behavior is the exclusive buildable Watchtower city role; no Home toggle or generated free tower remains. See [city conversion](../city-conversion/IMPLEMENTATION.md).
 - On a firing opportunity, target the nearest eligible hostile airborne dot within range. Stable transfer/slot IDs break equal-distance ties.
 - Remove one real dot per shot; do not damage friendly dots, queued troops or city garrisons. Range uses shared dot-position geometry in board space.
 - A shot requires a live eligible target at that event time. Empty firing opportunities do not accumulate a burst of stored shots.
@@ -171,9 +171,9 @@ Slow Zones and the variable-speed movement foundation were implemented after the
 
 ## Assumptions
 
-- Each enemy can independently select Industry/Factory/Capture shield and Balanced/Aggressive/Defensive behavior; defaults are empty effects and Balanced behavior. Watchtower and Slow Zone are shared map settings. Home preferences persist locally; compiled active-round rules/AI/features are restored with the round.
+- Each enemy can independently select Industry/Factory/Capture shield and Balanced/Aggressive/Defensive behavior; defaults are empty effects and Balanced behavior. Slow Zone is a shared map setting; Watchtower/Artillery are buildable roles. Home preferences persist locally; compiled active-round rules/AI/roles are restored with the round.
 - Each faction starts with baseline rules and no selected upgrades unless configured. Player and AI selections are independent, in-memory only; no mirroring or shared enemy configuration.
-- Factory stays with its city and transfers its bonus to the current owner, including enemy captors. Watchtower and Slow Zone allegiance also follows the current owner; neutral towers are inactive and neutral zones slow everyone. Faction modifiers follow the current owner or issuing army as described above.
+- Factory stays with its city and transfers its bonus to the current owner, including enemy captors. Weapon roles and Slow Zone follow the current owner; neutral weapons are inactive and neutral zones slow everyone. Faction modifiers follow the current owner or issuing army as described above.
 - Existing engine constants and collision geometry remain unchanged by these upgrades.
 
 ## Implementation Plan
@@ -185,7 +185,7 @@ Description: Replace upgradeable global reads with resolved per-faction rules; t
 
 ### 2. Upgrade catalog and setup compiler
 
-Status: implemented for catalog stat, starting-feature and capture-shield effects; Watchtower/Slow Zone field features are attached by seeded map generation.
+Status: implemented for catalog stats, Starting Factory and capture-shield effects. Slow Zone remains a generated map feature; Watchtower/Artillery have migrated to buildable city roles.
 Description: Add typed catalog effects, deterministic composition, validation and seed transformation for starting units/features. Keep UI/progression concerns outside core rules. Verify selection-order independence, duplicate handling, unchanged source maps, one-time starting bonuses and no neutral bonuses. Depends on slice 1; no progression implementation.
 
 ### 3. Pre-game selection for numeric effects
@@ -198,7 +198,7 @@ Description: Add a compact upgrade selection surface before Play, with resolved-
 Status: implemented.
 Description: Add validated discriminated feature definitions, separate runtime initialization, capture policy, board/accessibility feature presentation and shared simulation integration points. Verify old maps without features, unique IDs, copied seed/runtime independence, capture/reset and unchanged Voronoi cache/input. Depends on slices 1–2; no tower damage yet.
 
-### 5. Watchtower simulation, forecasts and field setting
+### 5. Watchtower simulation, forecasts and field setting (historical feature design; role behavior is specified in city conversion)
 
 Status: implemented.
 Description: Seeded map generation attaches one tower to a random city when enabled in On the field settings. At each 250ms cadence boundary, remove the nearest hostile airborne dot whose center is within 72 field units. The tower follows current host ownership and switches sides immediately on capture; the timer is continuous. Draw the coverage circle and silhouette and expose accessible status. Verify deterministic tie-breaking, actual slot removal, capture, live/forecast parity and mobile rendering. The shared world step bounds tower updates to 50ms and resolves travel collisions/arrivals before tower fire.

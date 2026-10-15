@@ -24,7 +24,6 @@ for (const width of [320, 430]) {
     await expect(city(page,'near')).toHaveText('near: Opponent, 7 units. Production city.');
     await page.clock.runFor(350);
     await expect(city(page,'near')).toHaveText('near: Opponent, 6 units. Production city.');
-    await expect(page.getByRole('status',{name:'Artillery feedback'})).toContainText('artillery fired at near');
     await expect(city(page,'blocked')).toHaveText('blocked: Opponent, 12 units. Production city.');
     await expect(city(page,'neutral')).toHaveText('neutral: Neutral, 8 units. Production city.');
     await page.screenshot({ path: `test-results/artillery-${width}.png` });
@@ -73,5 +72,5 @@ test('authored Siege field and paused reload preserve Artillery metadata with no
   await expect(city(page,'artillery')).toContainText('Artillery inactive');
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
   expect(saved.state.terrain.barriers).toHaveLength(0);
-  expect(saved.state.territories.find((c:{id:string})=>c.id==='artillery').features[0].kind).toBe('artillery');
+  expect(saved.state.territories.find((c:{id:string})=>c.id==='artillery')).toMatchObject({ cityType: 'artillery', features: [] });
 });

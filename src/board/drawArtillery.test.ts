@@ -5,12 +5,12 @@ import { advanceWorldStep } from '../game/worldStep';
 
 const context=()=>({save:vi.fn(),restore:vi.fn(),beginPath:vi.fn(),arc:vi.fn(),fill:vi.fn(),stroke:vi.fn(),setLineDash:vi.fn(),moveTo:vi.fn(),lineTo:vi.fn(),fillText:vi.fn()});
 const state=()=>createSimulation([
-  {id:'gun',owner:'player',x:180,y:240,units:20,features:[{id:'cannon',kind:'artillery',range:90,fireIntervalMs:2000}]},
-  {id:'enemy',owner:'enemy',x:180,y:170,units:4},
+  {id:'gun',owner:'player',cityType:'artillery',x:180,y:240,units:20,features:[{id:'cannon',kind:'artillery',range:90,fireIntervalMs:2000}]},
+  {id:'enemy',owner:'enemy',x:180,y:170,units:100},
 ],{unitsPerSecond:0});
 it('scales the range and marks only the current eligible target',()=>{
   const ctx=context();drawArtilleryCoverage(ctx as unknown as CanvasRenderingContext2D,state(),720,960);
-  expect(ctx.arc.mock.calls.map(call=>call.slice(0,3))).toEqual([[360,480,180],[360,340,38]]);
+  expect(ctx.arc.mock.calls.map(call=>call.slice(0,3))).toEqual([[360,480,300],[360,340,38]]);
 });
 it('draws border-clipped beam and static −1 feedback, respecting reduced motion and expiry',()=>{
   const next=advanceWorldStep(state(),2000),ctx=context();

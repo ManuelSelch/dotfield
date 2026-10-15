@@ -2,7 +2,7 @@
 
 ## Goal
 
-Status: mobile board, simulation, AI, pause/replay, seeded generated-match Home, Industry/Factory/Watchtower/Slow Zone/Capture shield/Artillery, multi-faction combat, independent per-enemy AI behavior/rules/upgrades, responsive desktop Home/battlefield, mouse-only click orders, event-only round persistence and production PWA caching are implemented. Authored bridge, Factory and Siege/Artillery scenarios remain regression fixtures alongside fresh generated fields. Real-iPhone Safari/installed-offline validation and balance/duration playtesting remain outstanding; progression and difficulty presets remain deferred.
+Status: mobile/desktop board, simulation/AI, pause/replay, generated Home, Industry/Factory/Slow Zone/Capture shield, buildable exclusive city roles (Production/Defender/Airfield/Watchtower/Artillery), multi-faction combat, persistence and production PWA caching are implemented. Authored bridge/Factory/Siege scenarios remain regression fixtures. Real-iPhone Safari/installed-offline validation and balance/duration playtesting remain outstanding; progression and difficulty presets remain deferred.
 
 Implemented desktop layout and mouse-control requirements are tracked separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
@@ -26,7 +26,7 @@ Success means enjoyable short rounds, readable controls and a credible opponent;
 - Attacking sends **all available source units except one**, replacing any existing unlaunched source groups while preserving airborne groups.
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
-- Enable upgrade effects before Play without progression. Player and each AI faction have independent upgrade selections and AI behavior. Generated-match preferences survive reload. Industry (+25% owned-city production), Factory, Watchtower, Capture shield and player-selectable randomly placed Slow Zone are implemented. Details are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
+- Enable eligible upgrade effects before Play without progression. Player and each AI faction have independent upgrade selections and AI behavior. Generated-match preferences survive reload. Industry (+25% owned-city production), Factory, Capture shield and player-selectable randomly placed Slow Zone are implemented. Watchtower and Artillery are now buildable city roles. Details are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
 - Seeded generated fields contain 6–24 cities and 1–4 enemies, with selectable Mountains (On by default), Industry (neutral Factories) and optional paired river crossings. The fresh-map default is 14 cities. Home shows an unnamed visual preview with reroll; Play generates a fresh field. Restart/replay retain the current field; New map creates another. Home preferences persist locally. The earlier seven authored maps remain regression fixtures. See [generated match implementation](docs/generated-maps.md).
 - Mouse-only click-to-click uses full regions and the existing order command; touch/pen remain drag-only. Source re-click/Escape and lifecycle/source invalidation clear selection.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
@@ -61,9 +61,9 @@ Implemented items describe the current baseline; unresolved product targets are 
 
 - Three AI difficulty presets, with advanced tuning available for playtesting.
 - A small set of varied maps or constrained map generation.
-- Implemented Industry/Factory/Watchtower/Slow Zone/Capture shield and seeded generated maps; authored maps remain regression scenarios. Progression remains later work.
+- Implemented Industry/Factory/Slow Zone/Capture shield and seeded generated maps; Watchtower/Artillery are exclusive buildable roles, not Home toggles or attached upgrades. Progression remains later work.
 - Implemented event-only round persistence, pause/resume and production PWA caching; expand persistence regression coverage and test real-device install/offline behavior.
-- Owned-city conversion into Production, Defender, or Airfield and reusable air transport are implemented and verified on the isolated feature branch. All initial defaults and control mockups are approved. See [City Conversion and Air Transport](docs/city-conversion/REQUIREMENTS.md) and [behavior contract](docs/city-conversion/IMPLEMENTATION.md).
+- Owned-city conversion into Production, Defender, Airfield, Watchtower and Artillery, reusable air transport and the approved five-icon picker are implemented on isolated `feat/buildable-weapons` (based on main 3859282). Verified: 714 unit tests, 114 Chromium tests, 2 PWA tests and production build pass. Weapon roles cost30/40, use 4/s / 3/s mechanics and do not produce troops. See [City Conversion and Air Transport](docs/city-conversion/REQUIREMENTS.md) and [behavior contract](docs/city-conversion/IMPLEMENTATION.md).
 
 ### Out of Scope
 
@@ -158,12 +158,12 @@ Implemented items describe the current baseline; unresolved product targets are 
 - Enable effects before Play without currency, prices, rewards or unlocks. Player upgrades and each AI faction's upgrade effects are configured independently; generated-match settings persist locally.
 - Industry increases production of every city owned by the faction that selected it by 25%; ownership at growth time determines the rate. Neutral growth remains unchanged.
 - Factory upgrades attach to the selecting faction's starting city; maps can author neutral Factories. Every Factory doubles its current non-neutral owner's local production, stacking with that owner's Industry (2.5 units/sec). Capture transfers the bonus, recapture transfers it back, and duplicate upgrades on authored Factories do not stack. See [special-city slice 4](docs/special-cities/SLICE-4.md).
-- Artillery is a capturable generated-map option: On creates one neutral 14-defender gun and a small mountain ridge; Off omits both. A gun attacks the nearest hostile positive garrison within 90 units, removing one defender every 2,000 ms; neutral/friendly targets and airborne troops are ignored; mountains block shots and direct troop orders, rivers do not block shots. Capture transfers control and resets its full cadence. Artillery cannot capture alone. Mountain detours remain manual, not automatic. See [special-city slice 5](docs/special-cities/SLICE-5.md) and [generated maps](docs/generated-maps.md).
+- Historical generated-Artillery Home toggle is superseded. Artillery is now a buildable exclusive city role (40 troops), range150, up to3 garrison shots/s, mountains block fire, cooldown resets on build/capture, no troop growth. Authored Siege remains a migration/regression fixture. See [city conversion](docs/city-conversion/IMPLEMENTATION.md).
 - Show a factory silhouette on its host (dimmed while inactive) and one upward chevron on Industry-boosted cities. Use both icons when stacked; reserve double chevrons for a later improved Industry level. Do not obscure counts or change touch/combat geometry.
 - Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain compiled effects without stacking them. Home allows changing selections; reload on Home resets setup choices, while a saved active round restores its effects.
 - Preserve paused/hidden/terminal freeze and fractional growth. Numeric modifiers must not mutate shared defaults or map seeds.
-- Watchtower attaches to the selecting faction's starting city, covers a visible 72-field-unit radius and destroys up to four hostile airborne dots per second (one every 250ms). Its allegiance follows current city ownership; neutral towers are inactive. Live simulation and AI forecasting share deterministic fixed-step firing.
+- Watchtower is a buildable exclusive city role (30 troops), range150, destroys up to four hostile ground dots per second (one every250ms), produces no troops, and resets cooldown on build/capture. Neutral towers are inactive; live simulation and AI forecasting share deterministic event scheduling. It is no longer a Home toggle or generated attachment.
 - Each AI faction has selectable Balanced/Aggressive/Defensive behavior and catalog upgrades, including Capture shield. Slow Zone selection is player-only: radius 90, speed multiplier 0.5, randomly placed once per setup across all cities. Owned zones slow hostile groups; neutral zones slow everyone; overlaps use the strongest slowdown. Restart/replay keep the resolved host.
 - No alliances/teams. Home choices persist locally, while saved active rounds retain their compiled AI/rules/features and generated-match seed/preferences.
 - Later progression supplies the same selected effect IDs. Reward formula, prices and caps remain unresolved and out of current scope.
@@ -284,7 +284,7 @@ Status: implemented; balance/real-device playtesting pending.
 Description: Verify one player and two independent hostile AIs on the 23-city map, including retained faction-specific behavior/effects through Play, restart, replay and Home.
 
 ### 10. Selectable upgrade effects
-Status: Industry/Factory/Watchtower/Slow Zone implemented; progression deferred.
+Status: Industry/Factory/Slow Zone and exclusive buildable Watchtower/Artillery city roles implemented; progression deferred.
 Description: Verify typed features, current-owner Factory production, deterministic tower targeting, boundary-aware slowing, AI forecast parity and pause/reset/restore isolation. Independent AI effects exclude player-only Slow Zone selection. Further effects follow the focused upgrade/special-city plans.
 
 ### 11. Offline and Home Screen support

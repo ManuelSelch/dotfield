@@ -48,8 +48,9 @@ describe('generated fields', () => {
     expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, artillery: 'on' as unknown as boolean }, 1)).toThrow();
     expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, watchtower: 'on' as unknown as boolean }, 1)).toThrow();
     expect(() => generateMap({ ...DEFAULT_MAP_SETTINGS, slowZone: 'on' as unknown as boolean }, 1)).toThrow();
-    const { artillery: _omitted, ...missingArtillery } = DEFAULT_MAP_SETTINGS;
-    expect(() => generateMap(missingArtillery as typeof DEFAULT_MAP_SETTINGS, 1)).toThrow();
+    const legacy = generateMap({ ...DEFAULT_MAP_SETTINGS, artillery: true, watchtower: true }, 1);
+    expect(legacy.territories.every(city => city.cityType !== 'artillery' && city.cityType !== 'watchtower'
+      && !city.features?.some(feature => feature.kind === 'artillery' || feature.kind === 'watchtower'))).toBe(true);
     const { mountains: _missingMountains, ...missingMountains } = DEFAULT_MAP_SETTINGS;
     expect(() => generateMap(missingMountains as typeof DEFAULT_MAP_SETTINGS, 1)).toThrow();
     for (const seed of [-1, NaN, 1.5, 2 ** 32]) expect(() => generateMap(DEFAULT_MAP_SETTINGS, seed)).toThrow();
@@ -82,29 +83,24 @@ describe('generated fields', () => {
         } else expect(map.river).toBeUndefined();
       }
   }, 30_000);
-  it('places one seeded-random Watchtower and Slow Zone only when selected', () => {
-    const settings = { ...DEFAULT_MAP_SETTINGS, watchtower: true, slowZone: true };
+  it('migrates Home weapon toggles out while preserving Slow Zone generation', () => {
+    const settings = { ...DEFAULT_MAP_SETTINGS, artillery: true, watchtower: true, slowZone: true };
     const map = generateMap(settings, 19);
-    const towers = map.territories.filter(city => city.features?.some(feature => feature.kind === 'watchtower'));
-    expect(towers).toHaveLength(1);
+    expect(map.territories.every(city => city.cityType !== 'artillery' && city.cityType !== 'watchtower'
+      && !city.features?.some(feature => feature.kind === 'artillery' || feature.kind === 'watchtower'))).toBe(true);
     const zones = map.territories.filter(city => city.features?.some(feature => feature.kind === 'slow-zone'));
     expect(zones).toHaveLength(1);
-    expect(zones[0].features).toContainEqual({ id: `${zones[0].id}:slow-zone`, kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 });
     expect(generateMap(settings, 19)).toEqual(map);
-    const placements = Array.from({ length: 20 }, (_, seed) => generateMap({ ...DEFAULT_MAP_SETTINGS, watchtower: true }, seed)
-      .territories.find(city => city.features?.some(feature => feature.kind === 'watchtower'))!);
-    expect(new Set(placements.map(city => city.id)).size).toBeGreaterThan(1);
-    expect(placements.some(city => city.owner === 'neutral')).toBe(true);
-    const disabled = generateMap({ ...settings, watchtower: false, slowZone: false }, 19);
-    expect(disabled.territories.every(city => !city.features?.some(feature => feature.kind === 'watchtower' || feature.kind === 'slow-zone'))).toBe(true);
+    const disabled = generateMap({ ...settings, slowZone: false }, 19);
+    expect(disabled.territories.every(city => !city.features?.some(feature => feature.kind === 'slow-zone'))).toBe(true);
   });
-  it('keeps Slow Zone when generated features share a city', () => {
+  it('keeps Slow Zone and Factory generation independent of legacy weapon toggles', () => {
     const settings = { ...DEFAULT_MAP_SETTINGS, artillery: true, watchtower: true, slowZone: true, industry: true };
     for (let seed = 0; seed < 20; seed++) {
       const map = generateMap(settings, seed);
-      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'watchtower')).toHaveLength(1);
+      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'watchtower')).toHaveLength(0);
       expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'slow-zone')).toHaveLength(1);
-      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'artillery')).toHaveLength(1);
+      expect(map.territories.flatMap(city => city.features ?? []).filter(feature => feature.kind === 'artillery')).toHaveLength(0);
     }
   });
   it.each([false, true])('keeps every city reachable with Mountains %s', mountains => {
@@ -114,31 +110,19 @@ describe('generated fields', () => {
         expect(everyCityReachable(map), `seed ${seed}, cities ${cities}, enemies ${enemies}, river ${river}, mountains ${mountains}`).toBe(true);
       }
   });
-  it('adds one neutral Artillery city and a separate ridge only when selected', () => {
-    for (const industry of [false, true]) {
-      const settings = { ...DEFAULT_MAP_SETTINGS, cities: 12, enemies: 2, river: true, mountains: true, industry, artillery: true };
-      const map = generateMap(settings, 19);
-      expect(map.settings.artillery).toBe(true);
-      const guns = map.territories.flatMap(city => (city.features ?? []).filter(feature => feature.kind === 'artillery').map(() => city));
-      expect(guns).toHaveLength(1);
-      expect(guns[0]).toMatchObject({ owner: 'neutral', units: 14 });
-      expect(guns[0].features?.some(feature => feature.kind === 'factory')).toBe(false);
-      expect(map.terrain?.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
-      expect(generateMap(settings, 19)).toEqual(map);
-    }
-    const disabled = generateMap({ ...DEFAULT_MAP_SETTINGS, artillery: false }, 19);
-    expect(disabled.settings.artillery).toBe(false);
-    expect(disabled.terrain?.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
-    expect(disabled.territories.every(city => !city.features?.some(feature => feature.kind === 'artillery'))).toBe(true);
+  it('does not spawn prebuilt Artillery from deprecated generated-map settings', () => {
+    const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities: 12, enemies: 2, river: true, mountains: true, industry: true, artillery: true }, 19);
+    expect(map.terrain?.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
+    expect(map.territories.every(city => city.cityType !== 'artillery'
+      && !city.features?.some(feature => feature.kind === 'artillery'))).toBe(true);
+    expect(map.territories.filter(city => city.features?.some(feature => feature.kind === 'factory'))).toHaveLength(2);
   });
-  it('keeps Artillery placement, terrain and city clearance valid across generated sizes and bridge modes', () => {
+  it('keeps generated terrain/city clearance independent of deprecated weapon toggles', () => {
     for (let seed = 0; seed < 3; seed++) for (let cities = 6; cities <= 30; cities++)
       for (let enemies = 1; enemies <= 4; enemies++) for (const river of [false, true]) {
-        const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities, enemies, river, mountains: true, industry: seed % 2 === 0, artillery: true }, seed);
-        const guns = map.territories.filter(city => city.features?.some(feature => feature.kind === 'artillery'));
-        expect(guns).toHaveLength(1);
-        expect(guns[0].owner).toBe('neutral');
-        expect(guns[0].units).toBe(14);
+        const map = generateMap({ ...DEFAULT_MAP_SETTINGS, cities, enemies, river, mountains: true, industry: seed % 2 === 0, artillery: true, watchtower: true }, seed);
+        expect(map.territories.some(city => city.cityType === 'artillery' || city.cityType === 'watchtower')).toBe(false);
+        expect(map.territories.flatMap(city => city.features ?? []).some(feature => feature.kind === 'artillery' || feature.kind === 'watchtower')).toBe(false);
         expect(map.terrain?.barriers.map(barrier => barrier.id)).toEqual(['mountain-range']);
       }
   });

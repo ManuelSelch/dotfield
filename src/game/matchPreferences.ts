@@ -31,7 +31,9 @@ export function readMatchPreferences(storage?: Pick<Storage, 'getItem'>): MatchP
   try {
     const raw = (storage ?? window.localStorage).getItem(MATCH_PREFERENCES_KEY);
     const value: unknown = raw ? JSON.parse(raw) : null;
-    return isMatchPreferences(value) ? value : defaultMatchPreferences();
+    if (!isMatchPreferences(value)) return defaultMatchPreferences();
+    const { artillery: _legacyArtillery, watchtower: _legacyWatchtower, ...map } = value.map;
+    return { ...value, map };
   } catch { return defaultMatchPreferences(); }
 }
 export function writeMatchPreferences(value: MatchPreferences, storage?: Pick<Storage, 'setItem'>): void {

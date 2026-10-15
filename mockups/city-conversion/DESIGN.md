@@ -1,9 +1,9 @@
 # City conversion controls
 
-- Revision: **4**.
-- Review status: **approved**, revision 4. User explicitly replied “looks good. implement it” to the single-row preview. Approved scope: no empty second row or city/garrison header, compact status inside the selected type button, separate Fly/Cancel/close, and permanent 12px map/card gap.
+- Revision: **6**.
+- Review status: **approved**, revision6. User explicitly replied “looks good. implement it” to the icon-picker preview. This approves five visible icon/cost buttons, separate Fly/Cancel, no scrolling or close button, fixed66px card and12px map gap. User approved the gameplay proposal (“yes implement it just like that”): Watchtower30, Artillery40, exclusive nonproducing roles, existing150range/cadence mechanics, fresh cooldown after build/capture, migration of attached weapons, replacement of Home weapon toggles and AI production safeguards. Revision4’s single-row layout was approved and implemented; this preview extends only the role picker.
 - Approval evidence: user replied “yes approved” to the revision 1 preview and explicit implementation-approval question. This covers the compact conversion bar, Fly/target/cancel flow and associated reviewed states. **Dock & pulse, revision 1** in [airplane delivery](../airplane-delivery/DESIGN.md) remains separately approved; A/B treatments remain rejected.
-- Cleanup: revision 1 preview PID57952 stopped and verified previously. Revision 2 Vite PID15630 was verified against command, workspace and listener, stopped gracefully, process/listener absence confirmed and runtime record removed before production work. Revision 4 Vite PID24462 was verified against its command/workspace, stopped gracefully, and process/listener absence confirmed; runtime record removed before production implementation. Approved sources preserved.
+- Cleanup: revision 1 preview PID57952 stopped and verified previously. Revision 2 Vite PID15630 was verified against command, workspace and listener, stopped gracefully, process/listener absence confirmed and runtime record removed before production work. Revision 4 Vite PID24462 and revision6 Vite PID35516 were verified against their command/workspace, stopped gracefully, process/listener absence confirmed and runtime records removed before production implementation. Approved sources preserved.
 - Scope: isolated slice 1 control study for [city conversion requirements](../../docs/city-conversion/REQUIREMENTS.md). Plain HTML/CSS/JS, deterministic fake data and disposable local state. No production implementation, dependencies, settings, requirements or shared package changes.
 
 ## Design question
@@ -14,8 +14,9 @@ Can a compact three-action city bar coexist with normal ground dragging while ma
 
 - Small top-down six-city board, muted green/teal player palette, terracotta enemy, blue-grey river and faceted mountain. City circles use the current **14 logical-unit radius** in a 360-unit board, not larger combat/hit geometry.
 - City buttons have 44 CSS px hit areas even where circles are smaller. Board regions also accept taps/drags; river/mountain/outside taps do not select a city.
-- Single-row card: Production / Defender / Airfield conversion buttons, optional Fly/Cancel and close. No city/type/garrison header, redundant Production/growth status or second row. Selected city details remain available to assistive technology. Current Production says “Current”; Defender’s subtitle shows recharge info; current Airfield’s subtitle shows compact readiness/flight state, with fuller details in its accessible description/title. No Ground button or nested menus.
-- Card is 66px plus safe area, down from revision 3’s114px and the implemented162px. A permanent12px map/card gap remains. All states reserve identical one-row space, including empty, targeting, busy, pause and round end. No unused bottom row. Buttons remain at least44px high; narrow screens use smaller labels to retain all three types and separate Fly/Cancel/close controls.
+- Single-row card: five local SVG icons (factory, shield, airplane, tower, cannon), unselected costs10/20/30/30/40 beneath, and optional separate Fly/Cancel. All five choices remain visible without scrolling. Current role is highlighted; its subtitle is a checkmark or compact live-state label (Ready/Away/Target, shield recharge,4/s or3/s). Names, prices and full status are available in desktop tooltips and accessible button labels. No header, extra row, Ground or close button; tap outside/Escape clears selection.
+- Five role buttons have minimum44px width and48px height. Optional Fly/Cancel is44px wide with a44px hit height. Card horizontal padding6px and gaps2px permit all six controls within a288px-wide card on a320px phone. Mockup card now aligns with the map’s full width.
+- Card remains66px plus safe area with the permanent12px map gap. Every state reserves identical space; scrolling never moves/resizes the map. Status stays in the selected type button (Current, shield recharge, aircraft phase,4hits/s Watchtower,3shots/s Artillery). Fuller details remain accessible/title text. No weapon firing is simulated; existing fake conversion spending and flight flow are retained.
 - Same layout centered at desktop width; no alternative A/B layout. Tab/focus states remain visible, all cities are native keyboard buttons. Reduced motion suppresses travel transitions and decorative pulse expansion, not fake count updates.
 
 ## Interactions
@@ -37,7 +38,9 @@ Use the shared existing `mockups/` Vite workspace. Feature slug: **`/city-conver
 | URL suffix | Review focus |
 | --- | --- |
 | `?state=production` | Orchard selected, instant type conversion, visible prices/current type |
-| `?state=poor` | 12 troops: current Production, Defender/Airfield unavailable |
+| `?state=watchtower` | Watchtower selected/revealed,4hits/s, no growth; conversion costs visible via scrolling |
+| `?state=artillery` | Artillery selected/revealed,3shots/s, no growth; current role cannot charge again |
+| `?state=poor` | 12 troops: current Production, other roles unavailable |
 | `?state=ready` | Meadow Airfield, 126 garrison, ready plane, proposed capacity 100 |
 | `?state=busy` | Plane away, conversion/Fly unavailable, ground still available |
 | `?state=preparing` | Preparation label and disabled Fly |
@@ -54,8 +57,8 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 - Type badges use compact text glyphs, not final artwork. Delivery glyph/positions are illustrative; no native Safari/PWA assurance. Static busy states omit the away plane's position/cargo.
 - Ownership-loss sample demonstrates cleared UI, not a live capture event. No live pause/Home/restart/round-end integration is represented; Reset clears pending illustrative flight timers and state.
 - Reduced-motion travel snaps to positions; timed count changes still occur. No per-pulse focus movement; status is a polite live region.
-- Mockup verification: JavaScript syntax/source and HTTP serving checks. User performed visual review; no mockup browser automation or screenshots were run. Production verification: 701 unit tests, 110 standard browser tests, 2 PWA tests, typecheck/production build and diff checks pass. Real-device verification remains manual.
+- Revision6 mockup source was syntax checked and served with HTTP200; user explicitly approved the rendered design (“looks good. implement it”). No mockup browser automation or screenshots were used. Production implementation has been completed in the isolated feature worktree; final verification outcomes are recorded in the focused requirements/implementation docs. Real-device verification remains manual.
 
 ## Approval checkpoint
 
-Revisions 1, 2 and 4 explicitly approved. Revision 4 approval: “looks good. implement it”. Gameplay, fixed-layout behavior and Dock & pulse rules remain unchanged; prior approved revisions are preserved in Git.
+Revisions1,2 and4 approved and preserved in Git. Revision5’s scrolling proposal was superseded at user request. Revision6 explicitly approved (“looks good. implement it”): icons/costs instead of text, no scrolling or close button, separate Fly/Cancel. Weapon-role gameplay and prices are already approved; fixed-layout and Dock & pulse behavior remain unchanged.

@@ -8,11 +8,11 @@
 </head>
 <body>
   <main>
-    <header><a href="./">DOTFIELD</a><span>Single-row action strip · revision 4 · in review</span></header>
+    <header><a href="./">DOTFIELD</a><span>Icon role picker · revision 6 · in review</span></header>
     <section class="review" aria-label="Mockup review states">
       <label for="scenario">Review state</label>
       <select id="scenario">
-        <option value="production">Production</option><option value="poor">Insufficient troops</option>
+        <option value="production">Production</option><option value="watchtower">Watchtower</option><option value="artillery">Artillery</option><option value="poor">Insufficient troops</option>
         <option value="ready">Ready airfield</option><option value="busy">Plane away</option>
         <option value="preparing">Preparing</option><option value="returning">Returning</option>
         <option value="targeting">Fly targeting</option><option value="lost">Ownership lost</option>
@@ -40,7 +40,7 @@
       <div class="field-help" id="hint">Tap your city to manage · drag to send by ground</div>
       <div class="dock-space">
         <section id="dock" aria-label="Selected city controls" hidden>
-          <div class="selection"><div id="type-actions" class="types" aria-label="Convert city"></div><button id="fly" hidden>Fly</button><button id="cancel" hidden>Cancel</button><button id="close" aria-label="Close city controls">×</button></div>
+          <div class="selection"><div id="type-actions" class="types" role="group" aria-label="Convert city"></div><button id="fly" hidden>Fly</button><button id="cancel" hidden>Cancel</button></div>
           <p id="reason"></p>
           <span id="plane-status" class="sr-status"></span>
         </section>
@@ -49,9 +49,9 @@
     </div>
     <p id="status" role="status" aria-live="polite">Control mockup only. No live game is running.</p>
     <footer>
-      <p>Initial tuning: prices 10 / 20 / 30 · plane capacity 100 · confirmed rules, simulated here.</p>
+      <p>Prices: Production 10 · Defender 20 · Airfield 30 · Watchtower 30 · Artillery 40. Weapons do not produce troops; firing is not simulated here.</p>
       <p>Keyboard: Tab to a city, Enter to select. Escape to cancel or close. Fly → tap any other city.</p>
-      <p>Revision 4: single row, no empty bottom area. Flight/shield status sits inside the selected type button; 12px map gap retained.</p>
+      <p>Revision 6: five icons with costs below, no scrolling. Order: Production · Defender · Airfield · Watchtower · Artillery. Hover for names; selected role is highlighted. Tap outside or Escape to close.</p>
     </footer>
   </main>
   <script type="module" src="./main.js"></script>

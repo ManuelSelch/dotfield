@@ -9,13 +9,14 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
       || typeof city.owner !== 'string' || !city.owner
       || !Number.isSafeInteger(city.units) || city.units < 0
       || !Number.isFinite(city.x) || !Number.isFinite(city.y)
-      || (city.cityType !== undefined && !['production', 'defender', 'airfield'].includes(city.cityType))) {
+      || (city.cityType !== undefined && !['production', 'defender', 'airfield', 'watchtower', 'artillery'].includes(city.cityType))) {
       throw new RangeError('Invalid city definition.');
     }
     cityIds.add(city.id);
     const kinds = new Set<string>();
     const features = city.features?.map(feature => {
-      if (!feature.id || ids.has(feature.id) || kinds.has(feature.kind)) throw new RangeError('Duplicate or invalid city feature.');
+      const weaponFeature = feature.kind === 'watchtower' || feature.kind === 'artillery';
+      if (!feature.id || ids.has(feature.id) || (kinds.has(feature.kind) && !weaponFeature)) throw new RangeError('Duplicate or invalid city feature.');
       if (feature.kind === 'factory') {
         if ((feature.beneficiaryId !== undefined && !feature.beneficiaryId) || !Number.isFinite(feature.productionMultiplier) || feature.productionMultiplier <= 0) {
           throw new RangeError('Invalid Factory definition.');
@@ -31,9 +32,18 @@ export function snapshotTerritories(territories: readonly Territory[]): readonly
           throw new RangeError('Invalid Slow Zone definition.');
         }
       } else throw new RangeError('Unknown city feature.');
-      ids.add(feature.id); kinds.add(feature.kind);
+      ids.add(feature.id);
+      if (!weaponFeature) kinds.add(feature.kind);
       return Object.freeze({ ...feature });
     });
-    return Object.freeze({ ...city, cityType: city.cityType ?? 'production', ...(features ? { features: Object.freeze(features) } : {}) });
+    const legacyWeapons = city.features ?? [];
+    // Explicit newer special roles take precedence. Legacy weapon attachments are
+    // migrated into the city role; ambiguous old dual weapons choose Artillery.
+    const cityType = city.cityType && city.cityType !== 'production' ? city.cityType
+      : legacyWeapons.some(feature => feature.kind === 'artillery') ? 'artillery'
+        : legacyWeapons.some(feature => feature.kind === 'watchtower') ? 'watchtower' : 'production';
+    const retainedFeatures = features?.filter(feature => feature.kind !== 'watchtower' && feature.kind !== 'artillery');
+    return Object.freeze({ ...city, cityType,
+      ...(features ? { features: Object.freeze(retainedFeatures) } : {}) });
   }));
 }

@@ -5,7 +5,8 @@ import { getTerritoryGrowthRate } from '../features/growthRate';
 import { shieldRechargeSource } from '../features/networkShields';
 import { minimumTravelMultiplier } from '../features/slowZone';
 import { remainingTravelBound } from '../route';
-import { AIRCRAFT_PREPARATION_MS, AIR_DELIVERY_INTERVAL_MS, BATCH_SIZE, DEFENDER_SHIELD_CAPACITY, SIMULATION_STEP_MS } from '../settings';
+import { AIRCRAFT_PREPARATION_MS, AIR_DELIVERY_INTERVAL_MS, BATCH_SIZE, CITY_CONVERSION_COST, DEFENDER_SHIELD_CAPACITY, SIMULATION_STEP_MS, WATCHTOWER_RANGE } from '../settings';
+import { artilleryTarget } from '../features/artillery';
 import type { CityType, FactionId, SimulationState } from '../types';
 import { DEFAULT_AI, type AiConfig } from './config';
 import { chooseOrder } from './decision';
@@ -62,6 +63,13 @@ function chooseFlight(state: SimulationState, config: AiConfig, factionId: strin
   return best;
 }
 
+function distanceToTransfer(city: { x: number; y: number }, transfer: SimulationState['transfers'][number]): number {
+  const dx = transfer.to.x - transfer.from.x, dy = transfer.to.y - transfer.from.y;
+  const length2 = dx * dx + dy * dy;
+  const progress = length2 ? Math.max(0, Math.min(1, ((city.x - transfer.from.x) * dx + (city.y - transfer.from.y) * dy) / length2)) : 0;
+  return Math.hypot(city.x - (transfer.from.x + progress * dx), city.y - (transfer.from.y + progress * dy));
+}
+
 function chooseConversion(state: SimulationState, config: AiConfig, factionId: string): AiAction | null {
   const owned = state.territories.filter(c => c.owner === factionId);
   const producers = owned.filter(c => cityType(c) === 'production');
@@ -69,6 +77,8 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
   // Only assign roles to Production, never switch an assigned role back/forth.
   if (producers.length < 3 || owned.length - producers.length >= Math.floor(owned.length / 3)) return null;
   let best: AiAction | null = null;
+  const hasWatchtower = owned.some(city => cityType(city) === 'watchtower');
+  const hasArtillery = owned.some(city => cityType(city) === 'artillery');
   for (const city of producers) {
     if (city.id === state.homeCityIds?.[factionId] || incomingThreat(state, city.id, factionId)
       || state.transfers.some(t => t.sourceId === city.id || t.targetId === city.id)) continue;
@@ -89,6 +99,42 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
         if (flight?.type === 'airlift' && flight.sourceId === city.id) {
           const score = flight.score * 0.7 - economicCost;
           if (score > 0 && (!best || score > best.score)) best = { type: 'convert', cityId: city.id, cityType: 'airfield', score };
+        }
+      }
+    }
+    if (!hasArtillery && city.units > CITY_CONVERSION_COST.artillery
+      && artilleryTarget(state, { ...city, cityType: 'artillery' })) {
+      const converted = convertCity(state, city.id, 'artillery', factionId);
+      if (converted !== state) {
+        const horizon = grid(Math.max(10_000, knownHorizon(state)));
+        const baseline = forecastBattle(state, horizon), proposed = forecastBattle(converted, horizon);
+        const damage = baseline.territories.reduce((sum, target) => {
+          if (target.owner === factionId || target.owner === 'neutral') return sum;
+          const after = proposed.territories.find(city => city.id === target.id)!;
+          return sum + Math.max(0, target.units - after.units);
+        }, 0);
+        const score = config.attackScore + Math.min(30, damage * 2) - economicCost;
+        if (score > 0 && proposed.territories.find(c => c.id === city.id)?.owner === factionId
+          && keepsHomeReserve(state, proposed, factionId) && (!best || score > best.score)) {
+          best = { type: 'convert', cityId: city.id, cityType: 'artillery', score };
+        }
+      }
+    }
+    if (!hasWatchtower && city.units > CITY_CONVERSION_COST.watchtower) {
+      const threats = state.transfers.filter(transfer => transfer.owner !== factionId
+        && distanceToTransfer(city, transfer) <= WATCHTOWER_RANGE);
+      if (threats.length) {
+        const converted = convertCity(state, city.id, 'watchtower', factionId);
+        const horizon = grid(Math.max(5_000, Math.min(10_000, knownHorizon(state))));
+        const baseline = forecastBattle(state, horizon), proposed = forecastBattle(converted, horizon);
+        const before = baseline.transfers.filter(transfer => transfer.owner !== factionId).reduce((sum, transfer) => sum + transfer.units, 0);
+        const after = proposed.transfers.filter(transfer => transfer.owner !== factionId).reduce((sum, transfer) => sum + transfer.units, 0);
+        const protectedUnits = Math.max(0, before - after);
+        const score = config.defenceScore + Math.min(40, protectedUnits * 2) - economicCost;
+        if (converted !== state && protectedUnits > 0 && score > 0
+          && proposed.territories.find(c => c.id === city.id)?.owner === factionId
+          && keepsHomeReserve(state, proposed, factionId) && (!best || score > best.score)) {
+          best = { type: 'convert', cityId: city.id, cityType: 'watchtower', score };
         }
       }
     }

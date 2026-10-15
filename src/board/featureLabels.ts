@@ -1,6 +1,6 @@
 import type { Territory, CaptureShieldState, SimulationState, Aircraft } from '../game/types';
 import { shieldRechargeSource } from '../game/features/networkShields';
-import { AIRCRAFT_CAPACITY, DEFENDER_SHIELD_CAPACITY } from '../game/settings';
+import { AIRCRAFT_CAPACITY, ARTILLERY_FIRE_INTERVAL_MS, ARTILLERY_RANGE, DEFENDER_SHIELD_CAPACITY, WATCHTOWER_FIRE_INTERVAL_MS, WATCHTOWER_RANGE } from '../game/settings';
 
 export function aircraftLabel(plane: Aircraft): string {
   const seconds = Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000);
@@ -19,7 +19,10 @@ export function featureLabels(city: Territory, shield?: CaptureShieldState, shie
   const type = city.cityType ?? 'production';
   const stored = shield ?? state?.captureShields[city.id];
   const identity = type === 'production' ? ' Production city.'
-    : ` ${type === 'defender' ? 'Defender' : 'Airfield'} city; no troop growth.`;
+    : type === 'defender' ? ' Defender city; no troop growth.'
+      : type === 'airfield' ? ' Airfield city; no troop growth.'
+        : type === 'watchtower' ? ` Watchtower ${city.owner === 'neutral' ? 'inactive while neutral' : `controlled by ${city.owner}`}; no troop growth. Fires at hostile ground troops within ${WATCHTOWER_RANGE} units, up to ${(1000 / WATCHTOWER_FIRE_INTERVAL_MS).toFixed(0)} per second.`
+          : ` Artillery ${city.owner === 'neutral' ? 'inactive while neutral' : `controlled by ${city.owner}`}; no troop growth. Fires at enemy garrisons within ${ARTILLERY_RANGE} units, up to ${(1000 / ARTILLERY_FIRE_INTERVAL_MS).toFixed(0)} shots per second; mountains block shots.`;
   const active = state ? shieldRechargeSource(state, city.id) : undefined;
   const capacity = active?.capacity ?? (type === 'defender' && city.owner !== 'neutral'
     ? Math.max(DEFENDER_SHIELD_CAPACITY, shieldCapacity ?? 0) : shieldCapacity ?? 0);
@@ -27,7 +30,7 @@ export function featureLabels(city: Territory, shield?: CaptureShieldState, shie
   const plane = state?.aircraft?.[city.id];
   return identity + (plane ? aircraftLabel(plane) : '') + (city.features ?? []).map(feature => {
     switch (feature.kind) {
-      case 'factory': return ` Factory ${city.owner !== 'neutral' ? 'active' : 'inactive'} (${feature.productionMultiplier}× production).`;
+      case 'factory': return ` Factory ${city.owner !== 'neutral' && type === 'production' ? 'active' : 'inactive'} (${feature.productionMultiplier}× production).`;
       case 'slow-zone': return ` Slow Zone controlled by ${city.owner}, ${Math.round(feature.speedMultiplier * 100)}% speed within ${feature.radius} units for ${city.owner === 'neutral' ? 'all traveling groups' : 'hostile traveling groups'}.`;
       case 'artillery': return ` Artillery ${city.owner === 'neutral' ? 'inactive' : `controlled by ${city.owner}`}, nearest hostile garrison within ${feature.range} units, one defender every ${feature.fireIntervalMs} ms. Mountains block shots; troops must capture cities.`;
       case 'watchtower': return ` Watchtower controlled by ${city.owner}, firing within ${feature.range} units every ${feature.fireIntervalMs} ms (up to ${(1000 / feature.fireIntervalMs).toFixed(1)} shots/second).`;

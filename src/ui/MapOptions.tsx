@@ -24,8 +24,6 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
       {([{ id: 'industry', name: 'Factory', aria: 'Factory' },
         { id: 'river', name: 'River & bridges', aria: 'River and bridges' },
         { id: 'mountains', name: 'Mountains', aria: 'Mountains' },
-        { id: 'artillery', name: 'Artillery', aria: 'Artillery' },
-        { id: 'watchtower', name: 'Watchtower', aria: 'Watchtower' },
         { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <TogglePill key={feature.id} label={feature.aria} pressed={settings[feature.id]}
         onClick={() => onChange({ ...settings, [feature.id]: !settings[feature.id] })} />)}
     </div>

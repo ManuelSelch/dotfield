@@ -5,7 +5,7 @@ import { factionPalette } from './palette';
 import { drawChevronIcon, drawFactoryIcon, drawWatchtowerIcon, drawSlowZoneIcon, drawArtilleryIcon, drawDefenseShieldIcon } from './upgradeIcons';
 import { shieldRechargeSource } from '../game/features/networkShields';
 import { drawAirplaneIcon } from './drawAircraft';
-import { TERRITORY_RADIUS } from '../game/settings';
+import { TERRITORY_RADIUS, WATCHTOWER_RANGE } from '../game/settings';
 
 export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: SimulationState, width: number, height: number,
   _connectedNetworks?: ReadonlyMap<string, ReadonlySet<string>>, shieldCapacities?: ReadonlyMap<string, number>) {
@@ -23,8 +23,6 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
     }
     for (const feature of city.features ?? []) {
       if (feature.kind === 'factory') badge(1, city.owner !== 'neutral', drawFactoryIcon);
-      if (feature.kind === 'artillery') badge(city.features?.some(f => f.kind === 'factory') ? 0 : 1,
-        city.owner !== 'neutral', drawArtilleryIcon);
       if (feature.kind === 'slow-zone') {
         const range = feature.radius * city.radius / TERRITORY_RADIUS;
         ctx.save(); ctx.globalAlpha = 0.09;
@@ -34,15 +32,16 @@ export function drawCityFeatures(ctx: CanvasRenderingContext2D, state: Simulatio
         ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.restore();
         badge(-1, true, drawSlowZoneIcon, 1);
       }
-      if (feature.kind === 'watchtower') {
-        const range = feature.range * city.radius / TERRITORY_RADIUS;
-        ctx.save(); ctx.globalAlpha = city.owner === 'neutral' ? 0.12 : 0.2;
-        ctx.fillStyle = factionPalette(city.owner).fill; ctx.strokeStyle = factionPalette(city.owner).fill;
-        ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(city.x, city.y, range, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();
-        // Keep the tower visually distinct when Factory is also installed on this city.
-        badge(1, city.owner !== 'neutral', drawWatchtowerIcon, 1);
-      }
     }
+    if (city.cityType === 'watchtower') {
+      const range = WATCHTOWER_RANGE * city.radius / TERRITORY_RADIUS;
+      ctx.save(); ctx.globalAlpha = city.owner === 'neutral' ? 0.12 : 0.2;
+      ctx.fillStyle = factionPalette(city.owner).fill; ctx.strokeStyle = factionPalette(city.owner).fill;
+      ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(city.x, city.y, range, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.restore();
+      badge(1, city.owner !== 'neutral', drawWatchtowerIcon, 1);
+    }
+    if (city.cityType === 'artillery') badge(city.features?.some(f => f.kind === 'factory') ? 0 : 1,
+      city.owner !== 'neutral', drawArtilleryIcon);
     // Faction-wide production boost only: Factory's local multiplier never adds a chevron.
     if ((!city.cityType || city.cityType === 'production') && city.owner !== 'neutral'
       && getFactionRules(state, city.owner).unitsPerSecond > BASE_FACTION_RULES.unitsPerSecond) {

@@ -59,7 +59,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
           {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}
         </p>}
-        {state.territories.some(c => c.features?.some(f => f.kind === 'artillery')) && <p role="status" aria-label="Artillery feedback" className="sr-only">
+        {state.territories.some(c => c.cityType === 'artillery') && <p role="status" aria-label="Artillery feedback" className="sr-only">
           {state.artilleryShots?.length ? state.artilleryShots.map(shot => `${shot.sourceId} fired at ${shot.targetId}: one defender lost.`).join(' ') : 'Artillery automatically fires at hostile garrisons; neutral Artillery is inactive.'}
         </p>}
         {state.terrain && <p id="terrain-order-help" role="status" className="sr-only">
@@ -79,7 +79,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
             : plane && ['preparing', 'turnaround'].includes(plane.phase) ? `${Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000)}s remaining`
             : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
           onConvert={session.convert} onFly={() => session.target('fly')}
-          onCancel={session.cancelTarget} onClose={session.closeCity} />
+          onCancel={session.cancelTarget} />
           : <p className="city-action-strip__hint">{state.roundStatus !== 'playing' ? 'Round complete'
             : phase === 'paused' ? 'Resume to manage cities'
             : 'Tap a city to convert · drag to send troops'}</p>}

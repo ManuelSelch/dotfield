@@ -17,9 +17,11 @@ export function forecastBattle(state: SimulationState, horizonMs: number): Simul
       ? -t.elapsedMs : t.durationMs - traveledTime(t)));
     // A quiet ground queue is not a quiet world: preparation, air pulses,
     // home loss and Defender recharge can all change combat between arrivals.
-    const cityEvents = next.territories.some(c => c.cityType === 'airfield' || c.cityType === 'defender');
-    const step = Math.min(remaining, cityEvents || hasOpposingTransfers(next) || hasSlowZones(next) ? SIMULATION_STEP_MS
-      : Math.max(SIMULATION_STEP_MS, Math.ceil(eventMs / SIMULATION_STEP_MS) * SIMULATION_STEP_MS));
+    const cityEvents = next.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
+    // advanceWorldStep owns exact internal physical event splitting for city roles;
+    // replay the full remaining forecast span to avoid cumulative clock drift.
+    const step = cityEvents ? remaining : Math.min(remaining, hasOpposingTransfers(next) || hasSlowZones(next)
+      ? SIMULATION_STEP_MS : Math.max(SIMULATION_STEP_MS, Math.ceil(eventMs / SIMULATION_STEP_MS) * SIMULATION_STEP_MS));
     next = advanceWorldStep(next, step);
     remaining -= step;
   }
