@@ -12,11 +12,14 @@ async function getTransfer(page: ReturnType<typeof expect>['page']) {
 }
 
 test('mouse clicks respect water hit-testing and bridge order rules after input merge', async ({ page }) => {
-  const box = (await page.getByRole('img', { name: 'Territory board' }).boundingBox())!;
-  const scale = Math.min(box.width / 360, box.height / 480);
-  const click = async (x: number, y: number) => page.mouse.click(
-    box.x + (box.width - 360 * scale) / 2 + x * scale,
-    box.y + (box.height - 480 * scale) / 2 + y * scale);
+  const click = async (x: number, y: number) => {
+    // Opening/closing city management changes the canvas height between clicks.
+    const box = (await page.getByRole('img', { name: 'Territory board' }).boundingBox())!;
+    const scale = Math.min(box.width / 360, box.height / 480);
+    await page.mouse.click(
+      box.x + (box.width - 360 * scale) / 2 + x * scale,
+      box.y + (box.height - 480 * scale) / 2 + y * scale);
+  };
   const items = page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem');
   await click(180, 430); await click(180, 240); // Water is not a city target.
   await expect(items).toHaveCount(0);
