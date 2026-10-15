@@ -4,7 +4,7 @@
 
 Give players a meaningful choice between troop production, defense, and air mobility by converting existing cities at a troop cost. Introduce reusable, capacity-limited airplanes that transport troops to any city across rivers and mountains, while keeping mobile controls quick and the top-down battlefield readable.
 
-Status: implementation authorized in an isolated feature worktree using subagents. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md), then requested “now use subagents and worktrees to implement it” and confirmed “Yes—use all recommended defaults”. All eight rule questions are resolved by that confirmation. The conversion/flight control mockup remains a visual-review gate before production UI implementation.
+Status: implementation authorized in an isolated feature worktree using subagents. User approved **Dock & pulse (option C), revision 1** of [the delivery mockup](../../mockups/airplane-delivery/DESIGN.md), then requested “now use subagents and worktrees to implement it” and confirmed “Yes—use all recommended defaults”. All eight rule questions are resolved by that confirmation. The conversion/flight control mockup revision 1 is also explicitly approved (“yes approved”); its owned preview was stopped and sources preserved before production UI work.
 
 ## Scope
 

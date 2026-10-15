@@ -1,8 +1,9 @@
 # City conversion controls
 
 - Revision: **1**.
-- Review status: **in review**. No approval of these controls has been given.
-- Approval evidence: none for this revision. Only **Dock & pulse, revision 1** in [airplane delivery](../airplane-delivery/DESIGN.md) is approved; rejected A/B treatments are not included here.
+- Review status: **approved**, revision 1.
+- Approval evidence: user replied “yes approved” to the revision 1 preview and explicit implementation-approval question. This covers the compact conversion bar, Fly/target/cancel flow and associated reviewed states. **Dock & pulse, revision 1** in [airplane delivery](../airplane-delivery/DESIGN.md) remains separately approved; A/B treatments remain rejected.
+- Cleanup: agent-owned managed preview PID57952 verified against command/workspace, stopped gracefully, process/listener absence verified and runtime record removed. Approved sources preserved.
 - Scope: isolated slice 1 control study for [city conversion requirements](../../docs/city-conversion/REQUIREMENTS.md). Plain HTML/CSS/JS, deterministic fake data and disposable local state. No production implementation, dependencies, settings, requirements or shared package changes.
 
 ## Design question
@@ -57,4 +58,4 @@ The review-state selector updates the URL; reload/Reset restores deterministic d
 
 ## Approval checkpoint
 
-Ask after user review: **“Approve this revision for implementation, or continue iterating?”** Record explicit approval and exact revision here before production controls. Do not infer approval from the previously approved delivery style, a planning request or this handoff. Gameplay defaults are confirmed; production controls still require this visual approval.
+Revision 1 explicitly approved for implementation. Gameplay defaults and control visual review are now confirmed. Preserve this source as the reference; any material control/layout change requires renewed approval.
