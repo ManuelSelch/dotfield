@@ -44,14 +44,14 @@ export function drawAircraft(ctx: CanvasRenderingContext2D, state: SimulationSta
         const p = screenPoint(city, width, height);
         const seconds = Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000);
         label(plane.phase === 'ready' ? 'ready' : `${plane.phase === 'preparing' ? 'prep' : 'turn'} ${seconds}s`,
-          p.x, p.y + TERRITORY_RADIUS * scale + 19, palette.ink);
+          p.x, p.y + TERRITORY_RADIUS * scale + 19, palette.fill);
       }
     } else {
       const p = aircraftGeometry(plane, width, height);
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.scale(p.scale, p.scale);
       ctx.fillStyle = palette.fill; ctx.strokeStyle = '#fcfcf8'; ctx.lineWidth = 1.1;
       drawAirplaneIcon(ctx); ctx.restore();
-      label(plane.cargo > 0 ? String(plane.cargo) : 'empty', p.x, p.y - 22 * p.scale, palette.ink);
+      label(plane.cargo > 0 ? String(plane.cargo) : 'empty', p.x, p.y - 22 * p.scale, palette.fill);
     }
     ctx.restore();
   }
@@ -67,7 +67,7 @@ export function drawAircraft(ctx: CanvasRenderingContext2D, state: SimulationSta
     const city = state.territories.find(c => c.id === event.targetId);
     if (!city) continue;
     const p = screenPoint(city, width, height), age = state.elapsedMs - event.atMs;
-    const ink = factionPalette(event.result === 'blocked' ? city.owner : event.owner).ink;
+    const ink = factionPalette(event.result === 'blocked' ? city.owner : event.owner).fill;
     ctx.save(); ctx.strokeStyle = ink; ctx.lineWidth = 1.5;
     ctx.globalAlpha = 1 - age / AIR_DELIVERY_FEEDBACK_MS;
     ctx.beginPath(); ctx.arc(p.x, p.y, (TERRITORY_RADIUS + 3

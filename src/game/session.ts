@@ -1,4 +1,5 @@
 import { DEFAULT_AI, type AiConfig } from './ai/config';
+import { applyAiAction, type AiAction } from './ai/actions';
 import { createClock } from './clock';
 import { dispatchUnits } from './dispatch';
 import { convertCity } from './cityConversion';
@@ -83,6 +84,10 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
         ...(factionId === 'enemy' ? { aiNextDecisionMs: nextDeadline } : {}),
       };
       return true;
+    },
+    applyFactionAction(action: AiAction, factionId: FactionId) {
+      if (active()) state = applyAiAction(state, action, factionId);
+      return state;
     },
     dispatchFaction(sourceId: string, targetId: string, factionId: FactionId) {
       if (active()) state = dispatchUnits(state, sourceId, targetId, factionId);

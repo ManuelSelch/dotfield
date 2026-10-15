@@ -74,10 +74,12 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
       {selectedCity && <CityControls name={selectedCity.id} cityType={cityType(selectedCity)} troops={selectedCity.units}
         planePhase={plane?.phase ?? null} capacity={AIRCRAFT_CAPACITY} costs={CITY_CONVERSION_COST}
         targeting={session.citySelection?.targeting ?? null}
-        detail={plane?.cargo ? `${plane.cargo} aboard` : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
+        detail={plane?.cargo ? `${plane.cargo} aboard`
+          : plane && ['preparing', 'turnaround'].includes(plane.phase) ? `${Math.ceil(Math.max(0, plane.durationMs - plane.elapsedMs) / 1000)}s remaining`
+          : shield?.capacity ? `${state.captureShields[selectedCity.id]?.remaining ?? 0}/${shield.capacity} shields · ${shield.source} recharge 10s` : undefined}
         onConvert={session.convert} onFly={() => session.target('fly')} onGround={() => session.target('ground')}
         onCancel={session.cancelTarget} onClose={session.closeCity} />}
-      <TerritoryDetails territories={state.territories} captureShields={state.captureShields} shieldCapacities={shieldCapacities} />
+      <TerritoryDetails state={state} territories={state.territories} captureShields={state.captureShields} shieldCapacities={shieldCapacities} />
       <TransferDetails state={state} />
     </>
   );

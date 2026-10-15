@@ -40,6 +40,18 @@ describe('city session commands', () => {
     session.resume(); session.frame(1_000_050);
     expect(session.state.aircraft?.home?.elapsedMs).toBe(0);
   });
+  it('applies worker conversion actions through active faction commands and revalidates stale resources', () => {
+    const session = createSession(cities, null, { unitsPerSecond: 0 });
+    const action = { type: 'convert' as const, cityId: 'away', cityType: 'airfield' as const, score: 10 };
+    const initial = session.state;
+    expect(session.applyFactionAction(action, 'enemy')).toBe(initial);
+    session.start();
+    expect(session.applyFactionAction(action, 'enemy').territories[1]).toMatchObject({ cityType: 'airfield', units: 50 });
+    const converted = session.state;
+    expect(session.applyFactionAction(action, 'enemy')).toBe(converted);
+    session.pause();
+    expect(session.applyFactionAction({ ...action, cityType: 'production' }, 'enemy')).toBe(converted);
+  });
   it('never lets player controls convert or launch from an enemy city', () => {
     const session = createSession(cities, null, { unitsPerSecond: 0 }); session.start();
     const initial = session.state;
