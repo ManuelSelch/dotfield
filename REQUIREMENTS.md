@@ -6,7 +6,7 @@ Status: mobile/desktop board, simulation/AI, pause/replay, generated Home, Indus
 
 Implemented desktop layout and mouse-control requirements are tracked separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
-The proposed [Command Relay plan](docs/relay/REQUIREMENTS.md) covers an optional Courtyard capture-and-hold objective, compact scoreboard, objective-aware AI and compatible persistence. It is planning only: the rules/mode defaults and production UI integration still need confirmation; existing conquest gameplay remains unchanged.
+The [Command Relay plan](docs/relay/REQUIREMENTS.md) covers a Relay On the field option across all layouts: the Courtyard city or a central neutral city elsewhere, activation after 120 active seconds and victory after 180 cumulative holding seconds. The relay remains convertible; existing conquest is also a valid victory condition. Rules are recorded, but production gameplay is not implemented and controls/HUD integration still needs mockup approval. Existing gameplay remains unchanged; the user's current rounds last around ten minutes, superseding the older 2–4-minute assumption for relay playtesting.
 
 The original browser assertion failures and lifecycle-save defect are repaired; [docs/test-repair/REQUIREMENTS.md](docs/test-repair/REQUIREMENTS.md) tracks the pending expanded persistence matrix. Merge checkpoint `d2d9702` passed 402 unit tests, 79 Chrome browser tests, build and whitespace checks; totals are checkpoint evidence, not a permanent suite size.
 
