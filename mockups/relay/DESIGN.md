@@ -1,16 +1,31 @@
-# Command Relay — revision 1
+# Command Relay — revision 2
 
 - Status: IN REVIEW. No production implementation authorized.
-- Goal: compare three visual treatments of the same fixed-city relay on a river, two-bridge and mountain field.
-- A: compact persistent scoreboard. B: explicit mission card. C: map beacon with owner-coloured progress ring and inset scoreboard.
-- Preserve Dotfield's pale territory regions, teal player, terracotta enemy, rounded bridge decks, faceted ridge, compact city counters and reserved city-control strip.
-- Gold identifies the objective independently of faction ownership. Ring/beacon is separate from the troop counter.
-- Desktop: three alternatives side by side; medium: two columns; phone: stacked full-width alternatives. Native controls, visible keyboard focus, no required motion.
-- Deterministic states: `?state=countdown`, `?state=holding`, `?state=urgent`. Query specifies the initial preset, not edits to scores.
-- Review controls: switch presets, hide/show tactical-route illustrations, simulate capture by button or keyboard/click on relay, advance holding score by 10. Capture preserves both scores. Preset selection resets to its authored snapshot. Score advancement stops at 89; terminal victory is omitted.
-- Map: northern enemy and southern player, river at y178–216 with crossings x65/x355, relay at western south-bank endpoint, central mountain below river. Ground sketches are separate city-to-city legs. Urgent state adds a curved illustrative airlift route over the mountain; aircraft have no simulated physics.
-- Rules illustrated: activate at 60 seconds, first faction to accumulate 90 holding seconds wins, ownership loss pauses progress. Numbers are design proposals, not approved balance.
-- Fake/omitted: no real clock, capture combat, growth, movement, map generation, city conversion or AI. Map composition is illustrative, not proven fair. This relay is relatively accessible to the southern faction, while the northern faction can cross directly through its paired bridge; equal opportunity must be evaluated in playable maps.
-- The three alternatives differ in presentation, not scoring or relay placement. No moving objective, economic bonus or terrain changes are introduced.
-- Open review: preferred HUD; relay visibility; acceptable map occlusion in C; whether a bridge-end relay is too defensible. Production strip shown as an idle placeholder, not a proposed redesign.
-- Approval: pending explicit user review of revision 1.
+- User feedback on revision 1: “the Compact scoreboard looks good” but relay placement on a bridge was not interesting enough. Compact scoreboard is the preferred presentation; overall map design is not approved.
+- Goal: compare three map compositions using the same compact scoreboard, objective rules and match-state controls. The relay is never a bridge city.
+
+## Layouts
+
+- A / The far basin: relay deep on the far bank behind a central ridge, approached around either flank. Bridge control opens access but does not secure the objective. Factories in the outer northern pockets compete for attention.
+- B / The mountain courtyard: relay between two parallel ridges. Two entrances (north/south); side valleys lead to northern factories and a rear approach. Illustrates one faction taking the short southern route while the other takes the northern approach. These choices are available symmetrically, not faction-locked. This is the strongest encirclement study, not a recommendation based on playtesting.
+- C / The exposed lowland: relay inland from the river, accessible from both crossings; neutral factories lie beyond a northern mountain. The decision is to hold points or spend troops securing the longer-term economy.
+- All layouts: southern left/right faction starts, central southern ridge separating direct home-to-home attacks, horizontal river with two paired crossings, multiple city-to-city approaches. Factory attachments mean extra Production output, not a new mechanic.
+- Spatial mirror symmetry gives equal initial access in the drawings; competitive balance, timing and strategic interest are untested. Factions may contest either bridge. Illustrative paths are not exclusive movement lanes or automatic routing; other unobstructed same-bank orders remain possible.
+
+## Presentation and interaction
+
+- Dotfield pale Voronoi regions clipped by bank, teal player, terracotta enemy, gold relay, rounded bridge decks, faceted mountains, compact troop counters and idle city-control strip.
+- All three cards use compact scoreboard A from revision 1. No map-inset score panel or large mission card.
+- Three desktop columns, two medium-width columns, single-column phone layout. Keyboard controls and relay activation by Enter/Space retained; no required animation.
+- States: `?state=countdown`, `?state=holding`, `?state=urgent`. Query restores initial state preset, not edited scores.
+- Controls: switch presets; show/hide tactical routes; simulate capture; advance holding score by 10. Both scores are preserved on capture. Preset buttons restore authored scores. Advancement stops at 89; terminal outcome omitted.
+- Teal/red dashed routes illustrate separate city-to-city orders for each faction. Fine gold routes show production detours. Urgent state sketches an airlift across terrain.
+
+## Scope and approval
+
+- Proposed scoring unchanged: activate at 60 seconds, first to 90 holding seconds wins, losing ownership pauses accumulated progress. No bonus troops or changing terrain.
+- Fake: no running clock, combat, growth, aircraft physics, map generator, city conversion or AI. Territories beyond the bridge are illustrative mid-opening ownership, not the exact initial board. Preset troops/roles are not a playable simulation.
+- Geometry source checks verify cities avoid mountain bounds, drawn ground legs avoid mountain interiors, and cross-river legs use paired bridge cities. This is not visual or balance verification.
+- Production bridge/city geometry and generator feasibility have not been implemented or proven. Mockup is a design reference only.
+- Review question: which separation of economy, crossing and objective creates the clearest strategic trade-off?
+- Approval: pending explicit user review of revision 2. Revision 1 remains in git commit 89a64ee.
