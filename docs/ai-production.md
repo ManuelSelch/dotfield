@@ -20,7 +20,7 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 ## Safety and stability
 
 - Economic redistribution is disabled when known hostile groups target the source or destination. A threatened destination instead uses the existing defense evaluation.
-- Hold a source when a hostile city has a useful available army and a legal direct route whose first batch can arrive within five seconds at its normal speed. This conservative guard protects exposed capped strongholds even before an enemy dispatch; it is not a perfect future-threat model. Slow effects can make actual arrival later.
+- Hold a source when a hostile city has a useful available army and a legal direct route whose first batch can arrive within three seconds for Aggressive, or five seconds for Balanced/Defensive, at its normal speed. This guard protects exposed capped strongholds even before an enemy dispatch; it is not a perfect future-threat model. Slow effects can make actual arrival later. The separate aircraft-departure guard remains five seconds for every behavior.
 - A friendly transfer cannot receive a positive score by sacrificing a source that the no-order forecast would retain. The destination must also remain owned in the proposed forecast.
 - Production transfers follow a stable staging priority: nearer front-distance bands, then lower production rate within a band, then shorter front distance, then city ID for equal positions. Band width uses `AiConfig.frontlineAdvance` (60 by default).
 - Priority does not depend on current garrison or friendly incoming troop counts, so merely filling a collection city does not reverse the direction. The best reachable eligible sink receives the donors. A Factory can export into an ordinary city in the same band to preserve the higher-value production site.
@@ -29,7 +29,7 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 
 ## Tuning and verification
 
-`PRODUCTION_AI` in `src/game/ai/config.ts` contains the lookahead, cap lead time, source-threat window, minimum gain and bounded bonus scale. It is separate from persisted `AiConfig`, so old round configs need no new fields. All behavior presets and AI factions use the same logistics policy; their existing defense/attack/frontline scores still differ.
+`PRODUCTION_AI` in `src/game/ai/config.ts` contains the lookahead, cap lead time, default source-threat window, minimum gain and bounded bonus scale. Aggressive overrides the production source-threat window with optional `AiConfig.productionThreatTravelMs: 3000`; Balanced/Defensive and legacy saved configs without that field use the five-second default. Existing saved rounds retain their compiled settings; start a new match to receive the new Aggressive override. All AI factions use this policy independently; their existing defense/attack/frontline scores still differ.
 
 `src/game/ai/production.test.ts` covers pre-cap relief, repeated decisions without ping-pong, consolidation above 100, premature evacuation, Factory timing and priority, a net-negative Factory sink, queue accounting, stronghold preservation, known threats, emergency defense, attacks from collected armies, disabled production, bridge/mountain legality, independent factions and immutability. `tests/ai-production.spec.ts` exercises the real worker and production round-save entry path at mobile and desktop widths.
 

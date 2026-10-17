@@ -10,10 +10,12 @@ export interface AiConfig {
   readonly travelCostPerSecond: number;
   readonly defenceBuffer: number;
   readonly frontlineAdvance: number;
+  // Optional for saved rounds compiled before behavior-specific logistics.
+  readonly productionThreatTravelMs?: number;
 }
 
-// Economic lookahead and conservative source protection; shared by all behaviors.
-// Separate from persisted AiConfig so existing saved rounds need no migration.
+// Shared economic defaults; behaviors may override the production threat window.
+// Missing overrides in existing saved AiConfig values retain these defaults.
 export const PRODUCTION_AI = Object.freeze({
   lookAheadMs: 15_000, capLeadMs: 5_000, threatTravelMs: 5_000,
   minGain: 2, bonusHalfGain: 10,

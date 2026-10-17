@@ -4,6 +4,8 @@ import { dispatchUnits } from '../dispatch';
 import { createRiver } from '../river';
 import { createTerrain } from '../terrain/terrain';
 import { chooseOrder } from './decision';
+import { resolveAiBehavior } from './behaviors';
+import { safeAirDeparture } from './mobility';
 import { forecastBattle } from './forecast';
 import { factionArmyUnits } from './logistics';
 import type { SimulationState, Territory } from '../types';
@@ -22,6 +24,37 @@ function order(state: SimulationState) {
 }
 
 describe('production-aware enemy logistics', () => {
+  const guardedRear = (distance = 160) => createSimulation([
+    city('rear', 50, 180, 350), city('staging', 50, 180, 330),
+    city('player', 300, 180, 350 - distance, 'player'),
+  ]);
+
+  it.each(['aggressive', 'balanced', 'defensive'] as const)(
+    'uses the %s production threat window for a hostile army 3–5 seconds away', behavior => {
+      const selected = chooseOrder(guardedRear(), resolveAiBehavior(behavior));
+      if (behavior === 'aggressive') expect(selected).toMatchObject({ sourceId: 'rear', targetId: 'staging', kind: 'reinforce' });
+      else expect(selected).toBeNull();
+    });
+
+  it('still protects aggressive donors from armies within three seconds', () => {
+    expect(chooseOrder(guardedRear(100), resolveAiBehavior('aggressive'))).toBeNull();
+  });
+
+  it('still blocks aggressive production relief under a known incoming attack', () => {
+    const attacked = dispatchUnits(guardedRear(), 'player', 'rear');
+    expect(chooseOrder(attacked, resolveAiBehavior('aggressive'))?.sourceId).not.toBe('rear');
+  });
+
+  it('retains the five-second aircraft departure guard', () => {
+    const state = guardedRear();
+    const launched = { ...state, territories: state.territories.map(c => c.id === 'rear' ? { ...c, units: 1 } : c) };
+    expect(safeAirDeparture(state, launched, 'rear', 'enemy')).toBe(false);
+  });
+
+  it('retains the five-second production guard for legacy configs without the new setting', () => {
+    const { productionThreatTravelMs: _window, ...legacy } = resolveAiBehavior('balanced');
+    expect(chooseOrder(guardedRear(), legacy)).toBeNull();
+  });
   it('frees a nearly capped rear city without requiring a 60-unit frontline advance', () => {
     expect(chooseOrder(opening())).toMatchObject({ sourceId: 'rear-left', targetId: 'staging', kind: 'reinforce' });
   });

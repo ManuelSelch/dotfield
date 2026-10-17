@@ -61,7 +61,8 @@ export function canRelieveProduction(state: SimulationState, source: TerritorySt
     && availableUnits(state, hostile.id) - 1 >= config.minDispatchUnits
     && canRiverOrder(hostile, source, state.river)
     && canDirectTerrainOrder(hostile, source, state.terrain, getFactionRules(state, hostile.owner))
-    && createRoute(hostile, source, getFactionRules(state, hostile.owner)).durationMs <= PRODUCTION_AI.threatTravelMs)) return false;
+    && createRoute(hostile, source, getFactionRules(state, hostile.owner)).durationMs
+      <= (config.productionThreatTravelMs ?? PRODUCTION_AI.threatTravelMs))) return false;
 
   const sourceDistance = distances.get(source.id)!;
   const targetDistance = distances.get(target.id)!;
