@@ -52,13 +52,15 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const mountains = page.getByRole('button', { name: 'Mountains' });
     await expect(mountains).toHaveAttribute('aria-pressed', 'true');
     await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
-    await mountains.click();
+    await page.getByRole('button', { name: 'Open field', exact: true }).click();
     await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(0);
     await mountains.click();
     await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(1);
     await expect(page.getByText(/WEST PASS|EAST PASS/)).toHaveCount(0);
     await expect(preview.locator('circle[cx]')).toHaveCount(14);
+    await page.getByRole('button', { name: 'River', exact: true }).click();
     await expect(preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]')).toHaveCount(2);
+    await mountains.click();
     await expect(page.locator('.home-preview').getByRole('button', { name: 'Reroll' })).toHaveCount(0);
     for (const circle of await preview.locator('circle[cx]').all()) await expect(circle).toHaveAttribute('r', String(TERRITORY_RADIUS));
     for (const counter of await preview.locator('text').all()) await expect(counter).toHaveAttribute('font-size', String(TERRITORY_RADIUS));
@@ -81,7 +83,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.screenshot({ path: `test-results/generated-setup-${viewport.width}.png` });
     await page.getByRole('button', { name: 'More cities' }).click();
     await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
-    await page.getByRole('button', { name: 'River and bridges' }).click();
+    await page.getByRole('button', { name: 'Mountains', exact: true }).click();
     await page.getByText('Your upgrades', { exact: true }).click();
     const playerUpgrades = page.getByRole('group', { name: 'Your upgrades' });
     await expect(playerUpgrades.getByRole('button', { name: 'Watchtower' })).toHaveCount(0);
@@ -183,9 +185,9 @@ test('terminal result uses icon actions without detail text or a New map button'
   await expect(page.getByRole('region', { name: 'Match settings' })).toBeVisible();
 });
 
-test('Mountains Off generates and saves a field without the central ridge', async ({ page }) => {
+test('Open field generates and saves a field without the central ridge', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Mountains' }).click();
+  await page.getByRole('button', { name: 'Open field', exact: true }).click();
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   const game = await saved(page);
   expect(game.generated.preferences.map.mountains).toBe(false);

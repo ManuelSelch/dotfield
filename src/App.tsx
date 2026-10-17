@@ -7,13 +7,13 @@ import type { AppUpdates } from './pwa/appUpdates';
 import { AppHeader } from './ui/AppHeader';
 import { compileRoundSetup, type RoundSetup } from './game/upgrades/compile';
 import { clearSavedGame, readSavedGame, writeSavedGame } from './game/persistence';
-import { readMatchPreferences, writeMatchPreferences, type GeneratedMatch, type MatchPreferences } from './game/matchPreferences';
+import { normalizeMatchPreferences, readMatchPreferences, writeMatchPreferences, type GeneratedMatch, type MatchPreferences } from './game/matchPreferences';
 import { createSnapshotSaver } from './game/snapshotSaver';
 
 type ActiveSetup = RoundSetup & { readonly generated?: GeneratedMatch };
 export function App({ updates }: { updates: AppUpdates }) {
   const [saved, setSaved] = useState(() => readSavedGame());
-  const [preferences, setPreferences] = useState(() => saved?.generated?.preferences ?? readMatchPreferences());
+  const [preferences, setPreferences] = useState(() => saved?.generated ? normalizeMatchPreferences(saved.generated.preferences) : readMatchPreferences());
   const [previewSeed, setPreviewSeed] = useState(newMapSeed);
   const [setup, setSetup] = useState<ActiveSetup | null>(() => saved ? {
     territories: saved.territories, river: saved.state.river, terrain: saved.state.terrain,

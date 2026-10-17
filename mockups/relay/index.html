@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dotfield · Relay map studies</title><link rel="stylesheet" href="./styles.css"></head>
+<body>
+<main>
+<header class="review-header"><div><p class="eyebrow">DOTFIELD / GAMEPLAY STUDY 01</p><h1>The crossing is not the objective.</h1><p>Three relay layouts, now up to 30 cities. Same field size, terrain and city size—compare the density.</p></div><span class="prototype">Interactive mockups · not a playable match</span></header>
+<nav class="review-controls density-controls" aria-label="City density"><span>City count</span><button data-count="base">Original · 15–16</button><button data-count="20">20 cities</button><button data-count="24">24 cities</button><button data-count="30">30 cities</button><span class="density-hint">New cities are neutral · layout landmarks stay fixed</span></nav>
+<nav class="review-controls" aria-label="Mockup state"><span>Match moment</span><button data-state="countdown">Before activation</button><button data-state="holding">You hold the relay</button><button data-state="urgent">Enemy close to victory</button><label class="routes-toggle"><input id="routes-toggle" type="checkbox" checked> Show tactical routes</label></nav>
+<p class="map-legend"><span class="legend-player">— Your approach</span><span class="legend-enemy">— Enemy approach</span><span class="legend-economy">··· Economy detour</span><span>Factory icons mark extra production · routes are illustrative orders, not automatic paths</span></p>
+<section class="comparison" aria-label="Relay map alternatives"></section>
+<footer class="review-footer">Same rules in every option: activation at 1:00 · first to 90 holding points wins · scores pause, never reset on capture. Both factions start on the southern bank; both can reach either bridge. Terrain blocks direct ground orders, not aircraft. Layout balance remains untested.</footer>
+</main><script type="module" src="./main.js"></script>
+</body></html>

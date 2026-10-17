@@ -15,7 +15,7 @@ describe('match preferences', () => {
     let raw = '';
     writeMatchPreferences(value, { setItem: (key, data) => { expect(key).toBe(MATCH_PREFERENCES_KEY); raw = data; } });
     expect(readMatchPreferences({ getItem: () => raw })).toEqual({ ...value,
-      map: { cities: 24, enemies: 1, industry: true, river: true, mountains: false, slowZone: true } });
+      map: { cities: 24, enemies: 1, industry: true, river: true, mountains: false, slowZone: true, layout: 'river' } });
     expect(() => writeMatchPreferences(value, { setItem: () => { throw Error('full'); } })).not.toThrow();
   });
   it('migrates legacy weapon toggles away while keeping other saved map settings', () => {
@@ -27,6 +27,18 @@ describe('match preferences', () => {
     const olderPreferences = { ...defaults, map: withoutMountains };
     expect(isMatchPreferences(olderPreferences)).toBe(false);
     expect(readMatchPreferences({ getItem: () => JSON.stringify(olderPreferences) })).toEqual(defaults);
+  });
+  it('migrates legacy combined Home settings without changing existing round metadata', () => {
+    const legacy = { ...defaultMatchPreferences(), map: { ...DEFAULT_MAP_SETTINGS, cities: 30 } };
+    expect(isMatchPreferences(legacy)).toBe(true);
+    expect(readMatchPreferences({ getItem: () => JSON.stringify(legacy) }).map).toMatchObject({ layout: 'mountains', river: false, mountains: true, cities: 30 });
+    expect(legacy.map.river).toBe(true);
+  });
+  it('round-trips Courtyard preferences and rejects incompatible generated metadata', () => {
+    const value = { ...defaultMatchPreferences(), map: { ...DEFAULT_MAP_SETTINGS, layout: 'courtyard' as const, cities: 30, enemies: 1 } };
+    expect(readMatchPreferences({ getItem: () => JSON.stringify(value) })).toEqual(value);
+    expect(isMatchPreferences({ ...value, map: { ...value.map, enemies: 2 } })).toBe(false);
+    expect(isMatchPreferences({ ...value, map: { ...value.map, cities: 19 } })).toBe(false);
   });
   it('rejects unknown factions, upgrades, behaviors and malformed selections', () => {
     const base = defaultMatchPreferences();
