@@ -167,7 +167,7 @@ function renderStrip() {
 }
 function renderOverlay() {
   const shown=['paused','result'].includes(view);$('overlay').hidden=!shown;if(!shown)return;
-  $('overlay').innerHTML=view==='paused'?`<div class="overlay-card"><h2>Paused</h2><p>${relay?'Relay clock and holding progress are paused.':'The match is paused.'}</p><div class="actions"><button id="resume" class="primary">Resume</button><button id="back-home">Home</button></div></div>`:`<div class="overlay-card"><h2>${winner==='player'?'Victory':'Defeat'}</h2><p>${info(winner).name} held the relay for 180 seconds.<br>Other cities do not need to be conquered.</p><div class="actions"><button id="replay" class="primary">Play again</button><button id="back-home">Home</button></div></div>`;
+  $('overlay').innerHTML=view==='paused'?`<div class="overlay-card"><h2>Paused</h2><p>${relay?'Relay clock and holding progress are paused.':'The match is paused.'}</p><div class="actions"><button id="resume" class="primary">Resume</button><button id="back-home">Home</button></div></div>`:`<div class="overlay-card"><h2>${winner==='player'?'Victory':'Defeat'}</h2><div class="actions"><button id="replay" class="primary">Play again</button><button id="back-home">Home</button></div></div>`;
   if($('resume'))$('resume').onclick=()=>{view=elapsed<120?'countdown':owner==='neutral'?'neutral':'holding';render();};
   if($('replay'))$('replay').onclick=()=>{preset('countdown');render();};
   $('back-home').onclick=()=>{preset('home');render();};

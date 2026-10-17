@@ -12,12 +12,12 @@ export function forecastBattle(state: SimulationState, horizonMs: number): Simul
   if (!Number.isFinite(horizonMs) || horizonMs < 0) throw new RangeError('Forecast horizon must be finite and non-negative.');
   if (state.roundStatus !== 'playing' || horizonMs === 0) return state;
   let next = resolveCombat(state);
-  for (let remaining = horizonMs; remaining > 0;) {
+  for (let remaining = horizonMs; remaining > 0 && next.roundStatus === 'playing';) {
     const eventMs = Math.min(...next.transfers.map(t => t.elapsedMs < 0
       ? -t.elapsedMs : t.durationMs - traveledTime(t)));
     // A quiet ground queue is not a quiet world: preparation, air pulses,
     // home loss and Defender recharge can all change combat between arrivals.
-    const cityEvents = next.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
+    const cityEvents = !!next.relay || next.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
     // advanceWorldStep owns exact internal physical event splitting for city roles;
     // replay the full remaining forecast span to avoid cumulative clock drift.
     const step = cityEvents ? remaining : Math.min(remaining, hasOpposingTransfers(next) || hasSlowZones(next)

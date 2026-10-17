@@ -4,20 +4,8 @@ import type { SimulationState } from './types';
 import type { AiConfig } from './ai/config';
 import { advanceAi, type AiConfigurations } from './ai/tick';
 
-export function evaluateRound(state: SimulationState): SimulationState {
-  if (state.roundStatus !== 'playing') return state;
-  const alive = new Set(state.territories.map(node => node.owner).filter(owner => owner !== 'neutral'));
-  for (const transfer of [...state.transfers, ...state.arrivals]) {
-    // Unlaunched groups are counted through their source, not as airborne survivors.
-    if (transfer.units > 0 && transfer.elapsedMs >= 0) alive.add(transfer.owner);
-  }
-  for (const plane of Object.values(state.aircraft ?? {})) {
-    if (plane.cargo > 0 && (plane.phase === 'outbound' || plane.phase === 'unloading')) alive.add(plane.owner);
-  }
-  const player = alive.has('player');
-  if (player && alive.size > 1) return state;
-  return { ...state, roundStatus: player ? 'victory' : alive.size > 0 ? 'defeat' : 'draw' };
-}
+import { evaluateRound } from './outcome';
+export { evaluateRound } from './outcome';
 
 export function advanceRound(state: SimulationState, elapsedMs: number, ai: AiConfig | AiConfigurations | null = null): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');

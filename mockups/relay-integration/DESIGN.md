@@ -1,11 +1,11 @@
 # Relay controls and HUD integration — revision 1
 
-- Status: IN REVIEW. Implements the mockup deliverable of relay plan slice 1, not its approval gate. Production gameplay is unchanged; explicit visual approval is still required.
+- Status: APPROVED revision 1 with the user's requested removal of explanation text in the victory popup. Approval: “mockup looks good. But I do not need an \"explanation\" in the victory popup. approved implement it”. Production implementation is authorized.
 - Confirmed rules: Relay is an On the field option across all four layouts; scoring activates at 120 active seconds; first to 180 cumulative holding seconds wins; capture pauses rather than resets accumulated scores. Ordinary city roles remain legal on the relay. Existing conquest check takes precedence over simultaneous relay completion; capture alone cannot undo already-earned progress.
 - Home: existing four-layout picker, city/enemy controls, Factory and Slow Zone plus independent Relay Off/On. Relay defaults Off as the compatibility recommendation. Preview marks the courtyard city on Courtyard, or a central neutral city on other layouts. No separate mode picker or automatic Courtyard activation. Compact helper: “Activates at 2:00 · hold for 3:00 total”.
 - Match: preferred compact scoreboard above the field, showing activation countdown or current holder's remaining holding time and each participating faction's cumulative score out of180. Two factions use two columns; three–five use three columns/up to two rows. The100px HUD reservation is constant across states and participant counts for this study, preventing countdown/capture/pause changes from resizing the field. Review whether its spare room with two factions is worth keeping the same geometry.
 - Objective: restrained gold dashed ring and RELAY label on an ordinary city, independent of owner and city role. Factory and converted-role badges remain separate. No extra objective resources, troop production or role. Neutral/owned/urgent states differ through readable text, scores and normal faction colors, not animation alone.
-- Controls: preserve a66px, five-icon city strip plus12px field gap. Selecting your city exposes mock role conversion/costs; Airfield exposes fake Fly/Cancel targeting. Escape clears selection/targeting; role changes preserve objective identity and scores. Paused/result states keep the strip space and overlay the field, not move it. Overlay shows relay result reason and Play again/Home.
+- Controls: preserve a66px, five-icon city strip plus12px field gap. Selecting your city exposes mock role conversion/costs; Airfield exposes fake Fly/Cancel targeting. Escape clears selection/targeting; role changes preserve objective identity and scores. Paused/result states keep the strip space and overlay the field, not move it. Result overlay shows Victory/Defeat and Play again/Home only, without explanation text.
 - Responsive: Home is settings-left/preview-right on desktop and stacked on narrow windows. Match remains a bounded playing shell with a360×480 logical SVG centered within remaining field space. HTML action buttons have44px minimum targets. Keyboard-accessible city controls and full-region pointer selection are illustrative; scaled city-region touch usability still needs human review. No animation or remote assets. Browser review is user-led; no automated browser interactions/screenshots were performed.
 
 ## Review links and interactions
@@ -31,5 +31,4 @@
 
 ## Approval
 
-- Pending user review of revision1. Review questions: does Relay belong naturally alongside Factory/Slow Zone; is the compact HUD readable with two and five factions; and do its fixed space and relay/role badges feel right on narrow/short screens?
-- Approve this revision for implementation, or continue iterating?
+- User explicitly approved revision1, with explanation text removed from the result popup as requested. Sources preserved. Owned preview PID77439 command/workspace/listener verified before graceful shutdown; no further mockup browser review is needed.
