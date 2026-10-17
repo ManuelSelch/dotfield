@@ -1,4 +1,5 @@
 import type { SimulationState, Transfer } from './types';
+import { cancelBlockedGroundQueues } from './groundAccess';
 
 export function availableUnits(state: SimulationState, sourceId: string): number {
   const source = state.territories.find(node => node.id === sourceId);
@@ -11,6 +12,7 @@ export function availableUnits(state: SimulationState, sourceId: string): number
 
 // Queued troops are still defenders inside their source until their launch time.
 export function launchBatches(state: SimulationState, elapsedMs: number): SimulationState {
+  state = cancelBlockedGroundQueues(state);
   let territories = state.territories;
   const transfers: Transfer[] = [];
   for (const batch of [...state.transfers].sort((a, b) => b.elapsedMs - a.elapsedMs)) {

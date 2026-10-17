@@ -14,7 +14,7 @@
 | Type | Troop growth | Ability |
 |---|---|---|
 | Production | Normal, capped at 50 automatic production | Industry/Factory troop multipliers apply |
-| Defender | None | Recharges one batch-blocking shield every 10 seconds, capacity 3 |
+| Defender | None | Recharges one batch-blocking shield every 10 seconds, capacity 3; blocks hostile ground transit through its region |
 | Airfield | None | Prepares and supports one reusable airplane |
 | Watchtower | None | Fires at hostile ground troops within range 150; 4 shots per second |
 | Artillery | None | Fires at enemy garrisons within range 150; 3 shots per second, mountains block |
@@ -23,7 +23,7 @@ All types can hold reinforcements above 50 and dispatch ground troops. Roles are
 
 Legacy migration: old attached Artillery/Watchtower features promote a Production/unspecified city to that role and are removed; explicit Defender/Airfield roles win conflicts; ambiguous legacy dual weapons deterministically prefer Artillery. Both opening and live saved cities are normalized. Former timer IDs migrate to unified per-city weapon timers. Old generated-map weapon toggles are ignored and stripped from Home preferences; no free prebuilt weapons are generated. Conversion/capture resets the full weapon cooldown. Weapon cadence boundaries split physical simulation deterministically. AI may build at most one of each when forecasts show useful fire, while retaining its producer safeguards.
 
-Defender uses the existing Capture Shield pool, not a second pool. Defender/network capacities use the maximum, never add together, and recharge through one coordinated stream. Capture-granted excess charges are retained; no conversion grants free charges. Converting away retains stored charges but removes Defender recharge. Initial Defender pool is empty unless charges already existed.
+Defender uses the existing Capture Shield pool, not a second pool. Defender/network capacities use the maximum, never add together, and recharge through one coordinated stream. Capture-granted excess charges are retained; no conversion grants free charges. Converting away retains stored charges but removes Defender recharge. Initial Defender pool is empty unless charges already existed. Owned Defenders also block hostile ground transit through their logical territory regions; neutral Defenders are inactive. Direct attacks on the blocker and aircraft bypass remain legal. Newly blocked unlaunched queues cancel without spending garrison troops; committed batches finish normally. See [Defender border behavior and verification](../defender-borders/IMPLEMENTATION.md).
 
 ## Airplane lifecycle
 
@@ -47,7 +47,7 @@ Capturing the home destroys its old plane and undelivered cargo immediately. Alr
 ## AI
 
 - Player, synchronous AI, worker AI and forecasts use the same conversion/launch/physics paths. Worker returns typed actions for ground, airlift or conversion; stale actions revalidate resources/ownership/readiness.
-- Conservative conversion keeps at least two Production cities and at least two thirds of its cities producing. It creates at most one Airfield, Defender, Watchtower and Artillery per faction and does not repeatedly switch roles; weapon conversion requires forecastable, useful targets.
+- Conservative conversion keeps at least two Production cities and at least two thirds of its cities producing. It creates at most one Airfield, Watchtower and Artillery per faction, while allowing multiple useful border Defenders and does not repeatedly switch roles; weapon conversion requires forecastable, useful targets.
 - Airfield supply is bounded, useful flights may carry partial loads, and ready aircraft can attack/reinforce across barriers. Known incoming attacks are included in combat forecasts. Defensive Network home protection has no fixed troop minimum: safe ground/air departures are allowed even before the network activates. Departures that reduce available home troops are rejected when a hostile available army could overwhelm the remainder via a legal direct ground attack within five seconds; mountain/river legality and attacker movement rules apply. Queued outgoing troops count as committed, not as retained reserves. Forecast home loss is still rejected; home conversion remains excluded.
 - These are heuristic decisions over known orders, not predictions of future player commands or guaranteed optimal strategy.
 

@@ -14,6 +14,7 @@ import { forecastBattle } from './forecast';
 import { frontlineDistances } from './logistics';
 import { groundLegal, hasBarrierOpportunity, incomingThreat, keepsHomeReserve, remainingDeliveryMs, safeAirDeparture } from './mobility';
 import { scoreOrder, type AiOrder } from './score';
+import { newlyDeniedRoutes } from './defenderStrategy';
 
 // AiOrder.kind remains the tactical reason, never a command discriminator.
 export type AiAction = (AiOrder & { readonly type: 'ground' | 'airlift' })
@@ -138,20 +139,22 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
         }
       }
     }
-    if (owned.some(c => cityType(c) === 'defender')
-      || shieldRechargeSource(state, city.id).capacity >= DEFENDER_SHIELD_CAPACITY) continue;
+    const converted = convertCity(state, city.id, 'defender', factionId);
+    if (converted === state || converted.territories.find(c => c.id === city.id)!.units < 20) continue;
+    const denied = newlyDeniedRoutes(state, converted, factionId);
+    // Extra Defenders must add real transit denial; do not buy redundant shields.
+    if (!denied && (owned.some(c => cityType(c) === 'defender')
+      || shieldRechargeSource(state, city.id).capacity >= DEFENDER_SHIELD_CAPACITY)) continue;
     // A held, exposed front facing an army it cannot cheaply attack. Shield
     // recharge is long-term denial, never a fictional immediate free shield.
     const exposed = state.territories.some(hostile => hostile.owner !== factionId && hostile.owner !== 'neutral'
       && hostile.units > city.units && groundLegal(state, hostile, city)
       && Math.hypot(hostile.x - city.x, hostile.y - city.y) <= 180);
     if (!exposed) continue;
-    const converted = convertCity(state, city.id, 'defender', factionId);
-    if (converted === state || converted.territories.find(c => c.id === city.id)!.units < 20) continue;
     const horizon = grid(Math.max(30_000, knownHorizon(state)));
     const proposed = forecastBattle(converted, horizon);
     if (proposed.territories.find(c => c.id === city.id)?.owner !== factionId || !keepsHomeReserve(state, proposed, factionId)) continue;
-    const score = config.frontlineScore + 5 - economicCost;
+    const score = config.frontlineScore + 5 + Math.min(12, denied * 4) - economicCost;
     if (score > 0 && (!best || score > best.score)) best = { type: 'convert', cityId: city.id, cityType: 'defender', score };
   }
   return best;

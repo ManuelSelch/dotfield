@@ -46,7 +46,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
       </div>}
       <div className="field-viewport relative min-h-0 flex-1">
-        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
+        <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help defender-order-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
         <RegionControls state={state} disabled={phase !== 'running'} shieldCapacities={shieldCapacities} />
@@ -57,14 +57,21 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
             : 'The connected-territory border highlight is shown only while Defensive Network is enabled.'}
           {playerDefenseTier ? ` Each connected city can store up to ${playerDefenseTier} shield${playerDefenseTier === 1 ? '' : 's'} and recharges one every 10 seconds. Each shield blocks one hostile troop-arrival batch. The numbered badge shows capacity; shield arcs show current charges.` : state.rules.factions.player?.connectedDefense ? ' Defensive Network is active but needs at least four connected cities before shields recharge.' : ''}
         </p>
+        <p id="defender-order-help" className="sr-only">
+          Fortified region edges mark owned Defenders. Hostile ground troops must attack the Defender or stage around its region.
+          Neutral Defenders do not block transit. Aircraft and already-launched ground troops bypass new borders.
+        </p>
+        <p role="status" aria-label="Ground order feedback" className={session.feedback.startsWith('Defender ')
+          ? 'pointer-events-none absolute inset-x-2 bottom-2 z-10 rounded-lg bg-white/95 px-3 py-2 text-center text-xs text-ink shadow-sm'
+          : 'sr-only'}>{session.feedback}</p>
         {state.river && <p id="bridge-order-help" role="status" className="sr-only">
-          {session.feedback || 'River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.'}
+          River crossings require paired bridge-city orders. Send within your bank, stage at a bridge city, then send across. The river itself is not a city target.
         </p>}
         {state.territories.some(c => c.cityType === 'artillery') && <p role="status" aria-label="Artillery feedback" className="sr-only">
           {state.artilleryShots?.length ? state.artilleryShots.map(shot => `${shot.sourceId} fired at ${shot.targetId}: one defender lost.`).join(' ') : 'Artillery automatically fires at hostile garrisons; neutral Artillery is inactive.'}
         </p>}
         {state.terrain && <p id="terrain-order-help" role="status" className="sr-only">
-          {session.feedback || 'Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.'}
+          Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.
         </p>}
         {state.roundStatus === 'playing' && <>
           <SessionControls phase={phase} onPause={session.pause} onResume={session.resume} onRestart={session.restart} />

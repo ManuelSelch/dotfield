@@ -1,4 +1,5 @@
 import type { Territory } from '../../game/types';
+import { firstDefenderBlocker } from '../../game/defenderBorders';
 import type { DragSelection } from '../drag';
 import type { CityRegion } from './geometry';
 import { REGION_BORDER, REGION_FILLS, REGION_SOURCE, REGION_TARGET } from './styles';
@@ -45,11 +46,12 @@ function drawConnectedPerimeter(ctx: CanvasRenderingContext2D, regions: readonly
 
 export function drawRegions(ctx: CanvasRenderingContext2D, territories: readonly Territory[],
   regions: readonly CityRegion[], selection: DragSelection | null, river?: River, terrain?: Terrain,
-  connectedIds: ReadonlySet<string> = new Set()) {
+  connectedIds: ReadonlySet<string> = new Set(), air = false) {
   const owners = new Map(territories.map(n => [n.id, n.owner]));
   const source = territories.find(c => c.id === selection?.sourceId);
   const target = territories.find(c => c.id === selection?.targetId);
-  const blockedId = source && target && source.id !== target.id && (!canRiverOrder(source, target, river) || !canDirectTerrainOrder(source, target, terrain)) ? target.id : null;
+  const blockedId = !air && source && target && source.id !== target.id && (!canRiverOrder(source, target, river)
+    || !canDirectTerrainOrder(source, target, terrain) || firstDefenderBlocker(territories, source, target, river)) ? target.id : null;
   ctx.save();
   ctx.lineJoin = 'round';
   ctx.strokeStyle = REGION_BORDER;

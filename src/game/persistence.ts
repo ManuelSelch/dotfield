@@ -1,4 +1,5 @@
 import { createRiver, canRiverOrder } from './river';
+import { cancelBlockedGroundQueues } from './groundAccess';
 import { createTerrain } from './terrain/terrain';
 import { snapshotTerritories } from './features/snapshot';
 import { canDirectTerrainOrder } from './terrain/directOrder';
@@ -158,7 +159,7 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
     }
     const restored = { ...normalized, ...restoreAircraft(normalized) };
     const relay = restoreRelay(restored, territories);
-    return { ...parsed, state: { ...restored, ...(relay ? { relay } : {}) } };
+    return { ...parsed, state: cancelBlockedGroundQueues({ ...restored, ...(relay ? { relay } : {}) }) };
   } catch {
     return null;
   }
