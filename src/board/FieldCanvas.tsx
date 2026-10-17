@@ -6,6 +6,7 @@ import { shieldRechargeSource } from '../game/features/networkShields';
 import { useBoardSession } from './useBoardSession';
 import { SessionControls, SessionNavigationControls } from '../ui/SessionControls';
 import { TroopCompositionBar } from '../ui/TroopCompositionBar';
+import { RelayScoreboard } from '../ui/RelayScoreboard';
 import { TransferDetails } from './TransferDetails';
 import { TERRITORIES } from './map';
 import { TerritoryDetails } from './TerritoryDetails';
@@ -41,9 +42,9 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
 
   return (
     <>
-      <div className="mb-3 flex shrink-0 items-center gap-3">
+      {state.relay ? <RelayScoreboard state={state} phase={phase} /> : <div className="mb-3 flex shrink-0 items-center gap-3">
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
-      </div>
+      </div>}
       <div className="field-viewport relative min-h-0 flex-1">
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.

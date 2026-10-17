@@ -177,7 +177,9 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
           || (['preparing', 'turnaround'].includes(p.phase)
             && Math.ceil((p.durationMs - p.elapsedMs) / 1000) !== Math.ceil((old.durationMs - old.elapsedMs) / 1000));
       })
-      || state.roundStatus !== previous.roundStatus;
+      || state.roundStatus !== previous.roundStatus
+      || !!state.relay && (Math.floor(state.elapsedMs / 1000) !== Math.floor(previous.elapsedMs / 1000)
+        || Object.entries(state.relay.scoresMs).some(([id, score]) => Math.floor(score / 1000) !== Math.floor((previous.relay?.scoresMs[id] ?? 0) / 1000)));
     if (citySelection && !managedCity()) clearCity();
     if (state.roundStatus !== 'playing') { drag.cancel(); clearCity(); }
     if (changed) onState(state);

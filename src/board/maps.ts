@@ -7,6 +7,7 @@ import type { Terrain } from '../game/terrain/types';
 import type { River } from '../game/river';
 
 export interface FieldMap {
+  readonly relay?: import('../game/relay').RelayDefinition;
   readonly id: string;
   readonly territories: readonly Territory[];
   readonly river?: River;

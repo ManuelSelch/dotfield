@@ -5,6 +5,8 @@ import { advanceWorldStep } from './worldStep';
 import { forecastBattle } from './ai/forecast';
 import { dispatchUnits } from './dispatch';
 import { convertCity } from './cityConversion';
+import { launchAircraft } from './aircraft';
+import { AIR_DELIVERY_INTERVAL_MS } from './settings';
 import type { SimulationState, Territory } from './types';
 
 const cities: Territory[] = [{ id: 'relay', owner: 'player', units: 50, x: 100, y: 100 },
@@ -55,6 +57,18 @@ describe('relay clock and outcomes', () => {
     expect(forecastBattle(state, 15000).relay).toEqual(bulk.relay);
     const captureAt = state.transfers[0].durationMs;
     expect(bulk.relay?.scoresMs.enemy).toBeCloseTo(15000 - captureAt, 6);
+  });
+  it('starts holding only after an actual air-delivery capture and shares the forecast clock', () => {
+    const opening: Territory[] = [{ id: 'air', owner: 'player', cityType: 'airfield', units: 40, x: 60, y: 100 },
+      { id: 'relay', owner: 'neutral', units: 0, x: 180, y: 100 }, { id: 'enemy', owner: 'enemy', units: 40, x: 300, y: 420 }];
+    const ready = advanceWorldStep(createSimulation(opening, { unitsPerSecond: 0 }, undefined, undefined,
+      { ...definition, activateAtMs: 0 }), 20000);
+    const flight = launchAircraft(ready, 'air', 'relay');
+    const capturedAt = flight.aircraft!.air.durationMs + AIR_DELIVERY_INTERVAL_MS;
+    const after = advanceWorldStep(flight, 4000);
+    expect(after.territories.find(c => c.id === 'relay')?.owner).toBe('player');
+    expect(after.relay?.scoresMs.player).toBeCloseTo(4000 - capturedAt, 6);
+    expect(forecastBattle(flight, 4000).relay).toEqual(after.relay);
   });
   it('freezes forecasts at relay defeat rather than considering post-defeat actions', () => {
     const state = { ...own(game(), 'enemy'), elapsedMs: 299999,
