@@ -10,6 +10,7 @@ import type { Terrain } from '../terrain/types';
 
 export type UpgradeSelection = Readonly<Partial<Record<FactionId, readonly UpgradeId[]>>>;
 export interface RoundSetup {
+  readonly relay?: import('../relay').RelayDefinition;
   readonly terrain?: Terrain;
   readonly river?: River;
   readonly territories: readonly Territory[];

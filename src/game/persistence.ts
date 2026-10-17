@@ -7,6 +7,7 @@ import { createRules } from './rules';
 import { restoreCaptureShields } from './features/captureShield';
 import { restoreNetworkShieldTimers, shieldRechargeSource } from './features/networkShields';
 import { restoreAircraft } from './restoreAircraft';
+import { restoreRelay } from './restoreRelay';
 import { ARTILLERY_FIRE_INTERVAL_MS, DEFENDER_SHIELD_CAPACITY, WATCHTOWER_FIRE_INTERVAL_MS } from './settings';
 import type { AiConfigurations } from './ai/tick';
 import type { SessionPhase } from './session';
@@ -155,7 +156,9 @@ export function readSavedGame(storage?: Pick<Storage, 'getItem'>): SavedGame | n
         || (timer.source !== undefined && timer.source !== active.source)
         || (timer.resetAtMs !== undefined && (timer.elapsedMs !== 0 || timer.resetAtMs !== normalized.elapsedMs))) return null;
     }
-    return { ...parsed, state: { ...normalized, ...restoreAircraft(normalized) } };
+    const restored = { ...normalized, ...restoreAircraft(normalized) };
+    const relay = restoreRelay(restored, territories);
+    return { ...parsed, state: { ...restored, ...(relay ? { relay } : {}) } };
   } catch {
     return null;
   }

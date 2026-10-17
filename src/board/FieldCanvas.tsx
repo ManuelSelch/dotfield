@@ -20,11 +20,11 @@ import type { Terrain } from '../game/terrain/types';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
 import { connectedDefenseCapacities, connectedDefenseTierForSize } from '../game/connectedDefense';
 
-interface FieldCanvasProps { territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
+interface FieldCanvasProps { relay?: import('../game/relay').RelayDefinition; territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
-export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, river, terrain, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
+export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoStart = true, onHome, rules, river, terrain, relay, initialState, initialPhase, onSnapshot }: FieldCanvasProps = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain);
+  const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain, relay);
   const { state, phase } = session;
   const networkEnabled = state.rules.factions.player?.connectedDefense ?? false;
   const connectedIds = networkEnabled

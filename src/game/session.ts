@@ -15,10 +15,11 @@ import type { SimulationState } from './types';
 import { createRiver, type River } from './river';
 import { createTerrain } from './terrain/terrain';
 import type { Terrain } from './terrain/types';
+import type { RelayDefinition } from './relay';
 
 export type SessionPhase = 'ready' | 'running' | 'paused';
 
-interface SessionOptions { initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; river?: River; terrain?: Terrain }
+interface SessionOptions { initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; river?: River; terrain?: Terrain; relay?: RelayDefinition }
 
 // UI-independent lifecycle. Round outcomes remain separate from user pause/start state.
 export function createSession(territories: readonly Territory[], ai: AiConfig | AiConfigurations | null = DEFAULT_AI, rules?: RulesInput, options: SessionOptions = {}) {
@@ -27,9 +28,11 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
   const river = riverInput ? createRiver(riverInput, opening) : undefined;
   const terrainInput = options.terrain ?? options.initialState?.terrain;
   const terrain = terrainInput ? createTerrain(terrainInput) : undefined;
+  const relayInput = options.relay ?? options.initialState?.relay;
+  const relay = relayInput && Object.freeze({ cityId: relayInput.cityId, activateAtMs: relayInput.activateAtMs, targetMs: relayInput.targetMs });
   const resolvedRules = createRules(rules);
   const policy = ai ? ('decisionIntervalMs' in ai ? { ...ai } : Object.fromEntries(Object.entries(ai).map(([id, config]) => [id, config && { ...config }])) as Partial<Record<FactionId, AiConfig>>) : null;
-  let state = options.initialState ?? evaluateRound(createSimulation(opening, resolvedRules, river, terrain));
+  let state = options.initialState ?? evaluateRound(createSimulation(opening, resolvedRules, river, terrain, relay));
   let phase: SessionPhase = options.initialState ? (options.initialPhase ?? 'paused') : 'ready';
   let hidden = false;
   let clock = createClock();
@@ -55,7 +58,7 @@ export function createSession(territories: readonly Territory[], ai: AiConfig | 
       hidden = value; clock.reset();
     },
     restart() {
-      state = evaluateRound(createSimulation(opening, resolvedRules, river, terrain));
+      state = evaluateRound(createSimulation(opening, resolvedRules, river, terrain, relay));
       phase = 'ready'; clock = createClock();
     },
     frame(timestampMs: number) {

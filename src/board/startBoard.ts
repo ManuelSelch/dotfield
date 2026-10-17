@@ -26,6 +26,7 @@ interface BoardOptions {
   rules?: RulesInput;
   river?: River;
   terrain?: Terrain;
+  relay?: import('../game/relay').RelayDefinition;
   initialState?: SimulationState;
   initialPhase?: Exclude<SessionPhase, 'ready'>;
 }
@@ -40,7 +41,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
     : null;
   const session = createSession(territories, aiWorker ? null : ai, options.rules,
-    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain });
+    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain, relay: options.relay });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
   let disposed = false;
