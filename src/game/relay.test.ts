@@ -96,6 +96,13 @@ describe('relay clock and outcomes', () => {
     expect(after.roundStatus).toBe(arrivalMs === 1 ? 'victory' : 'playing');
     expect(after.relay?.scoresMs.player).toBe(179999 + arrivalMs);
   });
+  it('finishes at the holding boundary even when fractional weapon cadence introduces clock round-off', () => {
+    const state = convertCity(game(), 'relay', 'artillery');
+    const after = advanceWorldStep(state, 300000);
+    expect(after.roundStatus).toBe('victory');
+    expect(after.elapsedMs).toBeCloseTo(300000, 6);
+    expect(after.relay?.scoresMs.player).toBe(180000);
+  });
   it('does not infer an objective in legacy states', () => {
     expect(advanceRound(createSimulation(cities), 301000).relay).toBeUndefined();
   });

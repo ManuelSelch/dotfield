@@ -8,6 +8,8 @@ for (const width of [320, 430, 1280]) test(`Relay field toggle, preview and five
   await page.goto('/');
   const toggle=page.getByRole('button',{name:'Relay',exact:true});
   await expect(toggle).toHaveAttribute('aria-pressed','false');
+  const toggleBox=(await toggle.boundingBox())!;
+  expect(toggleBox.width).toBeGreaterThanOrEqual(44);expect(toggleBox.height).toBeGreaterThanOrEqual(44);
   await toggle.click();
   await expect(page.locator('[data-relay-city-id]')).toHaveCount(1);
   await page.getByRole('group',{name:'Number of enemy factions'}).getByRole('button',{name:'4',exact:true}).click();

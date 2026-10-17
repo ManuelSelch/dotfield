@@ -14,7 +14,7 @@ it('does not change geography, starts, features or garrisons when Relay is enabl
 });
 describe.each(['open', 'river', 'mountains', 'courtyard'] as MapLayout[])('%s relay placement', layout => {
   it('selects a deterministic neutral host without replacing a starting home', () => {
-    for (const seed of [0, 42, 314]) for (const cities of [6, 20, 30]) for (const enemies of [1, 4]) {
+    for (const seed of [0, 42, 314]) for (const cities of Array.from({ length: 25 }, (_,i) => i + 6)) for (const enemies of [1, 2, 3, 4]) {
       if (layout === 'courtyard' && (cities < 20 || enemies > 1)) continue;
       const settings = { ...DEFAULT_MAP_SETTINGS, layout, cities, enemies, relay: true };
       const map = generateMap(settings, seed);

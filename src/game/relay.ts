@@ -32,6 +32,9 @@ export function advanceRelay(before: SimulationState, after: SimulationState): S
   const owner = before.territories.find(c => c.id === relay.cityId)!.owner;
   const heldMs = Math.max(0, after.elapsedMs - Math.max(before.elapsedMs, relay.activateAtMs));
   if (!heldMs || owner === 'neutral') return after;
-  return { ...after, relay: { ...relay, scoresMs: { ...relay.scoresMs,
-    [owner]: Math.min(relay.targetMs, relay.scoresMs[owner] + heldMs) } } };
+  const total = relay.scoresMs[owner] + heldMs;
+  // Match the physical scheduler's numerical tolerance, not displayed rounding.
+  // Fractional firing cadences must not defer a completed win to another frame.
+  const score = total >= relay.targetMs - 1e-7 ? relay.targetMs : total;
+  return { ...after, relay: { ...relay, scoresMs: { ...relay.scoresMs, [owner]: score } } };
 }
