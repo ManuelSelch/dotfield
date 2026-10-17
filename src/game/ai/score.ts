@@ -5,6 +5,7 @@ import { getFactionRules } from '../rules';
 import type { SimulationState, TerritoryState } from '../types';
 import { PRODUCTION_AI, type AiConfig } from './config';
 import { airSupplyRoom, incomingThreat, usefulAirSupply } from './mobility';
+import { relayPriority } from './relayPriority';
 
 export type OrderKind = 'expand' | 'attack' | 'reinforce';
 export interface AiOrder { readonly sourceId: string; readonly targetId: string; readonly kind: OrderKind; readonly score: number }
@@ -12,6 +13,7 @@ export interface AiOrder { readonly sourceId: string; readonly targetId: string;
 export function scoreOrder(state: SimulationState, source: TerritoryState, target: TerritoryState,
   baseline: SimulationState, proposed: SimulationState, horizonMs: number, config: AiConfig, factionId: string,
   distances: ReadonlyMap<string, number>, productionGain = 0, sentUnits = source.units - 1): AiOrder | null {
+  if (proposed.outcome && proposed.outcome.winner !== factionId) return null;
   const before = baseline.territories.find(n => n.id === target.id)!;
   const after = proposed.territories.find(n => n.id === target.id)!;
   if (after.owner !== factionId) return null;
@@ -51,6 +53,7 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     if (kind === 'reinforce') return null; // Economic/frontline transfers must not sacrifice their source.
     score -= config.sourceLossPenalty;
   }
+  score += relayPriority(state, source, target, distances, factionId);
   score -= horizonMs / 1000 * config.travelCostPerSecond;
   return score > 0 ? { sourceId: source.id, targetId: target.id, kind, score } : null;
 }

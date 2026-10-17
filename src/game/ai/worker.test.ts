@@ -11,7 +11,7 @@ const terrain = createTerrain({ bounds: { minX: -100, minY: -100, maxX: 600, max
   barriers: [{ id: 'ridge', kind: 'mountain', bounds: { minX: 150, minY: -90, maxX: 180, maxY: 590 } }] });
 
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
-describe('worker action contract', () => {
+describe.each([false, true])('worker action contract (relay %s)', relay => {
   it.each(['ground', 'airlift', 'convert'] as const)('returns the same %s command as sync, preserving snapshots and request identity', async type => {
     const factionId = 'enemy-2';
     const nodes = [
@@ -21,7 +21,7 @@ describe('worker action contract', () => {
       { id: 'target', owner: 'player', units: 12, x: 300, y: 0 },
     ];
     const state = advanceWorldStep(createSimulation(nodes, { unitsPerSecond: 0 }, undefined,
-      type === 'ground' ? undefined : terrain), 20_000);
+      type === 'ground' ? undefined : terrain, relay ? { cityId: 'target', activateAtMs: 120000, targetMs: 180000 } : undefined), 20_000);
     const request: AiWorkerRequest = { requestId: 42, factionId, config: DEFAULT_AI, state: structuredClone(state) };
     const snapshot = structuredClone(request);
     const postMessage = vi.fn();
