@@ -8,6 +8,8 @@ Implemented desktop layout and mouse-control requirements are tracked separately
 
 The [Command Relay plan](docs/relay/REQUIREMENTS.md) is implemented: Relay is an optional On the field setting across all layouts, using the Courtyard city or a central neutral city elsewhere. Activation is after120 active seconds and victory requires180 cumulative holding seconds; capture pauses rather than resets progress. The city remains convertible and ordinary conquest remains valid. The approved compact HUD, AI priorities and save/replay integration are documented in [relay behavior and limitations](docs/relay/IMPLEMENTATION.md). Victory popups deliberately omit explanation text. Automated checks pass; human balance/device acceptance remains pending. The user's current rounds last around ten minutes, superseding the older 2–4-minute assumption for relay playtesting.
 
+The proposed [Defender Borders requirements](docs/defender-borders/REQUIREMENTS.md) extend the existing Defender with hostile ground-transit blocking through its territory region, retaining its shields and no-production trade-off. This replaces adding a separate Gatehouse role. It is specifications only: naming, neutral/queued/legacy-save policies and boundary visuals still need confirmation/approval. Current gameplay is unchanged.
+
 The original browser assertion failures and lifecycle-save defect are repaired; [docs/test-repair/REQUIREMENTS.md](docs/test-repair/REQUIREMENTS.md) tracks the pending expanded persistence matrix. Merge checkpoint `d2d9702` passed 402 unit tests, 79 Chrome browser tests, build and whitespace checks; totals are checkpoint evidence, not a permanent suite size.
 
 ### Purpose

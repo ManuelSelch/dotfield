@@ -6,6 +6,8 @@ Add tactical choices to Dotfield through meaningful routes and contested locatio
 
 Status: slices 1, 2, 4 and 5 have historical implementations; generated matches combine optional central mountains with river bridges, and slice5's attached/generated Artillery model is superseded by buildable exclusive city roles. The authored Siege layout remains a regression/migration fixture. Current Artillery/Watchtower costs, role/cooldown rules and Home toggle removal are specified in [city conversion](../city-conversion/IMPLEMENTATION.md). Gatehouse (slice3) remains skipped and Factory mockup waived; Portal is next.
 
+The newer [Defender Borders proposal](../defender-borders/REQUIREMENTS.md) supersedes the separate Gatehouse-role/crossing-lock design below for the requested next feature: enhance existing Defenders with region transit blocking while retaining their shields. It is not implemented. Historical Gatehouse rules, including neutral locks and queued-troop policy, must not be treated as confirmed decisions for that extension; its focused open questions govern.
+
 ## Scope
 
 ### In Scope
