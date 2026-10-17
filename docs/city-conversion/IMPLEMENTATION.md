@@ -48,7 +48,7 @@ Capturing the home destroys its old plane and undelivered cargo immediately. Alr
 
 - Player, synchronous AI, worker AI and forecasts use the same conversion/launch/physics paths. Worker returns typed actions for ground, airlift or conversion; stale actions revalidate resources/ownership/readiness.
 - Conservative conversion keeps at least two Production cities and at least two thirds of its cities producing. It creates at most one Airfield, Defender, Watchtower and Artillery per faction and does not repeatedly switch roles; weapon conversion requires forecastable, useful targets.
-- Airfield supply is bounded, useful flights may carry partial loads, and ready aircraft can attack/reinforce across barriers. Known incoming attacks and original-home reserves limit risky departures.
+- Airfield supply is bounded, useful flights may carry partial loads, and ready aircraft can attack/reinforce across barriers. Known incoming attacks are included in combat forecasts. Defensive Network home protection has no fixed troop minimum: safe ground/air departures are allowed even before the network activates. Departures that reduce available home troops are rejected when a hostile available army could overwhelm the remainder via a legal direct ground attack within five seconds; mountain/river legality and attacker movement rules apply. Queued outgoing troops count as committed, not as retained reserves. Forecast home loss is still rejected; home conversion remains excluded.
 - These are heuristic decisions over known orders, not predictions of future player commands or guaranteed optimal strategy.
 
 ## References and acceptance

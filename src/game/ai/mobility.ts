@@ -48,24 +48,30 @@ export function usefulAirSupply(state: SimulationState, source: TerritoryState, 
     && hasBarrierOpportunity(state, target, factionId);
 }
 
-/** A nearby available army is a risk, not an invented future order. Do not
- * commit the airfield's whole garrison when a legal short attack could erase it. */
-export function safeAirDeparture(state: SimulationState, launched: SimulationState, homeId: string, factionId: string): boolean {
+/** A nearby available army is a risk, not an invented future order. Terrain,
+ * river legality and the attacker's movement rules determine whether it is near. */
+function safeDeparture(state: SimulationState, homeId: string, retained: number, factionId: string): boolean {
   const home = state.territories.find(c => c.id === homeId)!;
-  const retained = launched.territories.find(c => c.id === homeId)!.units;
   return !state.territories.some(hostile => hostile.owner !== factionId && hostile.owner !== 'neutral'
     && availableUnits(state, hostile.id) - 1 > retained
     && groundLegal(state, hostile, home)
     && createRoute(hostile, home, getFactionRules(state, hostile.owner)).durationMs <= PRODUCTION_AI.threatTravelMs);
 }
 
-/** The original network home is irreplaceable; never treat its last reserves as
- * construction/cargo. No special resources or combat bonuses are introduced. */
+export function safeAirDeparture(state: SimulationState, launched: SimulationState, homeId: string, factionId: string): boolean {
+  return safeDeparture(state, homeId, availableUnits(launched, homeId), factionId);
+}
+
+/** Protect the original network home from forecast loss and exploitable departures,
+ * not from safe expansion. Count queued departures as committed troops: ground
+ * dispatch still sends all but one, using the same commands as the player. */
 export function keepsHomeReserve(state: SimulationState, proposed: SimulationState, factionId: string): boolean {
   if (!state.rules.factions[factionId]?.connectedDefense) return true;
   const homeId = state.homeCityIds?.[factionId];
   const before = state.territories.find(c => c.id === homeId);
   const after = proposed.territories.find(c => c.id === homeId);
-  return !before || before.owner !== factionId || !!after && after.owner === factionId
-    && after.units >= Math.min(before.units, 12);
+  if (!before || before.owner !== factionId) return true;
+  if (!after || after.owner !== factionId) return false;
+  return availableUnits(proposed, before.id) >= availableUnits(state, before.id)
+    || safeDeparture(proposed, before.id, availableUnits(proposed, before.id), factionId);
 }
