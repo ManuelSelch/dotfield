@@ -1,4 +1,5 @@
 import { layouts } from './layouts.js';
+import { withCityCount } from './density.js';
 
 const presets = {
   countdown: { you: 0, enemy: 0, owner: 'neutral', units: 18, time: '0:38' },
@@ -8,6 +9,7 @@ const presets = {
 const params = new URLSearchParams(location.search);
 let state = Object.hasOwn(presets, params.get('state')) ? params.get('state') : 'countdown';
 let snapshot = { ...presets[state] };
+let cityCount = ['base', '20', '24', '30'].includes(params.get('cities')) ? params.get('cities') : '30';
 let routes = true;
 const ns = 'http://www.w3.org/2000/svg';
 function el(tag, attrs, parent) {
@@ -108,20 +110,23 @@ function render() {
   const remaining = 90 - (snapshot.owner === 'player' ? snapshot.you : snapshot.enemy);
   const title = state === 'countdown' ? 'Relay activates in 22s' : snapshot.owner === 'player' ? `You win in ${remaining}s` : `Interrupt within ${remaining}s`;
   params.set('state', state);
+  params.set('cities', cityCount);
   history.replaceState(null, '', `${location.pathname}?${params}`);
   document.querySelectorAll('[data-state]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.state === state)));
-  document.querySelector('.comparison').innerHTML = layouts.map(layout => `<article>
-    <h2 class="option-title"><span class="letter">${layout.id.toUpperCase()}</span>${layout.title}</h2>
+  document.querySelectorAll('[data-count]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.count === cityCount)));
+  const visibleLayouts = layouts.map(layout => withCityCount(layout, cityCount === 'base' ? 'base' : Number(cityCount)));
+  document.querySelector('.comparison').innerHTML = visibleLayouts.map(layout => `<article>
+    <h2 class="option-title"><span class="letter">${layout.id.toUpperCase()}</span>${layout.title}<span class="city-count-badge">${layout.cities.length} cities</span></h2>
     <p class="option-description">${layout.description}</p>
     <div class="phone ${state}">
       <div class="game-header"><span class="brand">dotfield</span><span>${snapshot.time} · Ⅱ</span></div>
       <div class="hud" aria-live="polite"><div class="status-line"><strong>${title}</strong><span>FIRST TO 90</span></div>${scores()}</div>
-      <div class="field"><svg class="map" id="map-${layout.id}" viewBox="0 0 420 620" role="group" aria-label="${layout.title}. Two bridges cross a river. Mountains separate approaches to an inland relay."></svg></div>
+      <div class="field"><svg class="map" id="map-${layout.id}" viewBox="0 0 420 620" role="group" aria-label="${layout.title}, ${layout.cities.length} cities. Two bridges cross a river. Mountains separate approaches to an inland relay."></svg></div>
       <div class="city-strip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l6 3V6l6 4V3h4v17ZM8 15v2m5-2v2m4-2v2"/></svg><span>Tap a city to convert · drag to send troops</span></div>
       <div class="interaction"><button data-action="capture">${snapshot.owner === 'player' ? 'Simulate enemy capture' : 'Simulate your capture'}</button><button data-action="advance" ${state === 'countdown' ? 'disabled' : ''}>+10s holding</button></div>
     </div><p class="scenario-note">${layout.note}</p>
   </article>`).join('');
-  layouts.forEach(layout => drawMap(document.querySelector(`#map-${layout.id}`), layout));
+  visibleLayouts.forEach(layout => drawMap(document.querySelector(`#map-${layout.id}`), layout));
   document.querySelectorAll('[data-action="capture"]').forEach(button => button.addEventListener('click', capture));
   document.querySelectorAll('[data-action="advance"]').forEach(button => button.addEventListener('click', () => {
     const key = snapshot.owner === 'player' ? 'you' : 'enemy';
@@ -132,6 +137,10 @@ function render() {
 document.querySelectorAll('[data-state]').forEach(button => button.addEventListener('click', () => {
   state = button.dataset.state;
   snapshot = { ...presets[state] };
+  render();
+}));
+document.querySelectorAll('[data-count]').forEach(button => button.addEventListener('click', () => {
+  cityCount = button.dataset.count;
   render();
 }));
 document.querySelector('#routes-toggle').addEventListener('change', e => { routes = e.target.checked; render(); });
