@@ -114,6 +114,8 @@ export interface ArtilleryShot {
 }
 
 export interface SimulationState {
+  readonly relay?: import('./relay').RelayState;
+  readonly outcome?: { readonly reason: 'relay' | 'conquest'; readonly winner?: FactionId };
   readonly aircraft?: Readonly<Record<string, Aircraft>>;
   readonly nextAircraftTripId?: number;
   /** Committed delivery feedback, retained for one simulation second. */

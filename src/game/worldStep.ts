@@ -9,13 +9,16 @@ import { advanceArtillery } from './features/artillery';
 import { advanceNetworkShields, NETWORK_SHIELD_RECHARGE_MS } from './features/networkShields';
 import { advanceAircraftClock, nextAircraftEventMs, normalizeAircraft, resolveAircraftEvents } from './aircraft';
 import { trajectory } from './trajectory';
+import { advanceRelay, nextRelayEventMs } from './relay';
+import { evaluateRound } from './outcome';
 
 function physicalStep(state: SimulationState, elapsedMs: number) {
   const beforeStep = state;
   const clocked = advanceAircraftClock(advanceGrowth(state, elapsedMs), elapsedMs);
   const combat = resolveAircraftEvents(resolveCombat(advanceTravel(clocked, elapsedMs)));
   const shielded = advanceNetworkShields(combat, elapsedMs, beforeStep);
-  return advanceArtillery(advanceWatchtowers(shielded, elapsedMs, beforeStep), elapsedMs, state);
+  const physical = advanceArtillery(advanceWatchtowers(shielded, elapsedMs, beforeStep), elapsedMs, state);
+  return state.relay ? evaluateRound(advanceRelay(beforeStep, physical)) : physical;
 }
 
 // Shared physical update for live rounds and forecasts; never issues AI orders.
@@ -23,14 +26,15 @@ function physicalStep(state: SimulationState, elapsedMs: number) {
 export function advanceWorldStep(state: SimulationState, elapsedMs: number): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');
   if (state.roundStatus !== 'playing' || elapsedMs === 0) return state;
-  const newPhysics = state.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
+  const newPhysics = !!state.relay || state.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
   if (newPhysics) {
     state = normalizeAircraft(state);
     const end = state.elapsedMs + elapsedMs;
-    while (state.elapsedMs < end - 1e-7) {
-      state = resolveAircraftEvents(state);
+    while (state.elapsedMs < end - 1e-7 && state.roundStatus === 'playing') {
+      state = resolveAircraftEvents(state.relay ? evaluateRound(resolveCombat(state)) : state);
+      if (state.roundStatus !== 'playing') break;
       let step = Math.min(end - state.elapsedMs,
-        SIMULATION_STEP_MS - state.elapsedMs % SIMULATION_STEP_MS, nextAircraftEventMs(state));
+        SIMULATION_STEP_MS - state.elapsedMs % SIMULATION_STEP_MS, nextAircraftEventMs(state), nextRelayEventMs(state));
       // Do not move a ground capture past an earlier plane pulse or vice versa.
       for (const t of state.transfers) {
         const arrival = trajectory(t, step, hasSlowZones(state) ? state : undefined).arrivalMs;

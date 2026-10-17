@@ -2,6 +2,7 @@ import type { SimulationState } from '../game/types';
 import type { DragSelection } from './drag';
 import { drawTerritoryBackgrounds, drawTerritoryCounters } from './drawTerritories';
 import { drawAircraft } from './drawAircraft';
+import { drawRelay } from './drawRelay';
 export { hasAircraftAnimation } from './drawAircraft';
 import { drawCaptureShields } from './drawCaptureShields';
 import { drawCityFeatures } from './drawCityFeatures';
@@ -77,6 +78,7 @@ export function drawBoard(
   drawRiver(ctx, state.territories, state.river, width, height);
   drawMountains(ctx, state.terrain, width, height);
   drawArtilleryCoverage(ctx, state, width, height);
+  drawRelay(ctx, state, width, height);
   drawTerritoryBackgrounds(ctx, state, width, height);
   drawTransfers(ctx, state, width, height);
   drawAircraft(ctx, state, width, height,

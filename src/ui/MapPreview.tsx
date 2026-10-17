@@ -49,6 +49,10 @@ export function MapPreview({ map, index }: { map: FieldMap; index?: number }) {
     {map.territories.map(city => {
       const palette = factionPalette(city.owner);
       return <g key={city.id}>
+        {map.relay?.cityId === city.id && <g aria-label="Relay objective" data-relay-city-id={city.id}>
+          <circle cx={city.x} cy={city.y} r={22} fill="none" stroke="#aa8131" strokeWidth="1.7" strokeDasharray="4 3" />
+          <text x={city.x} y={city.y - 29} textAnchor="middle" fill="#94712f" fontSize="8" fontWeight="700" letterSpacing="1">RELAY</text>
+        </g>}
         <circle cx={city.x} cy={city.y} r={TERRITORY_RADIUS} fill={palette.fill} stroke={palette.stroke} />
         <text x={city.x} y={city.y} textAnchor="middle" dominantBaseline="central" fill={palette.ink} fontSize={TERRITORY_RADIUS} fontFamily="system-ui">{city.units}</text>
         {city.features?.some(feature => feature.kind === 'artillery') && <g aria-label="Artillery"

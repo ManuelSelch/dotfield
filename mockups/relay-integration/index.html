@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dotfield · Relay integration study</title><link rel="stylesheet" href="./styles.css"></head>
+<body>
+<header class="review-heading"><div><p class="eyebrow">DOTFIELD / RELAY · REVISION 1</p><h1>A reason to hold the center.</h1><p>Controls and HUD study. Fake match states—not playable gameplay.</p></div><a href="../relay/">Earlier layout study ↗</a></header>
+<nav class="review-tools" aria-label="Mockup review controls">
+ <label>View <select id="view"><option value="home">Home setup</option><option value="countdown">Before activation</option><option value="neutral">Active · neutral</option><option value="holding">You hold it</option><option value="urgent">Enemy close to victory</option><option value="paused">Paused</option><option value="result">Relay victory</option></select></label>
+ <button id="capture">Simulate capture</button><button id="advance">+15s holding</button><button id="select-relay">Select your relay</button>
+</nav>
+<main id="app" class="app">
+ <header class="app-header"><a href="#" id="brand" aria-label="Return to mock Home"><i></i>dotfield</a><span class="connection"><i></i>Online</span></header>
+ <section id="home" class="home" aria-label="Match setup"></section>
+ <section id="match" class="match" aria-label="Relay match mockup" hidden>
+  <div class="match-heading"><div><span class="eyebrow">THE FIELD</span><span id="match-time"></span></div><button id="pause" aria-label="Pause match">Ⅱ</button></div>
+  <section id="hud" class="hud" aria-label="Relay scoreboard"></section>
+  <div class="battlefield"><svg id="field" viewBox="0 0 360 480" role="group" aria-label="Illustrative battlefield"></svg><div id="overlay" class="overlay" hidden></div></div>
+  <section id="city-strip" class="city-strip" aria-label="City actions"></section>
+ </section>
+</main>
+<p id="notice" class="notice" role="status">Home starts with Relay Off. Turn it On and press Play to explore the scoreboard.</p>
+<footer class="review-footer">Scoring begins at 2:00 · first to 180 cumulative holding seconds wins · capture pauses, never resets progress. No real combat, running clock, AI, saves or upgrades. Review narrow and wide windows; use Open field + four enemies for the five-faction HUD.</footer>
+<script type="module" src="./main.js"></script>
+</body></html>

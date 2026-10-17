@@ -28,7 +28,7 @@ export function featureLabels(city: Territory, shield?: CaptureShieldState, shie
     ? Math.max(DEFENDER_SHIELD_CAPACITY, shieldCapacity ?? 0) : shieldCapacity ?? 0);
   const defender = active?.source === 'defender' || (!active && type === 'defender' && city.owner !== 'neutral');
   const plane = state?.aircraft?.[city.id];
-  return identity + (plane ? aircraftLabel(plane) : '') + (city.features ?? []).map(feature => {
+  return identity + (state?.relay?.cityId === city.id ? ' Relay objective; ownership earns holding progress after activation, regardless of city role.' : '') + (plane ? aircraftLabel(plane) : '') + (city.features ?? []).map(feature => {
     switch (feature.kind) {
       case 'factory': return ` Factory ${city.owner !== 'neutral' && type === 'production' ? 'active' : 'inactive'} (${feature.productionMultiplier}× production).`;
       case 'slow-zone': return ` Slow Zone controlled by ${city.owner}, ${Math.round(feature.speedMultiplier * 100)}% speed within ${feature.radius} units for ${city.owner === 'neutral' ? 'all traveling groups' : 'hostile traveling groups'}.`;

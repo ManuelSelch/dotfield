@@ -78,7 +78,7 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     const initialPlayBox = (await play.boundingBox())!;
     expect(Math.abs(initialRerollBox.y - initialPlayBox.y)).toBeLessThan(1);
     expect(initialRerollBox.x + initialRerollBox.width).toBeLessThanOrEqual(initialPlayBox.x);
-    expect((await slowZone.boundingBox())!.height).toBeLessThanOrEqual(40);
+    expect((await slowZone.boundingBox())!.height).toBe(44);
     await expect.poll(() => play.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
     await page.screenshot({ path: `test-results/generated-setup-${viewport.width}.png` });
     await page.getByRole('button', { name: 'More cities' }).click();

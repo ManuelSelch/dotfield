@@ -26,6 +26,7 @@ interface BoardOptions {
   rules?: RulesInput;
   river?: River;
   terrain?: Terrain;
+  relay?: import('../game/relay').RelayDefinition;
   initialState?: SimulationState;
   initialPhase?: Exclude<SessionPhase, 'ready'>;
 }
@@ -40,7 +41,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
     : null;
   const session = createSession(territories, aiWorker ? null : ai, options.rules,
-    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain });
+    { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain, relay: options.relay });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
   let disposed = false;
@@ -176,7 +177,9 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
           || (['preparing', 'turnaround'].includes(p.phase)
             && Math.ceil((p.durationMs - p.elapsedMs) / 1000) !== Math.ceil((old.durationMs - old.elapsedMs) / 1000));
       })
-      || state.roundStatus !== previous.roundStatus;
+      || state.roundStatus !== previous.roundStatus
+      || !!state.relay && (Math.floor(state.elapsedMs / 1000) !== Math.floor(previous.elapsedMs / 1000)
+        || Object.entries(state.relay.scoresMs).some(([id, score]) => Math.floor(score / 1000) !== Math.floor((previous.relay?.scoresMs[id] ?? 0) / 1000)));
     if (citySelection && !managedCity()) clearCity();
     if (state.roundStatus !== 'playing') { drag.cancel(); clearCity(); }
     if (changed) onState(state);

@@ -5,6 +5,8 @@ import { snapshotTerritories } from '../game/features/snapshot';
 import { createTerrain } from '../game/terrain/terrain';
 import type { Terrain } from '../game/terrain/types';
 import { courtyardGeometry } from './courtyard';
+import { placeRelay } from './relayPlacement';
+import type { RelayDefinition } from '../game/relay';
 
 export type MapLayout = 'open' | 'river' | 'mountains' | 'courtyard';
 export interface MapSettings {
@@ -20,8 +22,10 @@ export interface MapSettings {
   /** @deprecated legacy saved match-preference fields; weapons are now built as city roles. */
   readonly watchtower?: boolean;
   readonly slowZone: boolean;
+  readonly relay?: boolean;
 }
 export interface GeneratedMap extends FieldMap {
+  readonly relay?: RelayDefinition;
   readonly seed: number;
   readonly settings: MapSettings;
 }
@@ -40,6 +44,7 @@ export function isMapSettings(value: unknown): value is MapSettings {
     && (settings.artillery === undefined || typeof settings.artillery === 'boolean')
     && (settings.watchtower === undefined || typeof settings.watchtower === 'boolean')
     && typeof settings.slowZone === 'boolean'
+    && (settings.relay === undefined || typeof settings.relay === 'boolean')
     && (settings.layout === undefined || ['open', 'river', 'mountains', 'courtyard'].includes(settings.layout))
     && (settings.layout !== 'courtyard' || (settings.cities >= 20 && settings.enemies === 1));
 }
@@ -76,7 +81,8 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
         { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] } : city);
     }
     return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
-      ...geometry, territories: snapshotTerritories(territories) });
+      ...geometry, territories: snapshotTerritories(territories),
+      ...(settings.relay ? { relay: placeRelay(territories, geometry.river, geometry.terrain, true) } : {}) });
   }
   // Stratified slots bound generation through the supported 30-city maximum.
   const rows = Array.from({ length: 10 }, (_, row) => settings.river
@@ -146,5 +152,6 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   const barriers = [...(settings.mountains ? [MOUNTAIN_RANGE] : [])];
   const terrain = barriers.length ? createTerrain({ bounds: { minX: 0, minY: 0, maxX: 360, maxY: 480 }, crossings: [], barriers }) : undefined;
   return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
-    territories: snapshotTerritories(territories), ...(terrain ? { terrain } : {}), ...(river ? { river } : {}) });
+    territories: snapshotTerritories(territories), ...(terrain ? { terrain } : {}), ...(river ? { river } : {}),
+    ...(settings.relay ? { relay: placeRelay(territories, river, terrain) } : {}) });
 }

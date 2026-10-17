@@ -11,7 +11,7 @@ import { DEFAULT_AI, PRODUCTION_AI, type AiConfig } from './config';
 import { forecastBattle } from './forecast';
 import { scoreOrder, type AiOrder } from './score';
 import { canRelieveProduction, factionArmyUnits, frontlineDistances } from './logistics';
-import { keepsHomeReserve, remainingDeliveryMs } from './mobility';
+import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
 
 export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy'): AiOrder | null {
   if (state.roundStatus !== 'playing') return null;
@@ -47,7 +47,9 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
         ? Math.max(0, factionArmyUnits(proposed, factionId) - factionArmyUnits(baseline, factionId)) : 0;
       const candidate = scoreOrder(state, source, target, baseline, proposed, orderHorizon, config, factionId, distances, productionGain);
       // Stable map order breaks ties; no random or frame-rate-dependent decisions.
-      if (candidate && (!best || candidate.score > best.score)) best = candidate;
+      const emergency = (order: AiOrder) => !!state.relay && order.kind === 'reinforce' && incomingThreat(state, order.targetId, factionId);
+      if (candidate && (!best || (emergency(candidate) && !emergency(best))
+        || (emergency(candidate) === emergency(best) && candidate.score > best.score))) best = candidate;
     }
   }
   return best;

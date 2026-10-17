@@ -14,7 +14,7 @@ import { airSupplyRoom, incomingThreat } from './mobility';
 export function frontlineDistances(state: SimulationState, factionId: string): ReadonlyMap<string, number> {
   const rules = getFactionRules(state, factionId);
   const distances = new Map(state.territories.map(city => [city.id,
-    city.owner !== factionId && city.owner !== 'neutral' ? 0 : Infinity]));
+    (state.relay ? city.id === state.relay.cityId : city.owner !== factionId && city.owner !== 'neutral') ? 0 : Infinity]));
   const remaining = [...state.territories];
   while (remaining.length) {
     remaining.sort((a, b) => distances.get(a.id)! - distances.get(b.id)!);

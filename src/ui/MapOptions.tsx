@@ -41,6 +41,8 @@ export function MapOptions({ settings, onChange }: { settings: MapSettings; onCh
       {([{ id: 'industry', name: 'Factory', aria: 'Factory' },
         { id: 'slowZone', name: 'Slow Zone', aria: 'Slow Zone' }] as const).map(feature => <TogglePill key={feature.id} label={feature.aria} pressed={settings[feature.id]}
         onClick={() => onChange({ ...settings, [feature.id]: !settings[feature.id] })} />)}
+      <TogglePill label="Relay" pressed={settings.relay ?? false} onClick={() => onChange({ ...settings, relay: !settings.relay })} />
     </div>
+    {settings.relay && <p className="home-relay-note">Activates at 2:00 · hold for 3:00 total</p>}
   </>;
 }

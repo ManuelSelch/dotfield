@@ -5,12 +5,14 @@ import { createRiver, type River } from './river';
 import { createTerrain } from './terrain/terrain';
 import type { Terrain } from './terrain/types';
 import { createAircraft } from './aircraft';
+import { createRelay, type RelayDefinition } from './relay';
 
 export function createSimulation(
   territories: readonly Territory[],
   rules?: RulesInput,
   river?: River,
   terrain?: Terrain,
+  relay?: RelayDefinition,
 ): SimulationState {
   const factionIds = [...new Set(['player', ...territories.map(city => city.owner)
     .filter((owner): owner is string => owner !== 'neutral')])];
@@ -28,6 +30,7 @@ export function createSimulation(
   return {
     ...(terrain ? { terrain: createTerrain(terrain) } : {}),
     ...(river ? { river: createRiver(river, opening) } : {}),
+    ...(relay ? { relay: createRelay(relay, opening, Object.keys(resolved.factions)) } : {}),
     roundStatus: 'playing',
     aiNextDecisionMs: null,
     aiDecisionDeadlines: {},
