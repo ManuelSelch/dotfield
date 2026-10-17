@@ -218,11 +218,11 @@ describe('conversion and flight actions', () => {
     expect(chooseAction(state)).toMatchObject({ type: 'airlift', sourceId: 'air', targetId: 'target', kind: 'expand' });
   });
 
-  it('protects the network original home from conversion and air boarding', () => {
+  it('allows safe air boarding from the network original home', () => {
     const state = flying();
     const upgraded = { ...state, rules: { factions: { ...state.rules.factions,
       enemy: { ...state.rules.factions.enemy, connectedDefense: true } } } };
-    expect(chooseAction(upgraded)).toBeNull();
+    expect(chooseAction(upgraded)).toMatchObject({ type: 'airlift', sourceId: 'air', targetId: 'target' });
   });
 
   it('does not repeatedly spend troops switching roles over subsequent decisions', () => {
