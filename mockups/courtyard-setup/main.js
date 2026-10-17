@@ -2,8 +2,15 @@ import { layouts } from '../relay/layouts.js';
 import { withCityCount } from '../relay/density.js';
 const $ = id => document.getElementById(id);
 let layout = 'courtyard';
-let standard = { cities: 14, enemies: 2, river: true, mountains: true };
-let settings = { cities: 24, enemies: 1, river: true, mountains: true };
+let regular = { cities: 14, enemies: 2 };
+let settings = { cities: 24, enemies: 1 };
+const layoutNames = { open: 'Open field', river: 'River', mountains: 'Mountains', courtyard: 'Courtyard' };
+const layoutDescriptions = {
+ open: 'Open terrain · no river or mountains',
+ river: 'A river with two paired bridge crossings · no mountains',
+ mountains: 'A central ridge with flanking routes · no river',
+ courtyard: 'Two courtyard entrances · flanking valleys · two river crossings',
+};
 function svg(tag, attrs, parent = $('map')) { const node = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,value);parent.append(node);return node; }
 function cell(city, cities, river) {
  let poly = [{x:0,y:city.y<river[0]?0:river[1]},{x:420,y:city.y<river[0]?0:river[1]},{x:420,y:city.y<river[0]?river[0]:620},{x:0,y:city.y<river[0]?river[0]:620}];
@@ -28,19 +35,19 @@ function refresh(){
  document.querySelectorAll('[data-layout]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.layout===layout)));
  $('cities').min=min;$('cities').value=settings.cities;$('count').textContent=settings.cities;$('minimum').textContent=`${min} · compact`;$('less').disabled=settings.cities<=min;$('more').disabled=settings.cities>=30;
  document.querySelectorAll('[data-enemies]').forEach(b=>{b.disabled=courtyard&&b.dataset.enemies!=='1';b.setAttribute('aria-pressed',String(Number(b.dataset.enemies)===settings.enemies));});
- for(const key of ['river','mountains']){$(key).disabled=courtyard;$(key).setAttribute('aria-pressed',String(settings[key]));}
- $('layout-note').textContent=courtyard?'Two courtyard entrances · flanking valleys · two river crossings':'The current seeded generator, with independent field settings.';
- $('constraints').textContent=courtyard?'Courtyard requires 20–30 cities, one enemy, river and mountains.':'Standard supports 6–30 cities and 1–4 enemies.';
+ $('layout-note').textContent=layoutDescriptions[layout];
+ $('constraints').textContent=courtyard?'Courtyard requires 20–30 cities and one enemy. Its mountains and river crossings are included.':'This layout supports 6–30 cities and 1–4 enemies.';
  $('preview-count').textContent=`${settings.cities} cities · ${settings.enemies} ${settings.enemies===1?'enemy':'enemies'}`;
  $('standard-placeholder').hidden=courtyard;
+ $('standard-placeholder').textContent=`${layoutNames[layout]}\n${layoutDescriptions[layout]}\nExisting generator · preview omitted in this controls study`;
+ $('map').setAttribute('aria-label',courtyard?'Courtyard with multiple mountains and two river crossings':`${layoutNames[layout]} preview placeholder`);
  if(courtyard)draw();
 }
-document.querySelectorAll('[data-layout]').forEach(b=>b.addEventListener('click',()=>{if(layout===b.dataset.layout)return;if(layout==='standard')standard={...settings};layout=b.dataset.layout;settings=layout==='courtyard'?{cities:Math.max(20,settings.cities),enemies:1,river:true,mountains:true}:{...standard};refresh();}));
+document.querySelectorAll('[data-layout]').forEach(b=>b.addEventListener('click',()=>{if(layout===b.dataset.layout)return;const wasCourtyard=layout==='courtyard';if(!wasCourtyard)regular={...settings};layout=b.dataset.layout;if(layout==='courtyard')settings={cities:Math.max(20,settings.cities),enemies:1};else if(wasCourtyard)settings={...regular};refresh();}));
 $('cities').addEventListener('input',e=>{settings.cities=Number(e.target.value);refresh();});
 for(const[id,delta]of[['less',-1],['more',1]])$(id).onclick=()=>{settings.cities=Math.max(layout==='courtyard'?20:6,Math.min(30,settings.cities+delta));refresh();};
 document.querySelectorAll('[data-enemies]').forEach(b=>b.onclick=()=>{settings.enemies=Number(b.dataset.enemies);refresh();});
-for(const key of ['river','mountains'])$(key).onclick=()=>{settings[key]=!settings[key];refresh();};
 for(const key of ['factory','slow'])$(key).onclick=()=>{$(key).setAttribute('aria-pressed',String($(key).getAttribute('aria-pressed')!=='true'));refresh();};
 $('reroll').onclick=()=>{$('demo-status').textContent='Preview composition is fixed in this controls mockup. Production will use seeded variation.';};
-$('play').onclick=()=>{$('demo-status').textContent=`Would start ${layout==='courtyard'?'Courtyard':'Standard'} with ${settings.cities} cities. Gameplay is not implemented in this mockup.`;};
+$('play').onclick=()=>{$('demo-status').textContent=`Would start ${layoutNames[layout]} with ${settings.cities} cities. Gameplay is not implemented in this mockup.`;};
 refresh();
