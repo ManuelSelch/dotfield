@@ -6,6 +6,8 @@ Status: mobile/desktop board, simulation/AI, pause/replay, generated Home, Indus
 
 Implemented desktop layout and mouse-control requirements are tracked separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
+The proposed [Command Relay plan](docs/relay/REQUIREMENTS.md) covers an optional Courtyard capture-and-hold objective, compact scoreboard, objective-aware AI and compatible persistence. It is planning only: the rules/mode defaults and production UI integration still need confirmation; existing conquest gameplay remains unchanged.
+
 The original browser assertion failures and lifecycle-save defect are repaired; [docs/test-repair/REQUIREMENTS.md](docs/test-repair/REQUIREMENTS.md) tracks the pending expanded persistence matrix. Merge checkpoint `d2d9702` passed 402 unit tests, 79 Chrome browser tests, build and whitespace checks; totals are checkpoint evidence, not a permanent suite size.
 
 ### Purpose
