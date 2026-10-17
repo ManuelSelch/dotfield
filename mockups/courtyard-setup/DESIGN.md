@@ -1,6 +1,6 @@
 # Courtyard Home selector — revision 2
 
-- Status: IN REVIEW. User requested implementing Courtyard generation; selector controls remain under review before production UI changes.
+- Status: APPROVED revision 2. User explicitly approved: “yes implement it”. Production scope is the four-layout picker, Courtyard terrain generation, constraints and persistence; relay scoring remains excluded.
 - User feedback: move River & bridges and Mountains into Layout; rename River & bridges to River.
 - Layout is now a single-choice 2×2 picker: Open field / River / Mountains / Courtyard. Standard is replaced by explicit terrain recipes. River and Mountains toggles are removed from On the field; only Factory and Slow Zone remain there.
 - Open field: no river/mountains. River: two paired crossings, no mountains. Mountains: central ridge, no river. Courtyard: multiple mountains plus two river crossings. Combining River and Mountains separately is replaced by Courtyard in this proposed UI; user review is pending.
@@ -12,4 +12,7 @@
 - Reroll/Play are explanatory mock controls. No combat, random generation, persistence or AI. Upgrades/AI sections are placeholders for existing controls.
 - Responsive: settings left, preview right on wide screens; stacked on mobile. Layout buttons form two columns with visible focus. Reuse existing production style conventions during implementation.
 - Production Courtyard intent: reserve enclosing ridges, both entrance cities, side valleys, paired crossings and separate starts; seeded bounded variation; exact requested city count; terrain clearance, legal staging connectivity and comparable access checks.
-- Approval: pending explicit review of revision 2. User's “continue” during this mockup edit authorizes completing the revision, not unreviewed production changes.
+- Approval: user “yes implement it” applies to revision 2. Approved sources preserved. Agent-owned Vite PID78521 was verified by command/cwd/listener, gracefully stopped, process exit and listener absence confirmed, and runtime record removed before production edits.
+- Implemented: production uses the approved four-button selector, Courtyard count/enemy guards, required terrain and independent Factory/Slow Zone. Temporary regular-count restore is scoped to the mounted Home editing session. Legacy combined Home preferences migrate to Mountains; exact active saved fields remain unchanged. New Home defaults to Mountains rather than legacy combined terrain. See docs/generated-maps.md.
+- Production geometry adapts the illustrated420×620 recipe into the existing360×480 logical field; city radius14 remains unchanged. Seed variation is bounded symmetric scaling and expansion-pair selection, not arbitrary mountain scattering. Two northern Factory pockets remain fixed when Factory is enabled.
+- Verification:722 unit tests/83files,117 standard Chromium browser tests serially,2 production PWA tests, production/typecheck build and diff checks pass. Real-iPhone/readability/balance/duration remain manual. Relay scoring is intentionally not implemented.

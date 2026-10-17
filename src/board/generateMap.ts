@@ -4,9 +4,12 @@ import { createRiver } from '../game/river';
 import { snapshotTerritories } from '../game/features/snapshot';
 import { createTerrain } from '../game/terrain/terrain';
 import type { Terrain } from '../game/terrain/types';
-import { TERRITORY_RADIUS } from '../game/settings';
+import { courtyardGeometry } from './courtyard';
 
+export type MapLayout = 'open' | 'river' | 'mountains' | 'courtyard';
 export interface MapSettings {
+  /** Missing only in legacy preferences/saved match metadata. */
+  readonly layout?: MapLayout;
   readonly cities: number;
   readonly enemies: number;
   readonly industry: boolean;
@@ -36,7 +39,9 @@ export function isMapSettings(value: unknown): value is MapSettings {
     && typeof settings.mountains === 'boolean'
     && (settings.artillery === undefined || typeof settings.artillery === 'boolean')
     && (settings.watchtower === undefined || typeof settings.watchtower === 'boolean')
-    && typeof settings.slowZone === 'boolean';
+    && typeof settings.slowZone === 'boolean'
+    && (settings.layout === undefined || ['open', 'river', 'mountains', 'courtyard'].includes(settings.layout))
+    && (settings.layout !== 'courtyard' || (settings.cities >= 20 && settings.enemies === 1));
 }
 
 // Bounded, reproducible randomness; no simulation or browser dependency.
@@ -56,7 +61,23 @@ export function newMapSeed(): number {
 export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
   if (!isMapSettings(settings)) throw new RangeError('Invalid map settings.');
   if (!Number.isInteger(seed) || seed < 0 || seed >= 2 ** 32) throw new RangeError('Invalid map seed.');
+  // Layout is authoritative for new settings. Missing layout preserves legacy exact generation.
+  if (settings.layout) settings = { ...settings, river: settings.layout === 'river' || settings.layout === 'courtyard',
+    mountains: settings.layout === 'mountains' || settings.layout === 'courtyard' };
   const random = seededRandom(seed);
+  if (settings.layout === 'courtyard') {
+    const geometry = courtyardGeometry(settings.cities, random);
+    let territories = geometry.territories;
+    if (settings.industry) territories = territories.map(city => city.id.startsWith('economy-') ? { ...city, units: 14,
+      features: [{ id: `${city.id}:factory`, kind: 'factory' as const, productionMultiplier: 2 }] } : city);
+    if (settings.slowZone) {
+      const host = Math.floor(random() * territories.length);
+      territories = territories.map((city, i) => i === host ? { ...city, features: [...(city.features ?? []),
+        { id: `${city.id}:slow-zone`, kind: 'slow-zone' as const, radius: 150, speedMultiplier: 0.5 }] } : city);
+    }
+    return Object.freeze({ id: `generated-${seed}`, seed, settings: Object.freeze({ ...settings }),
+      ...geometry, territories: snapshotTerritories(territories) });
+  }
   // Stratified slots bound generation through the supported 30-city maximum.
   const rows = Array.from({ length: 10 }, (_, row) => settings.river
     ? 30 + row * 40 + (row >= 5 ? 60 : 0) : 24 + row * 48);

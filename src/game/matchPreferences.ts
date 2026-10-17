@@ -1,4 +1,5 @@
 import { DEFAULT_MAP_SETTINGS, enemyIds, isMapSettings, type MapSettings } from '../board/generateMap';
+import { layoutOf, selectLayout } from '../board/layoutSettings';
 import { UPGRADES, type UpgradeId } from './upgrades/catalog';
 import type { AiBehavior } from './ai/behaviors';
 
@@ -12,7 +13,7 @@ export interface GeneratedMatch {
   readonly seed: number;
   readonly preferences: MatchPreferences;
 }
-export const defaultMatchPreferences = (): MatchPreferences => ({ map: { ...DEFAULT_MAP_SETTINGS }, upgrades: { player: [] }, aiBehaviors: {} });
+export const defaultMatchPreferences = (): MatchPreferences => ({ map: selectLayout(DEFAULT_MAP_SETTINGS, 'mountains'), upgrades: { player: [] }, aiBehaviors: {} });
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export function isMatchPreferences(value: unknown): value is MatchPreferences {
@@ -27,13 +28,16 @@ export function isGeneratedMatch(value: unknown): value is GeneratedMatch {
   return isRecord(value) && Number.isInteger(value.seed) && (value.seed as number) >= 0 && (value.seed as number) < 2 ** 32
     && isMatchPreferences(value.preferences);
 }
+export function normalizeMatchPreferences(value: MatchPreferences): MatchPreferences {
+  const { artillery: _legacyArtillery, watchtower: _legacyWatchtower, ...map } = value.map;
+  return { ...value, map: selectLayout(map, layoutOf(map)) };
+}
 export function readMatchPreferences(storage?: Pick<Storage, 'getItem'>): MatchPreferences {
   try {
     const raw = (storage ?? window.localStorage).getItem(MATCH_PREFERENCES_KEY);
     const value: unknown = raw ? JSON.parse(raw) : null;
     if (!isMatchPreferences(value)) return defaultMatchPreferences();
-    const { artillery: _legacyArtillery, watchtower: _legacyWatchtower, ...map } = value.map;
-    return { ...value, map };
+    return normalizeMatchPreferences(value);
   } catch { return defaultMatchPreferences(); }
 }
 export function writeMatchPreferences(value: MatchPreferences, storage?: Pick<Storage, 'setItem'>): void {

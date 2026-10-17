@@ -30,6 +30,7 @@ test('home previews generated Factories and restores its exact river round after
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/');
+  await page.getByRole('button', { name: 'River', exact: true }).click();
   const preview = page.getByRole('img', { name: 'Generated map preview' });
   await expect(preview).toBeVisible();
   await expect(preview.locator('[aria-label="Factory"]')).toHaveCount(2);
