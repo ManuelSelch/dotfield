@@ -19,7 +19,9 @@ export function featureLabels(city: Territory, shield?: CaptureShieldState, shie
   const type = city.cityType ?? 'production';
   const stored = shield ?? state?.captureShields[city.id];
   const identity = type === 'production' ? ' Production city.'
-    : type === 'defender' ? ' Defender city; no troop growth.'
+    : type === 'defender' ? ` Defender city; no troop growth. ${city.owner === 'neutral'
+      ? 'Transit blocking inactive while neutral.'
+      : 'Defender blocks hostile ground transit through its region; attack it or stage around it. Aircraft bypass the border.'}`
       : type === 'airfield' ? ' Airfield city; no troop growth.'
         : type === 'watchtower' ? ` Watchtower ${city.owner === 'neutral' ? 'inactive while neutral' : `controlled by ${city.owner}`}; no troop growth. Fires at hostile ground troops within ${WATCHTOWER_RANGE} units, up to ${(1000 / WATCHTOWER_FIRE_INTERVAL_MS).toFixed(0)} per second.`
           : ` Artillery ${city.owner === 'neutral' ? 'inactive while neutral' : `controlled by ${city.owner}`}; no troop growth. Fires at enemy garrisons within ${ARTILLERY_RANGE} units, up to ${(1000 / ARTILLERY_FIRE_INTERVAL_MS).toFixed(0)} shots per second; mountains block shots.`;

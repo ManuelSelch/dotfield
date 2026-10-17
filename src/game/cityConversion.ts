@@ -1,6 +1,7 @@
 import type { CityType, FactionId, SimulationState, Territory } from './types';
 import { CITY_CONVERSION_COST } from './settings';
 import { createAircraft } from './aircraft';
+import { cancelBlockedGroundQueues } from './groundAccess';
 
 export function cityType(city: Territory): CityType { return city.cityType ?? 'production'; }
 
@@ -21,11 +22,11 @@ export function convertCity(state: SimulationState, cityId: string, type: CityTy
   if (type === 'watchtower' || type === 'artillery') weaponTimers[cityId] = { owner: city.owner, elapsedMs: 0 };
   else delete weaponTimers[cityId];
   const nextAircraft = type === 'airfield' ? { ...aircraft, [cityId]: createAircraft(city) } : aircraft;
-  return {
+  return cancelBlockedGroundQueues({
     ...state, aircraft: nextAircraft, networkShieldTimers, weaponTimers, artilleryShots,
     territories: state.territories.map(c => c === city
       ? { ...c, cityType: type, units: c.units - CITY_CONVERSION_COST[type], growthRemainder: 0,
         ...(features ? { features } : {}) } : c),
     transfers: state.transfers.filter(t => t.sourceId !== cityId || t.elapsedMs >= 0),
-  };
+  });
 }

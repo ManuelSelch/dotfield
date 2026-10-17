@@ -38,11 +38,28 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   const onCounts = vi.fn();
   const onSnapshot = vi.fn();
   const onCitySelection = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection });
-  return { focus, onCitySelection, setBounds: (width: number, height: number) => { bounds = { width, height }; }, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
+  const onFeedback = vi.fn();
+  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection, onFeedback });
+  return { onFeedback, focus, onCitySelection, setBounds: (width: number, height: number) => { bounds = { width, height }; }, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
 }
 
 describe('board lifecycle adapter', () => {
+  it('retains rejected-order feedback through keyboard target focus restoration', () => {
+    const board = harness([
+      { id: 'source', owner: 'player', units: 40, x: 40, y: 240 },
+      { id: 'wall', owner: 'enemy', units: 10, x: 180, y: 240, cityType: 'defender' },
+      { id: 'rear', owner: 'enemy', units: 10, x: 320, y: 240 },
+    ]);
+    const notify = vi.mocked(bindKeyboard).mock.lastCall![3];
+    const dispatch = vi.mocked(bindKeyboard).mock.lastCall![4];
+    dispatch('source', 'rear');
+    expect(board.onFeedback.mock.lastCall![0]).toContain('Defender wall');
+    notify({ sourceId: '', targetId: null, focusId: 'rear', point: { x: 320, y: 240 } });
+    expect(board.onFeedback.mock.lastCall![0]).toContain('Defender wall');
+    notify(null);
+    expect(board.onFeedback).toHaveBeenLastCalledWith('');
+    board.stop();
+  });
   it('opens management, persists converted roles, and clears it on pause', () => {
     const board = harness();
     const options = vi.mocked(bindDrag).mock.lastCall![5]!;

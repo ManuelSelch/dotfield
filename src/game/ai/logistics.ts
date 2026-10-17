@@ -1,10 +1,9 @@
 import { getTerritoryGrowthRate } from '../features/growthRate';
 import { availableUnits } from '../launch';
-import { canRiverOrder } from '../river';
+import { canGroundOrder } from '../groundAccess';
 import { createRoute } from '../route';
 import { getFactionRules } from '../rules';
 import { CITY_PRODUCTION_LIMIT } from '../settings';
-import { canDirectTerrainOrder } from '../terrain/directOrder';
 import type { SimulationState, TerritoryState } from '../types';
 import { PRODUCTION_AI, type AiConfig } from './config';
 import { airSupplyRoom, incomingThreat } from './mobility';
@@ -12,7 +11,6 @@ import { airSupplyRoom, incomingThreat } from './mobility';
 // Strategic distances use legal straight legs, including manual staging around
 // mountains and through paired bridges. They never create automatic troop routes.
 export function frontlineDistances(state: SimulationState, factionId: string): ReadonlyMap<string, number> {
-  const rules = getFactionRules(state, factionId);
   const distances = new Map(state.territories.map(city => [city.id,
     (state.relay ? city.id === state.relay.cityId : city.owner !== factionId && city.owner !== 'neutral') ? 0 : Infinity]));
   const remaining = [...state.territories];
@@ -22,8 +20,7 @@ export function frontlineDistances(state: SimulationState, factionId: string): R
     const distance = distances.get(nearest.id)!;
     if (!Number.isFinite(distance)) break;
     for (const next of remaining) {
-      if (!canRiverOrder(next, nearest, state.river)
-        || !canDirectTerrainOrder(next, nearest, state.terrain, rules)) continue;
+      if (!canGroundOrder(state, next, nearest, factionId)) continue;
       const proposed = distance + Math.hypot(next.x - nearest.x, next.y - nearest.y);
       if (proposed < distances.get(next.id)!) distances.set(next.id, proposed);
     }
@@ -59,8 +56,7 @@ export function canRelieveProduction(state: SimulationState, source: TerritorySt
   // yet. This is deliberately conservative, not a prediction of future orders.
   if (state.territories.some(hostile => hostile.owner !== factionId && hostile.owner !== 'neutral'
     && availableUnits(state, hostile.id) - 1 >= config.minDispatchUnits
-    && canRiverOrder(hostile, source, state.river)
-    && canDirectTerrainOrder(hostile, source, state.terrain, getFactionRules(state, hostile.owner))
+    && canGroundOrder(state, hostile, source)
     && createRoute(hostile, source, getFactionRules(state, hostile.owner)).durationMs <= PRODUCTION_AI.threatTravelMs)) return false;
 
   const sourceDistance = distances.get(source.id)!;
@@ -72,13 +68,11 @@ export function canRelieveProduction(state: SimulationState, source: TerritorySt
   if (stagingPriority(state, target, source, distances, config) >= 0) return false;
   // Feed the best legally reachable local sink, not every slightly better city.
   // This keeps the number of sacrificed production sites small and stable.
-  const rules = getFactionRules(state, factionId);
   return !state.territories.some(other => other.id !== source.id && other.id !== target.id
     && other.owner === factionId && Number.isFinite(distances.get(other.id))
     && stagingPriority(state, other, target, distances, config) < 0
     && !state.transfers.some(batch => batch.owner !== factionId && batch.targetId === other.id)
-    && canRiverOrder(source, other, state.river)
-    && canDirectTerrainOrder(source, other, state.terrain, rules));
+    && canGroundOrder(state, source, other, factionId));
 }
 
 export function factionArmyUnits(state: SimulationState, factionId: string): number {

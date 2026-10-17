@@ -6,6 +6,7 @@ import type { SimulationState, TerritoryState } from '../types';
 import { PRODUCTION_AI, type AiConfig } from './config';
 import { airSupplyRoom, incomingThreat, usefulAirSupply } from './mobility';
 import { relayPriority } from './relayPriority';
+import { breachValue } from './defenderStrategy';
 
 export type OrderKind = 'expand' | 'attack' | 'reinforce';
 export interface AiOrder { readonly sourceId: string; readonly targetId: string; readonly kind: OrderKind; readonly score: number }
@@ -23,6 +24,7 @@ export function scoreOrder(state: SimulationState, source: TerritoryState, targe
     if (before.owner === factionId) return null; // Existing troops already secure this region.
     kind = target.owner === 'neutral' ? 'expand' : 'attack';
     score = kind === 'expand' ? config.expansionScore : config.attackScore;
+    score += Math.min(config.attackScore * 0.5, breachValue(state, target.id, factionId) * 4);
     // Value the extra production from a capturable Factory over a short horizon.
     // Forecast success and source safety still gate the order; no resource bonus.
     const extraProduction = getTerritoryGrowthRate(proposed, after) - getFactionRules(state, factionId).unitsPerSecond;

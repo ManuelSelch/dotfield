@@ -3,6 +3,7 @@ import { launchBatches } from './launch';
 import { getFactionRules } from './rules';
 import { consumeShield } from './features/captureShield';
 import { createAircraft } from './aircraftState';
+import { cancelBlockedGroundQueues } from './groundAccess';
 
 /** The single combat path for ground arrivals and aircraft delivery pulses. */
 export function resolveArrivalBatch(state: SimulationState, arrival: { targetId: string; owner: FactionId; units: number }):
@@ -36,7 +37,8 @@ export function resolveArrivalBatch(state: SimulationState, arrival: { targetId:
       // Cancel immediately: capture followed by recapture must not revive old reservations.
       transfers: state.transfers.filter(t => t.sourceId !== target.id || t.elapsedMs >= 0) };
   }
-  return { state: updated, result: friendly ? 'reinforced' : captured ? 'captured' : 'defended' };
+  return { state: captured ? cancelBlockedGroundQueues(updated) : updated,
+    result: friendly ? 'reinforced' : captured ? 'captured' : 'defended' };
 }
 
 export function resolveCombat(state: SimulationState): SimulationState {

@@ -3,6 +3,7 @@ import type { DragSelection } from './drag';
 import { drawTerritoryBackgrounds, drawTerritoryCounters } from './drawTerritories';
 import { drawAircraft } from './drawAircraft';
 import { drawRelay } from './drawRelay';
+import { drawDefenderBorders } from './drawDefenderBorders';
 export { hasAircraftAnimation } from './drawAircraft';
 import { drawCaptureShields } from './drawCaptureShields';
 import { drawCityFeatures } from './drawCityFeatures';
@@ -31,7 +32,7 @@ function renderPixelRatio(pixelRatio: number, transferCount: number) {
 
 export function drawBoard(
   canvas: HTMLCanvasElement, state: SimulationState,
-  width: number, height: number, pixelRatio: number, selection: DragSelection | null = null,
+  width: number, height: number, pixelRatio: number, selection: DragSelection | null = null, air = false,
 ) {
   const ctx = canvas.getContext('2d');
   if (!ctx || width <= 0 || height <= 0) return;
@@ -64,7 +65,7 @@ export function drawBoard(
     connectivityCaches.set(canvas, connectivity);
   }
   drawRegions(ctx, state.territories, getRegions(state.territories, width, height, state.river), selection,
-    state.river, state.terrain, connectivity.ids);
+    state.river, state.terrain, connectivity.ids, air);
   ctx.fillStyle = '#c4cec2';
   ctx.globalAlpha = 0.5;
   for (let x = 12; x < width; x += 24) {
@@ -77,6 +78,7 @@ export function drawBoard(
   ctx.globalAlpha = 1;
   drawRiver(ctx, state.territories, state.river, width, height);
   drawMountains(ctx, state.terrain, width, height);
+  drawDefenderBorders(ctx, state.territories, width, height, state.river);
   drawArtilleryCoverage(ctx, state, width, height);
   drawRelay(ctx, state, width, height);
   drawTerritoryBackgrounds(ctx, state, width, height);
@@ -88,5 +90,5 @@ export function drawBoard(
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
   drawCityFeatures(ctx, state, width, height, connectivity.networks, connectivity.shieldCapacities);
   drawArtilleryShots(ctx, state, width, height, typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  drawDrag(ctx, state.territories, selection, width, height, state.river, state.terrain);
+  drawDrag(ctx, state.territories, selection, width, height, state.river, state.terrain, air);
 }

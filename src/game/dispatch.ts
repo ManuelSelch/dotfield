@@ -2,9 +2,8 @@ import { BATCH_SIZE } from './settings';
 import { getFactionRules } from './rules';
 import type { Faction, SimulationState, Transfer } from './types';
 import { createRoute } from './route';
-import { canDirectTerrainOrder } from './terrain/directOrder';
+import { canGroundOrder } from './groundAccess';
 import type { Terrain } from './terrain/types';
-import { canRiverOrder } from './river';
 
 export function dispatchUnits(state: SimulationState, sourceId: string, targetId: string, faction: Faction = 'player',
   terrain?: Terrain): SimulationState {
@@ -13,10 +12,9 @@ export function dispatchUnits(state: SimulationState, sourceId: string, targetId
   const target = state.territories.find((node) => node.id === targetId);
   if (!source || !target || source === target || source.owner !== faction || source.units < 2) return state;
 
-  if (!canRiverOrder(source, target, state.river)) return state;
+  if (!canGroundOrder(state, source, target, faction, terrain ?? state.terrain)) return state;
   const rules = getFactionRules(state, faction);
   const route = createRoute(source, target, rules);
-  if (!canDirectTerrainOrder(source, target, terrain ?? state.terrain, rules)) return state;
 
   // Queued troops are still inside the city: replace their order, never airborne groups.
   const transfers = state.transfers.filter(t => t.sourceId !== sourceId || t.owner !== faction || t.elapsedMs >= 0);

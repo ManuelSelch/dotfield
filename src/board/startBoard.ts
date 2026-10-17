@@ -12,9 +12,9 @@ import { hasAircraftAnimation } from './drawAircraft';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
-import { canRiverOrder, pairedCityId, type River } from '../game/river';
+import { pairedCityId, type River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
-import { canDirectTerrainOrder } from '../game/terrain/directOrder';
+import { groundOrderFeedback } from './groundOrderFeedback';
 
 export interface BoardCitySelection { cityId: string; targeting: CityTargetMode | null }
 interface BoardOptions {
@@ -74,7 +74,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   const pendingAi = new Map<number, string>();
   function redraw() {
     const bounds = canvas.getBoundingClientRect();
-    drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection);
+    drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection, citySelection?.targeting === 'fly');
   }
   const drag = bindBoardInput(canvas, () => !disposed && session.active
     ? state.territories : [],
@@ -83,10 +83,11 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       const source = state.territories.find(c => c.id === next?.sourceId);
       const target = state.territories.find(c => c.id === next?.targetId);
       const pair = source && pairedCityId(source.id, state.river);
-      options.onFeedback?.(source && target && source.id !== target.id && !canDirectTerrainOrder(source, target, state.terrain)
-        ? 'Mountains block direct orders. Stage troops around the ridge.' : state.river && source ? target && !canRiverOrder(source, target, state.river)
-        ? 'Cross only between the paired bridge cities.'
-        : pair ? `Cross to ${pair}, or send within this bank.` : 'Send within this bank; stage troops at a bridge city.' : '');
+      // Keyboard restores target focus after dispatch. Do not erase a rejected
+      // command's explanation with that focus-only notification.
+      if (source || !next) options.onFeedback?.(citySelection?.targeting === 'fly' ? '' : groundOrderFeedback(state, source, target)
+        ?? (state.river && source ? pair ? `Cross to ${pair}, or send within this bank.`
+          : 'Send within this bank; stage troops at a bridge city.' : ''));
       redraw();
     },
     (source, target) => {
@@ -95,8 +96,8 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       const next = session.dispatch(source, target);
       if (next === state) {
         const from = state.territories.find(c => c.id === source), to = state.territories.find(c => c.id === target);
-        if (from && to && !canRiverOrder(from, to, state.river)) options.onFeedback?.('Cross only between the paired bridge cities.');
-        else if (from && to && !canDirectTerrainOrder(from, to, state.terrain)) options.onFeedback?.('Mountains block direct orders. Stage troops around the ridge.');
+        const feedback = groundOrderFeedback(state, from, to);
+        if (feedback) options.onFeedback?.(feedback);
         return;
       }
       state = next;
@@ -112,7 +113,11 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
         if (!source || source.id === targetId || !session.active) return;
         session.setHidden(document.hidden);
         const next = mode === 'fly' ? session.fly(source.id, targetId) : session.dispatch(source.id, targetId);
-        if (next === state) { options.onFeedback?.('Order unavailable. Choose another target or cancel.'); return; }
+        if (next === state) {
+          const destination = state.territories.find(c => c.id === targetId);
+          options.onFeedback?.((mode === 'ground' ? groundOrderFeedback(state, source, destination) : null)
+            ?? 'Order unavailable. Choose another target or cancel.'); return;
+        }
         state = next; citySelection = { cityId: source.id, targeting: null };
         options.onCitySelection?.(citySelection); onState(state); options.onSnapshot?.(state, session.phase, true); focusCity(); redraw();
       },

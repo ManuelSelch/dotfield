@@ -1,4 +1,4 @@
-import { createCityRegions } from '../board/regions/geometry';
+import { logicalTerritoryRegions } from './territoryRegions';
 import type { River } from './river';
 import type { Point, Territory } from './types';
 
@@ -45,7 +45,7 @@ export function adjacentTerritoryIds(territories: readonly Territory[], river?: 
     adjacencyCache.set(key, cached);
     return cached;
   }
-  const regions = createCityRegions(territories, 360, 480, river);
+  const regions = logicalTerritoryRegions(territories, river);
   const neighbors = new Map(territories.map(city => [city.id, new Set<string>()]));
   for (let i = 0; i < regions.length; i++) {
     for (let j = i + 1; j < regions.length; j++) {

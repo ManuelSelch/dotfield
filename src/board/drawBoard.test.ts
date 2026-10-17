@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { drawBoard } from './drawBoard';
 
 const layers = vi.hoisted(() => ({
-  aircraft: vi.fn(), backgrounds: vi.fn(), transfers: vi.fn(), counters: vi.fn(), shields: vi.fn(), features: vi.fn(), regions: vi.fn(),
+  borders: vi.fn(), aircraft: vi.fn(), backgrounds: vi.fn(), transfers: vi.fn(), counters: vi.fn(), shields: vi.fn(), features: vi.fn(), regions: vi.fn(),
 }));
 
 vi.mock('./drawTerritories', () => ({
@@ -10,6 +10,7 @@ vi.mock('./drawTerritories', () => ({
   drawTerritoryCounters: layers.counters,
 }));
 vi.mock('./drawAircraft', () => ({ drawAircraft: layers.aircraft }));
+vi.mock('./drawDefenderBorders', () => ({ drawDefenderBorders: layers.borders }));
 vi.mock('./drawTransfers', () => ({ drawTransfers: layers.transfers }));
 vi.mock('./drawCaptureShields', () => ({ drawCaptureShields: layers.shields }));
 vi.mock('./drawCityFeatures', () => ({ drawCityFeatures: layers.features }));
@@ -59,6 +60,7 @@ describe('board layer order', () => {
 
     drawBoard(canvas, state as never, 320, 480, 1);
 
+    expect(layers.borders.mock.invocationCallOrder[0]).toBeLessThan(layers.backgrounds.mock.invocationCallOrder[0]);
     expect(layers.backgrounds.mock.invocationCallOrder[0]).toBeLessThan(layers.transfers.mock.invocationCallOrder[0]);
     expect(layers.transfers.mock.invocationCallOrder[0]).toBeLessThan(layers.counters.mock.invocationCallOrder[0]);
     expect(layers.aircraft.mock.invocationCallOrder[0]).toBeLessThan(layers.counters.mock.invocationCallOrder[0]);

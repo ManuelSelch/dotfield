@@ -1,16 +1,14 @@
 import { cityType } from '../cityConversion';
 import { availableUnits } from '../launch';
-import { canRiverOrder } from '../river';
+import { canGroundOrder } from '../groundAccess';
 import { getFactionRules } from '../rules';
 import { createRoute } from '../route';
 import { PRODUCTION_AI } from './config';
 import { AIRCRAFT_CAPACITY, AIR_DELIVERY_INTERVAL_MS, BATCH_SIZE } from '../settings';
-import { canDirectTerrainOrder } from '../terrain/directOrder';
 import type { Aircraft, SimulationState, TerritoryState } from '../types';
 
 export function groundLegal(state: SimulationState, source: TerritoryState, target: TerritoryState): boolean {
-  return source.id !== target.id && canRiverOrder(source, target, state.river)
-    && canDirectTerrainOrder(source, target, state.terrain, getFactionRules(state, source.owner));
+  return canGroundOrder(state, source, target);
 }
 
 export function incomingThreat(state: SimulationState, cityId: string, factionId: string): boolean {
