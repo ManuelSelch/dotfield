@@ -11,12 +11,12 @@ Home offers a seeded preview with Reroll beside Play. Play starts the displayed 
   - Courtyard: two ridges enclosing an ordinary neutral city, northern/southern entrance cities, side valleys, two paired river crossings and a third ridge separating the two southern starting areas.
 - Open field, River and Mountains support6–30 total cities and1–4 enemies. Courtyard supports20–30 cities and exactly one enemy.
 - Selecting Courtyard raises a smaller city count to20 and selects one enemy. Enemy buttons2–4 are visibly disabled; the minimum city range is20. A short explanation states that river and mountains are included. Switching back to another layout restores the last regular city/enemy counts during this Home editing session. That temporary backup is not persisted across reload or leaving Home.
-- **On the field:** only Factory and Slow Zone. No separate river or mountain switches.
+- **On the field:** independent Factory, Slow Zone and Relay options. No separate river or mountain switches.
 - Factory adds neutral double-production cities. Regular layouts use the existing rounded cities/6 rule; Courtyard always has two mirrored northern Factory pockets. Off removes these attachments, not their cities. This differs from the faction Industry upgrade (+25% production).
 - Slow Zone defaults Off. On adds one seeded random city attachment: radius150, hostile speed×0.5 (neutral hosts slow everyone). The current owner controls it.
 - Watchtower and Artillery remain buildable roles; no free weapon cities or Home weapon toggles.
 - Your upgrades and Enemy settings stay collapsed initially. Faction upgrades and AI behavior are independent; inactive enemy settings remain remembered but are not compiled into smaller matches.
-- Home runs no simulation or AI. Courtyard does **not** add a relay badge, scoring, countdown or alternative victory condition. Winning still requires eliminating the other faction.
+- Home runs no simulation or AI. Relay defaults Off, preserving ordinary conquest. On marks the existing courtyard city on Courtyard or a deterministic central neutral city elsewhere without changing geography/counts/garrisons. It activates after120 active seconds and requires180 cumulative holding seconds to win; roles remain convertible and conquest remains valid. See [relay behavior](relay/IMPLEMENTATION.md).
 
 ## Generation
 
@@ -42,12 +42,12 @@ Home offers a seeded preview with Reroll beside Play. Play starts the displayed 
 - Reroll changes only the preview. Play compiles that preview with current active faction settings.
 - Restart and Play again repeat the exact opening without rerolling or stacking upgrades. Pause freezes the simulation; reload restores the same field and pause state without closed-time growth.
 - Home abandons the round and retains setup choices. There is no in-round New map action in the current UI: return Home and Reroll/Play for another field.
-- Round persistence stores terrain and city coordinates, so no Courtyard-specific runtime state or save schema is required. Existing authored fixtures remain available for regressions, not through a production carousel.
+- Round persistence stores terrain and city coordinates; optional relay runtime separately preserves objective identity, scores and outcomes. Missing legacy relay metadata remains conquest, never inferred from layout. Existing authored fixtures remain available for regressions, not through a production carousel.
 
 ## Responsive layout and verification
 
-Home keeps settings left and preview right on desktop, stacked with internal scrolling on phones. Layout buttons have44px minimum height, visible keyboard focus and pressed state. Courtyard's disabled faction choices are explained in text. Reroll/Play remain fixed at the bottom on mobile; the battlefield stays non-scrolling.
+Home keeps settings left and preview right on desktop, stacked with internal scrolling on phones. Layout buttons and field toggles have44px minimum height, visible keyboard focus and pressed state. Courtyard's disabled faction choices are explained in text. Reroll/Play remain fixed at the bottom on mobile; the battlefield stays non-scrolling.
 
 Unit checks cover all existing generator combinations, named layouts, invalid settings, deterministic Courtyard seeds, city counts, terrain clearance, both courtyard entrances, blocked valley shortcuts, graph connectivity, symmetric legal approach distances, Factory/Slow Zone and immutable snapshots. Browser checks cover the actual mobile/desktop selector, minimum count and enemy guards, restoring regular choices, repeated rerolls,30-city preview, compiled rounds, paused reload and exact restart. Existing conquest, movement, weapons, worker AI and PWA regressions remain applicable.
 
-Human tactical balance, match duration, city density/readability and actual iPhone Safari/installed usability remain unverified. Courtyard AI uses existing terrain-aware staging and conquest priorities; no relay-aware AI is claimed. A future relay objective is separate work.
+Human tactical balance, match duration, city density/readability and actual iPhone Safari/installed usability remain unverified. With Relay Off, AI retains conquest priorities. With Relay On, legal staging distances and bounded action priorities target the objective and respond to hostile holding progress while preserving home safety and economy safeguards.

@@ -1,0 +1,40 @@
+# Command Relay — implemented behavior
+
+## Setup and placement
+
+- Relay is an independent **On the field** option on all four layouts, Off by default. Factory, Slow Zone, city counts and faction settings retain their normal behavior. The production control reuses the existing pressed-state field pills instead of the prototype's separate Off/On buttons; all three field pills have44px minimum height. This keeps the current Home conventions without a separate mode picker.
+- Courtyard marks its existing `courtyard` city. Other layouts select an existing neutral city by distance from the logical center plus one-quarter of the spread in shortest legal staging distances from the faction starts; stable city-ID order breaks ties. This penalizes unequal approaches without claiming competitive fairness.
+- Placement uses the already-resolved geography and changes no city positions, counts, garrisons, Factory/Slow Zone choices or starting ownership. It does not consume generator randomness. An objective may share ordinary attachments and later become any city role. No relay-specific troops, production or shields are granted.
+- The gold dashed ring and RELAY label appear in the exact Home preview and Canvas. City controls/descriptions retain objective identity after conversion/capture.
+
+## Holding and victory
+
+- Preparation lasts **120 active simulation seconds**. Early capture is allowed but earns nothing.
+- After activation, the current non-neutral owner accumulates holding milliseconds. First to **180 cumulative holding seconds** wins, even with opposing cities, ground troops or loaded aircraft remaining. The earliest relay victory is5:00; this is not a forced duration. Each starting faction has its own retained total, including up to four enemies. Neutral ownership never scores; a zero-garrison owned city does.
+- Captures pause the former owner's progress; recaptures resume it. Ordinary city roles, upgrades and attachments do not change the scoring rate.
+- Shared world stepping splits activation, launches, ground arrivals, air deliveries and threshold boundaries. The interval just elapsed belongs to its previous owner, not a captor at the endpoint. Fractional milliseconds are retained. Scheduler-scale floating-point round-off within1e-7ms of the target snaps to the exact target; displayed whole seconds never decide outcomes.
+- At an event boundary, physical combat resolves and existing conquest evaluation runs first, then relay completion. Capture alone cannot undo an already-earned target. A capture just before completion stops the score below the target. Existing elimination counts airborne troops/cargo and may end a round before activation.
+- A terminal round freezes simulation, scores, input and AI. Outcome metadata records relay/conquest and winner where applicable. As explicitly requested, the popup retains only **Victory/Defeat/Draw** and replay/Home controls: no explanation paragraph.
+
+## HUD and lifecycle
+
+- Relay rounds replace the troop-composition strip with the approved compact100px scoreboard. Two factions use two columns; three–five use three columns/up to two rows. Countdown, neutral, friendly-held, enemy-held, urgent, paused and terminal states retain the same space, so changing state does not resize the Canvas or66px city-action strip.
+- Whole holding seconds and remaining time update at simulation-second boundaries, not every rendering frame. Gold marker rendering is independent of city/collision radius. Accessible meters identify every faction; a separate bounded status announces activation/holder/pause/urgency rather than continuously reading scores.
+- Preferences persist the optional Relay flag; missing legacy flags mean Off. Switching layouts retains the flag. Play uses the preview's resolved city, not a second placement roll.
+- Round saves preserve the exact definition, scores, elapsed clock and outcome. Restore validates the city, timing, faction keys, finite score bounds, total possible holding time and consistent terminal result. Invalid objective data uses the existing corrupt-save fallback rather than silently converting the match to conquest.
+- Missing round objective data always means legacy conquest, even for old Courtyard saves or matching city IDs. Restart/Play again retain the exact opening and objective definition while clearing scores/countdown. Pause, hidden time and time closed grant no progress; event-only saving remains unchanged.
+
+## AI
+
+- Existing legal-distance logistics target the relay rather than hostile homes in relay rounds, enabling manual staging through paired bridges and around mountains. Ordinary conquest retains its previous front targets.
+- Bounded scoring bonuses favor progress toward the objective, direct capture/recapture and reinforcement. Preparation retains room for economy; after activation, hostile accumulated progress increases objective urgency. Known emergency defensive reinforcements outrank optional relay moves.
+- Feasibility, source/home safety, production-base safeguards and actual air/ground/conversion commands remain shared with the player. No fixed12-troop home reserve is reintroduced. The AI does not receive future enemy orders, extra resources or automatic ground detours.
+- Live and worker forecasts share the relay clock/terminal physics and reject actions whose forecast has already ended in another faction's victory. Worker tests cover ground/air/conversion parity with relay metadata. These are heuristics, not optimal objective play.
+
+## Verification and remaining acceptance
+
+- Unit coverage includes120/180 thresholds, fractional holding and weapon cadences, neutral/zero-garrison cities, independent scores, ground and air captures, capture exactly at versus before completion, simultaneous conquest priority, terminal forecast freeze, role conversion, corrupt/legacy saves, pause/hidden/restart, generator combinations and worker parity.
+- Browser coverage includes Relay field/preference/preview-to-Play controls across layouts,44px field targets and five-faction HUDs at320/430/1280px, stable Canvas on pause, activation/scoring with no growth, keyboard conversion, paused reload/restart and relay victory/replay with enemies alive and no popup explanation. A real Defensive Network-enabled worker captures/scores a relay and a player recapture preserves both totals.
+- Final automated checkpoint: **776 unit tests across90 files**, **124 serial Chromium browser tests** without retries, production/typecheck build and **2 production PWA tests** passed. Plan structure, local documentation links and whitespace checks also pass. These are checkpoint counts, not permanent suite sizes.
+- Supplemental seed42/24-city Courtyard probe: an Aggressive Network-enabled AI captured the relay before60s and defeated an entirely idle player by conquest at approximately106s, before activation. This shows legal objective approach and continued conquest, not ten-minute balance or human tactical quality.
+- Human gameplay balance, duration,20/24/30-city readability and actual-iPhone Safari/installed-PWA usability remain manual acceptance. The approved static mockup and automated browser emulation do not establish those results.
