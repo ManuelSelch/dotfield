@@ -40,10 +40,16 @@ function stagingPriority(state: SimulationState, a: TerritoryState, b: Territory
   return a.id < b.id ? -1 : a.id === b.id ? 0 : 1;
 }
 
+function canReceiveProduction(state: SimulationState, source: TerritoryState, target: TerritoryState, factionId: string): boolean {
+  return target.owner === factionId && source.id !== target.id
+    && !incomingThreat(state, target.id, factionId)
+    && (target.cityType !== 'airfield' || airSupplyRoom(state, target, factionId) >= availableUnits(state, source.id) - 1)
+    && canGroundOrder(state, source, target, factionId);
+}
+
 export function canRelieveProduction(state: SimulationState, source: TerritoryState, target: TerritoryState,
   distances: ReadonlyMap<string, number>, config: AiConfig, factionId: string): boolean {
-  if (target.owner !== factionId || source.id === target.id) return false;
-  if (target.cityType === 'airfield' && airSupplyRoom(state, target, factionId) < availableUnits(state, source.id) - 1) return false;
+  if (!canReceiveProduction(state, source, target, factionId)) return false;
   const rate = getTerritoryGrowthRate(state, source);
   if (rate <= 0) return false;
   const timeToCap = Math.max(0, (CITY_PRODUCTION_LIMIT - source.units) * 1000 - source.growthRemainder) / rate;
@@ -72,8 +78,9 @@ export function canRelieveProduction(state: SimulationState, source: TerritorySt
   return !state.territories.some(other => other.id !== source.id && other.id !== target.id
     && other.owner === factionId && Number.isFinite(distances.get(other.id))
     && stagingPriority(state, other, target, distances, config) < 0
-    && !state.transfers.some(batch => batch.owner !== factionId && batch.targetId === other.id)
-    && canGroundOrder(state, source, other, factionId));
+    // An unusable preferred sink must not veto every usable alternative. This
+    // includes full/reserved airfields and threats delivered by aircraft.
+    && canReceiveProduction(state, source, other, factionId));
 }
 
 export function factionArmyUnits(state: SimulationState, factionId: string): number {
