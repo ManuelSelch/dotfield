@@ -15,7 +15,8 @@ test('real worker resumes production and attacks after its preferred Airfield fi
     { id: 'rear-right', owner: 'enemy', units: 50, x: 300, y: 350 },
     { id: 'staging', owner: 'enemy', units: 50, x: 180, y: 330 },
     { id: 'airfield', owner: 'enemy', units: 101, x: 180, y: 300, cityType: 'airfield' as const },
-    { id: 'relay', owner: 'player', units: 240, x: 180, y: 40 },
+    // The initial coalition cannot win without resumed production.
+    { id: 'relay', owner: 'player', units: 350, x: 180, y: 40 },
   ];
   const initial = createSimulation(cities, undefined, undefined, undefined,
     { cityId: 'relay', activateAtMs: 120000, targetMs: 180000 });

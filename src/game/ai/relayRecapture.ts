@@ -1,0 +1,65 @@
+import { canGroundOrder } from '../groundAccess';
+import { dispatchUnits } from '../dispatch';
+import { availableUnits } from '../launch';
+import { minimumTravelMultiplier } from '../features/slowZone';
+import { orderDurationMs, remainingTravelBound } from '../route';
+import { getFactionRules } from '../rules';
+import { SIMULATION_STEP_MS } from '../settings';
+import type { SimulationState } from '../types';
+import type { AiConfig } from './config';
+import { forecastBattle } from './forecast';
+import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
+import { scoreOrder, type AiOrder } from './score';
+
+/** Consider our own follow-up orders, not fictional reinforcements or future
+ * enemy commands. Only the first order is issued; every decision replans from
+ * the live state, including waves already committed to the Relay. */
+export function chooseRelayRecapture(state: SimulationState, config: AiConfig, factionId: string,
+  distances: ReadonlyMap<string, number>): AiOrder | null {
+  const relay = state.relay;
+  if (!relay || state.elapsedMs < relay.activateAtMs) return null;
+  const target = state.territories.find(city => city.id === relay.cityId)!;
+  if (target.owner === factionId || target.owner === 'neutral') return null;
+  const multiplier = minimumTravelMultiplier(state);
+  const duration = (source: SimulationState['territories'][number]) => orderDurationMs(source, target,
+    availableUnits(state, source.id) - 1, getFactionRules(state, factionId), multiplier);
+  const sources = state.territories.filter(source => source.owner === factionId
+    && availableUnits(state, source.id) - 1 >= config.minDispatchUnits
+    && !state.transfers.some(t => t.sourceId === source.id && t.owner === factionId)
+    && !incomingThreat(state, source.id, factionId)
+    && canGroundOrder(state, source, target, factionId))
+    .sort((a, b) => duration(a) - duration(b) || a.id.localeCompare(b.id, 'en'));
+  let plan = state;
+  const donors = new Set<string>();
+  let firstSource: typeof sources[number] | undefined;
+  for (const original of sources) {
+    if (plan.roundStatus !== 'playing') break;
+    const source = plan.territories.find(city => city.id === original.id)!;
+    if (source.owner !== factionId || availableUnits(plan, source.id) - 1 < config.minDispatchUnits
+      || !canGroundOrder(plan, source, target, factionId)) continue;
+    const dispatched = dispatchUnits(plan, source.id, target.id, factionId);
+    if (dispatched === plan || !keepsHomeReserve(plan, dispatched, factionId)) continue;
+    firstSource ??= original;
+    donors.add(source.id);
+    plan = dispatched;
+    const relevant = (id: string) => id === target.id || donors.has(id);
+    const horizon = Math.ceil(Math.max(SIMULATION_STEP_MS,
+      ...plan.transfers.filter(t => relevant(t.targetId)).map(t => remainingTravelBound(t, multiplier)),
+      ...Object.values(plan.aircraft ?? {}).filter(p => p.targetId && relevant(p.targetId)).map(remainingDeliveryMs))
+      / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
+    const proposed = forecastBattle(plan, horizon);
+    const baseline = forecastBattle(state, plan.elapsedMs - state.elapsedMs + horizon);
+    if (baseline.territories.find(city => city.id === target.id)?.owner === factionId) return null;
+    if (proposed.territories.find(city => city.id === target.id)?.owner === factionId
+      && keepsHomeReserve(baseline, proposed, factionId)
+      && [...donors].every(id => proposed.territories.find(city => city.id === id)?.owner === factionId)) {
+      const order = scoreOrder(state, firstSource, target, baseline, proposed,
+        plan.elapsedMs - state.elapsedMs + horizon, config, factionId, distances);
+      if (order) return order;
+    }
+    // Follow-ups cost actual decision time. A plan that arrives after the
+    // holder's winning threshold is rejected by the same terminal physics.
+    plan = forecastBattle(plan, config.decisionIntervalMs);
+  }
+  return null;
+}

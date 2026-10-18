@@ -5,6 +5,7 @@ import { resolveAiBehavior } from './behaviors';
 import { forecastBattle } from './forecast';
 import { applyAiAction, chooseAction } from './actions';
 import { dispatchUnits } from '../dispatch';
+import type { SimulationState } from '../types';
 
 const opening = (donors = 1) => createSimulation([
   { id: 'rear', owner: 'enemy', units: 50, x: 60, y: 350 },
@@ -54,7 +55,10 @@ it('does not depend on Relay being enabled or the faction being named enemy', ()
 });
 
 it('keeps producing and eventually attacks after the airfield supply sink fills up', () => {
-  let state = { ...opening(2), elapsedMs: 120000 };
+  const initial = opening(2);
+  // Require economic growth even when the AI can coordinate several attackers.
+  let state: SimulationState = { ...initial, elapsedMs: 120000,
+    territories: initial.territories.map(city => city.id === 'relay' ? { ...city, units: 350 } : city) };
   let maxStaging = 50, attacks = 0, relief = 0;
   const config = resolveAiBehavior('aggressive');
   for (let i = 0; i < 100 && state.roundStatus === 'playing'; i++) {

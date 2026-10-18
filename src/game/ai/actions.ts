@@ -164,6 +164,10 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
 export function chooseAction(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId: FactionId = 'enemy'): AiAction | null {
   if (state.roundStatus !== 'playing' || !state.rules.factions[factionId] || factionId === 'neutral') return null;
   const ground = chooseOrder(state, config, factionId);
+  // Stop an active hostile holding clock before optional purchases or side
+  // objectives. Ground recapture plans already pass real forecasts/home safety.
+  if (ground?.kind === 'attack' && state.relay && state.elapsedMs >= state.relay.activateAtMs
+    && ground.targetId === state.relay.cityId) return { ...ground, type: 'ground' };
   // Known emergency rescue/interception takes priority over construction.
   if (ground && (incomingThreat(state, ground.sourceId, factionId)
     || ground.kind === 'reinforce' && incomingThreat(state, ground.targetId, factionId))) return { ...ground, type: 'ground' };

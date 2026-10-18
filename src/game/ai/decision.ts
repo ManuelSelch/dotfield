@@ -11,6 +11,7 @@ import { forecastBattle } from './forecast';
 import { scoreOrder, type AiOrder } from './score';
 import { canRelieveProduction, factionArmyUnits, frontlineDistances } from './logistics';
 import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
+import { chooseRelayRecapture } from './relayRecapture';
 
 export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy'): AiOrder | null {
   if (state.roundStatus !== 'playing') return null;
@@ -50,5 +51,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
         || (emergency(candidate) === emergency(best) && candidate.score > best.score))) best = candidate;
     }
   }
-  return best;
+  const recapture = chooseRelayRecapture(state, config, factionId, distances);
+  const emergencyDefense = best?.kind === 'reinforce' && incomingThreat(state, best.targetId, factionId);
+  return recapture && !emergencyDefense ? recapture : best;
 }
