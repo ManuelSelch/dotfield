@@ -1,0 +1,8 @@
+root {
+    sequence exit(ReleasePlan, "capturePlan") {
+        action [SelectCity, "neutral", "nearest-reachable", "target"]
+        action [SelectSources, "target", 6, "sources"]
+        action [PlanCapture, "target", "sources", 15000, "capturePlan"]
+        action [ExecutePlan, "capturePlan"]
+    }
+}

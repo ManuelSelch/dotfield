@@ -78,6 +78,10 @@ Safe rear cities also export troops shortly before reaching the 50-unit producti
 
 Tune `DEFAULT_AI` and `PRODUCTION_AI` in `config.ts`, or pass an `AiConfig` to `FieldCanvas`/`startBoard`. The actual app enables AI by default. Pure `advanceRound(state, elapsedMs, config)` takes the policy explicitly; omitting it or passing `null` disables AI for isolated rule tests. Replay resets its decision deadline and backgrounding excludes hidden time. Difficulty presets and smarter tactics remain deferred; each enemy uses its selected Balanced, Aggressive or Defensive behavior on generated maps. River AI stages at bridge endpoints and values contested Factory production; these behaviors are not Easy/Normal/Hard difficulty presets.
 
+### Experimental MDSL bot (development only)
+
+Open the development app with `?bot=mdsl` to replace configured enemies with a minimal Mistreevous neutral-expansion tree. Edit `src/game/ai/mdsl/expansion.mdsl`; watch `[MDSL]` debug messages in the browser console. Start with Open field, one enemy and Relay off. The prototype uses real commands/forecasts and persistent plans, but has no defense or enemy-city attacks. Without the flag, normal AI remains unchanged; production builds ignore it. See [setup, method contracts and limits](docs/ai-mdsl/IMPLEMENTATION.md).
+
 ## Run
 
 Use a current Node.js LTS release (22.12+ or 24+) and npm.

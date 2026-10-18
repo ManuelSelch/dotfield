@@ -17,14 +17,14 @@ vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), validat
 vi.mock('./bindKeyboard', () => ({ bindKeyboard: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
 afterEach(() => { vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
-function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStart = true) {
+function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStart = true, search = '') {
   let callback = (_time: number) => {};
   const request = vi.fn((next: (time: number) => void) => { callback = next; return 1; });
   const cancel = vi.fn();
   const disconnect = vi.fn();
   const observe = vi.fn();
   const document = Object.assign(new EventTarget(), { hidden: false });
-  const window = Object.assign(new EventTarget(), { devicePixelRatio: 1 });
+  const window = Object.assign(new EventTarget(), { devicePixelRatio: 1, location: { search } });
   vi.stubGlobal('requestAnimationFrame', request);
   vi.stubGlobal('cancelAnimationFrame', cancel);
   vi.stubGlobal('document', document);
@@ -125,6 +125,40 @@ describe('worker dashboard lifecycle', () => {
     worker.onmessage!({ data: { requestId, factionId: 'enemy', action: null, order: null, trace: new AiDecisionTraceCollector().finish(null) } });
     expect(board.onAiDecision).not.toHaveBeenCalled();
     board.stop();
+  });
+});
+
+describe('MDSL prototype connection', () => {
+  it('opts in without starting the legacy worker and preserves a plan through pause and resume', () => {
+    const worker = vi.fn(); vi.stubGlobal('Worker', worker);
+    const log = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    const board = harness(TERRITORIES, DEFAULT_AI, true, '?bot=mdsl');
+    board.frame(0); board.frame(1850);
+    expect(worker).not.toHaveBeenCalled();
+    const first: SimulationState = board.onCounts.mock.lastCall![0];
+    expect(first.transfers.some(t => t.owner === 'enemy')).toBe(true);
+    expect(log.mock.calls.filter(call => call[1]?.outcome === 'dispatched')).toHaveLength(1);
+    board.stop.pause(); board.frame(50000);
+    expect(board.onCounts.mock.lastCall![0]).toBe(first);
+    board.stop.resume(); board.frame(51000); board.frame(51200);
+    expect(log.mock.calls.filter(call => call[1]?.outcome === 'dispatched')).toHaveLength(1);
+    board.stop(); log.mockRestore();
+  });
+  it('drops prototype state on restart and does not step while hidden or disposed', () => {
+    const log = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    const board = harness(TERRITORIES, DEFAULT_AI, true, '?bot=mdsl');
+    board.frame(0); board.frame(1850);
+    const events = log.mock.calls.length;
+    board.document.hidden = true; board.document.dispatchEvent(new Event('visibilitychange'));
+    board.frame(60000);
+    expect(log).toHaveBeenCalledTimes(events);
+    board.document.hidden = false; board.document.dispatchEvent(new Event('visibilitychange'));
+    board.stop.restart(); board.stop.start(); board.frame(70000); board.frame(71850);
+    expect(log.mock.calls.filter(call => call[1]?.outcome === 'dispatched')).toHaveLength(2);
+    const afterRestart = log.mock.calls.length;
+    board.stop(); board.frame(80000);
+    expect(log).toHaveBeenCalledTimes(afterRestart);
+    log.mockRestore();
   });
 });
 

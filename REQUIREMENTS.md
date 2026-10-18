@@ -148,6 +148,8 @@ Implemented items describe the current baseline; unresolved product targets are 
 - The current heuristic does not predict future player orders or guarantee optimal play. Difficulty presets and tactical refinements remain milestone 6.
 - The [enemy dashboard](docs/enemy-dashboard/IMPLEMENTATION.md) separates each AI worker's current lifecycle status from its last completed result, with freshness, evaluation identity and actual command application outcome. It shows viable alternatives, grouped candidate blockers and a no-action explanation in an optional responsive panel. A lifecycle heartbeat makes pending work and repeated no-action results visible without changing AI strategy. It reports only reasons emitted by actual AI evaluation gates; forecast internals and exhaustive search remain out of scope.
 
+The opt-in [MDSL real-game prototype](docs/ai-mdsl/REQUIREMENTS.md) experiments with player-authored behavior trees without replacing the default utility AI.
+
 ### FR-06: Difficulty and tuning
 
 - Allow difficulty selection before starting a round.

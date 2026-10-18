@@ -17,6 +17,7 @@ import { factionArmyUnits } from '../game/ai/logistics';
 import { pairedCityId, type River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { groundOrderFeedback } from './groundOrderFeedback';
+import { createMdslBot } from '../game/ai/mdsl/runtime';
 
 export interface BoardCitySelection { cityId: string; targeting: CityTargetMode | null }
 interface BoardOptions {
@@ -41,10 +42,14 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   else if (ai) for (const [factionId, config] of Object.entries(ai)) {
     if (config) aiConfigs[factionId] = config;
   }
-  const aiWorker = ai && typeof Worker !== 'undefined'
+  // Experimental source-authored bot only: never persist this flag in a round,
+  // never enable it in a production build, and never run both controllers.
+  const mdslEnabled = import.meta.env.DEV && new URLSearchParams(window.location?.search).get('bot') === 'mdsl';
+  const mdslBots = new Map<string, ReturnType<typeof createMdslBot>>();
+  const aiWorker = ai && !mdslEnabled && typeof Worker !== 'undefined'
     ? new Worker(new URL('../game/ai/worker.ts', import.meta.url), { type: 'module' })
     : null;
-  const session = createSession(territories, aiWorker ? null : ai, options.rules,
+  const session = createSession(territories, aiWorker || mdslEnabled ? null : ai, options.rules,
     { initialState: options.initialState, initialPhase: options.initialPhase, river: options.river, terrain: options.terrain, relay: options.relay });
   session.setHidden(document.hidden);
   if (options.autoStart !== false) session.start();
@@ -176,8 +181,30 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   document.addEventListener('keydown', onCityKey);
   document.addEventListener('pointerdown', outsideCity);
 
+  function resetMdslBots() {
+    for (const bot of mdslBots.values()) bot.dispose();
+    mdslBots.clear();
+  }
   function requestAiDecisions() {
-    if (!aiWorker || !session.active) return;
+    if (!session.active) return;
+    if (mdslEnabled) {
+      for (const factionId of Object.keys(aiConfigs).sort()) {
+        if (!session.reserveAiDecision(factionId, aiConfigs[factionId])) continue;
+        let bot = mdslBots.get(factionId);
+        if (!bot) {
+          bot = createMdslBot(factionId, () => session.state,
+            action => session.applyFactionAction(action, factionId),
+            event => console.debug('[MDSL]', event));
+          mdslBots.set(factionId, bot);
+        }
+        const before = session.state;
+        bot.step();
+        state = session.state;
+        if (state !== before) options.onSnapshot?.(state, session.phase, true);
+      }
+      return;
+    }
+    if (!aiWorker) return;
     for (const factionId of Object.keys(aiConfigs).sort()) {
       if ([...pendingAi.values()].some(pending => pending.factionId === factionId)) continue;
       const config = aiConfigs[factionId];
@@ -292,7 +319,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     if (disposed) return;
     cancelAnimationFrame(frameId);
     drag.cancel(); clearCity(); session.setHidden(document.hidden); session[action]();
-    if (action === 'restart') { pendingAi.clear(); evaluations.clear(); decisions.clear(); }
+    if (action === 'restart') { pendingAi.clear(); evaluations.clear(); decisions.clear(); resetMdslBots(); }
     state = session.state; onState(state); options.onSnapshot?.(state, session.phase, true); options.onPhase?.(session.phase); redraw();
     publishAiActivity(true);
     if (session.active) frameId = requestAnimationFrame(frame);
@@ -309,6 +336,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     document.removeEventListener('keydown', onCityKey);
     document.removeEventListener('pointerdown', outsideCity);
     aiWorker?.terminate();
+    resetMdslBots();
   };
   return Object.assign(dispose, {
     convert(type: CityType) {
