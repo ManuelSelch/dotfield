@@ -12,6 +12,7 @@ import { hasAircraftAnimation } from './drawAircraft';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
+import { recordDecision, type RecordedAiDecision } from './enemyDashboard';
 import { pairedCityId, type River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { groundOrderFeedback } from './groundOrderFeedback';
@@ -23,6 +24,7 @@ interface BoardOptions {
   onPhase?: (phase: SessionPhase) => void;
   onFeedback?: (message: string) => void;
   onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void;
+  onAiDecision?: (decision: RecordedAiDecision) => void;
   rules?: RulesInput;
   river?: River;
   terrain?: Terrain;
@@ -71,7 +73,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   }
   let frameId = 0;
   let requestId = 0;
-  const pendingAi = new Map<number, string>();
+  const pendingAi = new Map<number, { factionId: string; decisionState: SimulationState }>();
   function redraw() {
     const bounds = canvas.getBoundingClientRect();
     drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection, citySelection?.targeting === 'fly');
@@ -155,12 +157,13 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   function requestAiDecisions() {
     if (!aiWorker || !session.active) return;
     for (const factionId of Object.keys(aiConfigs).sort()) {
-      if ([...pendingAi.values()].includes(factionId)) continue;
+      if ([...pendingAi.values()].some(pending => pending.factionId === factionId)) continue;
       const config = aiConfigs[factionId];
       if (!config || !session.reserveAiDecision(factionId, config)) continue;
       const id = ++requestId;
-      pendingAi.set(id, factionId);
-      aiWorker.postMessage({ requestId: id, state: session.state, factionId, config } satisfies AiWorkerRequest);
+      const decisionState = session.state;
+      pendingAi.set(id, { factionId, decisionState });
+      aiWorker.postMessage({ requestId: id, state: decisionState, factionId, config } satisfies AiWorkerRequest);
     }
   }
 
@@ -197,7 +200,9 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   if (aiWorker) {
     aiWorker.onmessage = (event: MessageEvent<AiWorkerResponse>) => {
       const { requestId: id, factionId, action } = event.data;
-      if (pendingAi.get(id) !== factionId || !pendingAi.delete(id) || disposed) return;
+      const pending = pendingAi.get(id);
+      if (pending?.factionId !== factionId || !pendingAi.delete(id) || disposed) return;
+      options.onAiDecision?.(recordDecision(pending.decisionState, factionId, action));
       if (action && session.active) {
         session.setHidden(document.hidden);
         state = session.applyFactionAction(action, factionId);

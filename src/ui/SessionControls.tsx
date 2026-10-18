@@ -1,5 +1,5 @@
 import { ActionIcon, Group } from '@mantine/core';
-import { IconHome, IconPlayerPause, IconPlayerPlay, IconRefresh } from '@tabler/icons-react';
+import { IconHome, IconListDetails, IconPlayerPause, IconPlayerPlay, IconRefresh } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { SessionPhase } from '../game/session';
@@ -7,9 +7,10 @@ import type { SessionPhase } from '../game/session';
 interface Props {
   phase: SessionPhase; onHome?: () => void;
   onPause: () => void; onResume: () => void; onRestart: () => void;
+  dashboardOpen?: boolean; onToggleDashboard?: () => void;
 }
 
-export function SessionControls({ phase, onPause, onResume, onRestart, onHome }: Props) {
+export function SessionControls({ phase, onPause, onResume, onRestart, onHome, dashboardOpen = false, onToggleDashboard }: Props) {
   const paused = phase === 'paused';
   if (!paused && phase !== 'running') return null;
   const toggleLabel = paused ? 'Resume' : 'Pause';
@@ -17,6 +18,10 @@ export function SessionControls({ phase, onPause, onResume, onRestart, onHome }:
   useEffect(() => setTarget(document.getElementById('game-pause-slot')), []);
   if (!target) return null;
   return createPortal(<Group gap={1} wrap="nowrap" role="group" aria-label="Game controls">
+    {onToggleDashboard && <ActionIcon id="enemy-dashboard-toggle" className="game-action-button enemy-dashboard-toggle" variant="filled" color="#303030" radius="xl" size={32}
+      aria-label={`${dashboardOpen ? 'Hide' : 'Show'} enemy dashboard`} aria-expanded={dashboardOpen} aria-controls={dashboardOpen ? 'enemy-dashboard' : undefined} title="Enemy dashboard" onClick={onToggleDashboard}>
+      <IconListDetails size={17} aria-hidden="true" />
+    </ActionIcon>}
     <ActionIcon className="game-action-button game-action-button--primary" data-autofocus={paused || undefined} variant="filled" color="#303030" radius="xl" size={28} aria-label={toggleLabel} title={toggleLabel} onClick={paused ? onResume : onPause}>
       {paused ? <IconPlayerPlay size={18} aria-hidden="true" /> : <IconPlayerPause size={18} aria-hidden="true" />}
     </ActionIcon>

@@ -68,6 +68,62 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
    The logical 3:4 field fits inside this stable Canvas; no selection/targeting reflow. */
 .app-shell--playing:has(.city-action-strip) { min-width: min(288px, 100cqw); }
 .app-shell--playing:has(.city-action-strip) .field-viewport { flex: 1 1 0; min-height: 0; aspect-ratio: auto; margin-block: 0; }
+.field-layout { position: relative; display: flex; flex: 1 1 0; min-height: 0; gap: 16px; }
+.enemy-dashboard-toggle { width: 36px !important; height: 36px !important; }
+.enemy-dashboard-map-markers { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; }
+.enemy-dashboard-map-marker__ring { fill: none; stroke: #bd624e; stroke-width: 3; stroke-dasharray: 4 3; }
+.enemy-dashboard-map-marker__tag { fill: #bd624e; stroke: white; stroke-width: 2; }
+.enemy-dashboard-map-marker__number { fill: white; font: 800 9px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+.enemy-dashboard-backdrop { display: none; }
+.enemy-dashboard {
+  display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 12px; overflow: auto;
+  padding: 16px; border: 1px solid var(--color-border); border-radius: 18px; background: #fff;
+  box-shadow: 0 5px 18px rgb(34 53 40 / 8%); scrollbar-width: thin;
+}
+.enemy-dashboard__header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.enemy-dashboard__header small { color: var(--color-muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.enemy-dashboard__header h2 { margin: 3px 0 0; font-size: 17px; letter-spacing: -.4px; }
+.enemy-dashboard__close { display: none; width: 36px; height: 36px; border: 1px solid var(--color-border); border-radius: 9px; background: #fff; font-size: 22px; cursor: pointer; }
+.enemy-dashboard__list { display: grid; align-content: start; gap: 9px; }
+.enemy-dashboard__card { min-width: 0; padding: 11px 12px; border: 1px solid #e5e9e3; border-radius: 12px; background: #fbfcfa; }
+.enemy-dashboard__card h3 { margin: 0 0 8px; color: var(--color-muted); font-size: 11px; font-weight: 700; }
+.enemy-dashboard__action { margin: 0; font-size: 14px; font-weight: 700; }
+.enemy-dashboard__route { margin: 5px 0 0; color: #53615a; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.enemy-dashboard__score { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 9px 0 0; padding-top: 7px; border-top: 1px solid #e8ece6; color: var(--color-muted); font-size: 10px; }
+.enemy-dashboard__score strong { color: var(--color-player); font-size: 13px; }
+.enemy-dashboard__waiting, .enemy-dashboard__footnote { margin: 0; color: var(--color-muted); font-size: 10px; line-height: 1.4; }
+.enemy-dashboard__footnote { margin-top: auto; padding-top: 6px; }
+
+@media (min-width: 900px) {
+  .app-shell--playing:has(.field-layout--open) { width: min(100cqw, calc((100cqh - 109px) * .75 + 346px)); }
+  .field-layout--open { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 330px); align-items: stretch; }
+  .app-shell--playing:has(.field-layout--open) .field-viewport {
+    flex: none; width: min(100%, calc((100cqh - 109px) * .75)); height: auto; max-height: 100%;
+    aspect-ratio: 3 / 4; align-self: center; justify-self: center; margin: 0;
+  }
+  .field-layout--open .enemy-dashboard { align-self: start; max-height: 100%; }
+}
+@media (max-width: 899px) {
+  .field-layout--open { display: block; }
+  .field-layout--open .field-viewport { width: 100%; height: 100%; }
+  .enemy-dashboard-backdrop {
+    position: absolute; z-index: 20; inset: 0; display: block; width: 100%; height: 100%;
+    padding: 0; border: 0; background: rgb(20 34 28 / 34%);
+  }
+  .enemy-dashboard {
+    position: absolute; z-index: 21; right: 0; bottom: 0; left: 0; max-height: min(78%, 680px);
+    gap: 10px; padding: 14px 14px max(16px, env(safe-area-inset-bottom));
+    border-radius: 18px 18px 13px 13px; box-shadow: 0 18px 50px rgb(27 44 35 / 18%);
+  }
+  .enemy-dashboard__header { position: sticky; top: -14px; z-index: 1; margin: -14px -14px 0; padding: 14px 14px 10px; border-bottom: 1px solid #edf0eb; background: #fff; }
+  .enemy-dashboard__close { display: grid; place-items: center; flex: 0 0 auto; }
+  .enemy-dashboard__footnote { margin-top: 0; }
+}
+@media (max-width: 380px) {
+  .enemy-dashboard { padding-right: 11px; padding-left: 11px; }
+  .enemy-dashboard__header { margin-right: -11px; margin-left: -11px; padding-right: 11px; padding-left: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .enemy-dashboard-map-markers { transition: none; } }
 
 @media (min-width: 600px) {
   .app-safe-area { padding-top: max(32px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }

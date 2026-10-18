@@ -8,22 +8,23 @@
   </head>
   <body>
     <div class="game-shell" id="gameShell">
-      <div class="game-header">
+      <header class="game-header">
         <div class="header-left">
           <span class="brand-dot" aria-hidden="true"></span>
-          <div>
-            <small>Round 12</small>
-            <strong>North front</strong>
-          </div>
+          <strong class="brand-name">dotfield</strong>
+          <span class="round-label">Round 12 · North front</span>
         </div>
 
         <div class="header-right">
-          <span class="status-pill ok">Enemy moving</span>
-          <button type="button" class="debug-toggle" id="debugToggle" aria-expanded="true">Hide AI debug</button>
+          <span class="status-pill ok"><span aria-hidden="true"></span>Enemy moving</span>
+          <button type="button" class="dashboard-toggle" id="debugToggle" aria-label="Show enemy dashboard" aria-controls="aiPanel" aria-expanded="false" title="Enemy dashboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16M8 5v0M14 12v0M10 19v0" /></svg>
+            <span>AI</span>
+          </button>
         </div>
-      </div>
+      </header>
 
-      <div class="main-stage">
+      <main class="main-stage" aria-label="Game field and enemy dashboard">
         <div class="game-board" aria-label="Game board preview">
           <svg viewBox="0 0 920 520" role="img" aria-label="Dotfield board with enemy movement and relay objective">
             <defs>
@@ -51,9 +52,9 @@
             <g>
               <circle class="map-city player" cx="170" cy="180" r="18" />
               <circle class="map-city player" cx="254" cy="208" r="18" />
-              <circle class="map-city enemy" cx="336" cy="182" r="18" />
+              <circle class="map-city enemy ai-source" cx="336" cy="182" r="18" />
               <circle class="map-city neutral" cx="470" cy="180" r="17" />
-              <circle class="map-city relay" cx="470" cy="110" r="22" />
+              <circle class="map-city relay ai-target" cx="470" cy="110" r="22" />
               <circle class="map-city enemy" cx="610" cy="156" r="18" />
               <circle class="map-city player" cx="700" cy="182" r="18" />
               <circle class="map-city enemy" cx="740" cy="258" r="18" />
@@ -77,16 +78,28 @@
               <text x="600" y="188">C</text>
               <text x="690" y="212">D</text>
             </g>
+            <g class="city-number-markers" aria-hidden="true">
+              <g class="city-number-marker source-marker" transform="translate(356 160)">
+                <circle r="13" /><text y="4">8</text>
+              </g>
+              <g class="city-number-marker target-marker" transform="translate(494 85)">
+                <circle r="13" /><text y="4">11</text>
+              </g>
+            </g>
           </svg>
         </div>
 
-        <aside class="ai-panel" id="aiPanel" aria-live="polite">
+        <button type="button" class="mobile-backdrop" id="dashboardBackdrop" tabindex="-1" aria-label="Close enemy dashboard" hidden></button>
+        <aside class="ai-panel" id="aiPanel" aria-labelledby="dashboardTitle" hidden>
           <div class="panel-head">
             <div>
               <small>AI debug</small>
-              <h2>Enemy decision</h2>
+              <h2 id="dashboardTitle" tabindex="-1">Enemy decision</h2>
             </div>
-            <span class="panel-badge">Aggressive</span>
+            <div class="panel-head-actions">
+              <span class="panel-badge">Aggressive</span>
+              <button type="button" class="panel-close" id="panelClose" aria-label="Close enemy dashboard" title="Close">×</button>
+            </div>
           </div>
 
           <div class="mini-summary">
@@ -105,14 +118,14 @@
             <div class="route-summary">
               <div class="route-node source">
                 <span>Source</span>
-                <strong>Northwest</strong>
+                <strong>Enemy 1 · City 8</strong>
                 <small>32 troops</small>
               </div>
               <div class="arrow">→</div>
               <div class="route-node target">
                 <span>Target</span>
-                <strong>Relay</strong>
-                <small>Neutral</small>
+                <strong>Neutral · City 11</strong>
+                <small>Relay objective</small>
               </div>
             </div>
           </div>
@@ -149,23 +162,25 @@
 
             <ul>
               <li class="candidate selected">
-                <span>NW → Relay</span>
+                <span>City 8 → City 11</span>
                 <strong>88.4</strong>
               </li>
               <li class="candidate">
-                <span>West → Relay</span>
+                <span>City 6 → City 11</span>
                 <strong>67.2</strong>
               </li>
               <li class="candidate">
-                <span>South → Factory</span>
+                <span>City 19 → City 14</span>
                 <strong>58.9</strong>
               </li>
               <li class="candidate">
-                <span>Home → Border</span>
+                <span>City 1 → City 5</span>
                 <strong>41.4</strong>
               </li>
             </ul>
           </div>
+
+          <p class="city-number-note">City numbers stay fixed for this match. The selected route is marked on the map.</p>
 
           <div class="log-box">
             <div class="log-item ok">
@@ -178,7 +193,7 @@
             </div>
           </div>
         </aside>
-      </div>
+      </main>
     </div>
 
     <script type="module" src="./main.js"></script>

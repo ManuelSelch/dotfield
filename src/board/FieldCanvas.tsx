@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CityControls } from './CityControls';
 import { cityType } from '../game/cityConversion';
 import { AIRCRAFT_CAPACITY, CITY_CONVERSION_COST } from '../game/settings';
@@ -20,6 +20,8 @@ import type { River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { connectedTerritoryIds } from '../game/connectedTerritories';
 import { connectedDefenseCapacities, connectedDefenseTierForSize } from '../game/connectedDefense';
+import { EnemyDashboard } from './EnemyDashboardPanel';
+import { cityNumbers } from './enemyDashboard';
 
 interface FieldCanvasProps { relay?: import('../game/relay').RelayDefinition; territories?: readonly Territory[]; river?: River; terrain?: Terrain; rules?: RulesInput; ai?: AiConfig | AiConfigurations | null; autoStart?: boolean; onHome?: () => void; initialState?: SimulationState; initialPhase?: Exclude<SessionPhase, 'ready'>; onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void }
 
@@ -27,6 +29,11 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain, relay);
   const { state, phase } = session;
+  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const aiFactionIds = (ai ? ('decisionIntervalMs' in ai ? ['enemy'] : Object.keys(ai).filter(id => ai[id])) : [])
+    .filter(id => id !== 'player' && id !== 'neutral' && !!state.rules.factions[id]).sort();
+  const numbers = useMemo(() => cityNumbers(territories), [territories]);
+  useEffect(() => { if (state.roundStatus !== 'playing') setDashboardOpen(false); }, [state.roundStatus]);
   const networkEnabled = state.rules.factions.player?.connectedDefense ?? false;
   const connectedIds = networkEnabled
     ? connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river) : new Set<string>();
@@ -45,10 +52,25 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
       {state.relay ? <RelayScoreboard state={state} phase={phase} /> : <div className="mb-3 flex shrink-0 items-center gap-3">
         <div className="min-w-0 flex-1"><TroopCompositionBar state={state} /></div>
       </div>}
+      <div className={`field-layout${dashboardOpen ? ' field-layout--open' : ''}`}>
       <div className="field-viewport relative min-h-0 flex-1">
         <canvas ref={canvasRef} tabIndex={-1} className="block h-full w-full touch-none rounded-[20px] bg-field select-none" role="img" aria-label="Territory board" aria-describedby={`territory-details connected-territory-help upgrade-icon-help defender-order-help${state.river ? ' bridge-order-help' : ''}${state.terrain ? ' terrain-order-help' : ''}`}>
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
+        {dashboardOpen && <svg className="enemy-dashboard-map-markers" viewBox="0 0 360 480" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          {[...new Set(Object.values(session.aiDecisions).flatMap(decision => {
+            const action = decision.action;
+            return !action ? [] : action.type === 'convert' ? [action.cityId] : [action.sourceId, action.targetId];
+          }))].map(cityId => {
+            const city = state.territories.find(candidate => candidate.id === cityId);
+            const number = numbers.get(cityId);
+            return city && number ? <g className="enemy-dashboard-map-marker" transform={`translate(${city.x} ${city.y})`} key={cityId}>
+              <circle className="enemy-dashboard-map-marker__ring" r="18" />
+              <circle className="enemy-dashboard-map-marker__tag" cx="13" cy="-13" r="9" />
+              <text className="enemy-dashboard-map-marker__number" x="13" y="-10">{number}</text>
+            </g> : null;
+          })}
+        </svg>}
         <RegionControls state={state} disabled={phase !== 'running'} shieldCapacities={shieldCapacities} />
         <p id="connected-territory-help" className="sr-only">
           {networkEnabled ? connectedIds.size
@@ -74,10 +96,17 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           Mountains block direct troop orders and Artillery shots. Stage troops around the ridge; Artillery automatically targets the nearest hostile garrison within its range.
         </p>}
         {state.roundStatus === 'playing' && <>
-          <SessionControls phase={phase} onPause={session.pause} onResume={session.resume} onRestart={session.restart} />
+          <SessionControls phase={phase} onPause={session.pause} onResume={session.resume} onRestart={session.restart}
+            dashboardOpen={dashboardOpen} onToggleDashboard={aiFactionIds.length ? () => setDashboardOpen(open => !open) : undefined} />
           <SessionNavigationControls onRestart={session.restart} onHome={onHome} />
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
+      </div>
+      {dashboardOpen && aiFactionIds.length > 0 && <EnemyDashboard factions={aiFactionIds} decisions={session.aiDecisions} numbers={numbers}
+        relayCityId={state.relay?.cityId} onClose={() => {
+          document.getElementById('enemy-dashboard-toggle')?.focus();
+          setDashboardOpen(false);
+        }} />}
       </div>
       <div className="city-action-strip">
         {selectedCity ? <CityControls name={selectedCity.id} cityType={cityType(selectedCity)} troops={selectedCity.units}
