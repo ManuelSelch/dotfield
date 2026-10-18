@@ -17,7 +17,7 @@ const call = (id: string, query: string): BlockState => ({
 const b = (id: string, type: string, fields: Record<string, string> = {}, inputs?: BlockState['inputs']): BlockState => ({ id, type: `df_${type}`, fields, ...(inputs ? { inputs } : {}) });
 const workspace = (root: BlockState) => ({ blocks: { languageVersion: 0 as const, blocks: [{ ...root, x: 24, y: 24 }] } });
 
-/** Fresh deterministic source fixture; no runtime slot sharing occurs until call compilation in slice 4. */
+/** Fresh deterministic editable source; compilation allocates private call-site slots. */
 export function createDefaultProject(): BotProject {
   return {
     format: 'dotfield-bot', version: PROJECT_VERSION, blocklyVersion: BLOCKLY_VERSION, proceduresVersion: PROCEDURES_VERSION,

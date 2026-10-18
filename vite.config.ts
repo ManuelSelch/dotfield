@@ -7,7 +7,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'licenses/*.txt', 'blockly-media/*'],
       manifest: {
         name: 'Dotfield',
         short_name: 'Dotfield',

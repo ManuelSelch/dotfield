@@ -131,3 +131,5 @@
   .home-play-slot .home-play { flex: 1; min-width: 0; max-width: none; margin: 0; }
   .home-preview { margin-top: 0; }
 }
+
+.home-edit-logic{min-height:44px;padding:8px 14px;border:1px solid #b6c9bd;border-radius:10px;background:#fff;color:#267c72;font:inherit;cursor:pointer}.home-edit-logic:focus-visible{outline:3px solid #267c72;outline-offset:2px}.home-logic-note{font-size:12px;line-height:1.4;color:#647365}

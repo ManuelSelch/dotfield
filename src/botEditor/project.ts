@@ -11,11 +11,11 @@ class ProjectSession {
   readonly models = new Map<string, TacticModel>();
   private disposed = false;
   private activeTab: string;
-  constructor(private readonly source: BotProject) {
+  constructor(private readonly source: BotProject, factory: (tab: BotProject['tabs'][number]) => Blockly.Workspace = () => new Blockly.Workspace()) {
     registerBotBlocks();
     this.activeTab = source.editor.activeTab;
     try {
-      for (const tab of source.tabs) this.workspaces.set(tab.id, new Blockly.Workspace());
+      for (const tab of source.tabs) this.workspaces.set(tab.id, factory(tab));
       const main = this.workspaces.get('main')!;
       for (const state of source.procedures) {
         const model = Blockly.serialization.procedures.loadProcedure(TacticModel, TacticParameter, state, main);
@@ -43,9 +43,14 @@ class ProjectSession {
     const project: BotProject = {
       ...this.source,
       procedures: [...this.models.values()].map(m => m.saveState()),
-      tabs: this.source.tabs.map(tab => ({ ...tab, workspace: {
-        blocks: blockSerializer.save(this.workspaces.get(tab.id)!) ?? { languageVersion: 0, blocks: [] },
-      } as WorkspaceState })),
+      tabs: this.source.tabs.map(tab => {
+        const blocks = blockSerializer.save(this.workspaces.get(tab.id)!) ?? { languageVersion: 0, blocks: [] };
+        // Rendered entry protection is an editor invariant, not player source.
+        for (const root of blocks.blocks) if (root.type === 'df_main' || root.type === 'df_tactic') {
+          delete root.deletable; delete root.movable;
+        }
+        return { ...tab, workspace: { blocks } as WorkspaceState };
+      }),
       editor: { activeTab: this.activeTab },
     };
     return cloneProject(project);
@@ -61,7 +66,7 @@ class ProjectSession {
   }
   private assertOpen() { if (this.disposed) throw new Error('Project session is disposed.'); }
 }
-export function loadProject(value: unknown): ProjectSession {
+export function loadProject(value: unknown, factory?: (tab: BotProject['tabs'][number]) => Blockly.Workspace): ProjectSession {
   // Validate the cloned envelope before allocating/connecting any Blockly data.
-  return new ProjectSession(cloneProject(value));
+  return new ProjectSession(cloneProject(value), factory);
 }

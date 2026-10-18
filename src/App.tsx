@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { generateMap, enemyIds, newMapSeed } from './board/generateMap';
 import { HomeScreen } from './ui/HomeScreen';
+import { BotEditorEntry } from './ui/BotEditorEntry';
 import { FieldCanvas } from './board/FieldCanvas';
 import { ConnectionBadge } from './ui/ConnectionBadge';
 import type { AppUpdates } from './pwa/appUpdates';
@@ -12,6 +13,7 @@ import { createSnapshotSaver } from './game/snapshotSaver';
 
 type ActiveSetup = RoundSetup & { readonly generated?: GeneratedMatch };
 export function App({ updates }: { updates: AppUpdates }) {
+  const [editor, setEditor] = useState<{ enemy: string; name: string } | null>(null);
   const [saved, setSaved] = useState(() => readSavedGame());
   const [preferences, setPreferences] = useState(() => saved?.generated ? normalizeMatchPreferences(saved.generated.preferences) : readMatchPreferences());
   const [previewSeed, setPreviewSeed] = useState(newMapSeed);
@@ -45,11 +47,11 @@ export function App({ updates }: { updates: AppUpdates }) {
     <main className="app-safe-area flex h-full min-h-0 w-full flex-col">
       <div className="app-viewport">
         <div className={`app-shell${setup ? ' app-shell--playing' : ' app-shell--home'}`}>
-          <AppHeader><ConnectionBadge updates={updates} playing={!!setup} /></AppHeader>
+          <AppHeader><ConnectionBadge updates={updates} playing={!!setup} editing={!!editor} /></AppHeader>
           {setup ? <section className="flex min-h-0 flex-1 flex-col">
             <FieldCanvas key={setup.generated?.seed ?? 'restored'} territories={setup.territories} river={setup.river} terrain={setup.terrain} relay={setup.relay} rules={setup.rules} ai={setup.ai}
               initialState={saved?.state} initialPhase={saved?.phase} onSnapshot={saveSnapshot} onHome={leaveGame} />
-          </section> : <HomeScreen map={preview} preferences={preferences} onChange={changePreferences}
+          </section> : editor ? <BotEditorEntry key={editor.enemy} enemy={editor.enemy} name={editor.name} onClose={() => setEditor(null)} /> : <HomeScreen onEditLogic={(enemy, name) => setEditor({ enemy, name })} map={preview} preferences={preferences} onChange={changePreferences}
             onReroll={() => setPreviewSeed(nextSeed())} onPlay={() => startPreviewGame(preferences)} />}
         </div>
       </div>

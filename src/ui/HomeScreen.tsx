@@ -7,7 +7,8 @@ import { EnemySettings } from './EnemySettings';
 import { UpgradeOptions } from './UpgradeOptions';
 import './home.css';
 
-export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
+export function HomeScreen({ map, preferences, onChange, onReroll, onPlay, onEditLogic }: {
+  onEditLogic: (enemy: string, name: string) => void;
   map: GeneratedMap;
   preferences: MatchPreferences;
   onChange: (value: MatchPreferences) => void;
@@ -26,7 +27,7 @@ export function HomeScreen({ map, preferences, onChange, onReroll, onPlay }: {
               <div className="home-upgrade-list"><UpgradeOptions factionId="player" selected={selected}
                 onChange={ids => onChange({ ...preferences, upgrades: { ...preferences.upgrades, player: ids } })} /></div>
             </details>
-            <EnemySettings map={map} upgrades={preferences.upgrades} onUpgrades={value => onChange({ ...preferences, upgrades: value })}
+            <EnemySettings onEditLogic={onEditLogic} map={map} upgrades={preferences.upgrades} onUpgrades={value => onChange({ ...preferences, upgrades: value })}
               aiBehaviors={preferences.aiBehaviors} onAiBehaviors={value => onChange({ ...preferences, aiBehaviors: value })} />
           </div>
           <div className="home-play-slot">

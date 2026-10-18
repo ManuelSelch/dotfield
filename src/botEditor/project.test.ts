@@ -52,6 +52,18 @@ describe('visual bot project format', () => {
     expect(() => loadProject({})).toThrow();
     expect(Blockly.Workspace.getAll().map(w => w.id).sort()).toEqual(before);
   });
+  it('does not persist rendered entry protection flags as unsupported source properties', () => {
+    const session=loadProject(createDefaultProject());
+    try { const root=session.workspaces.get('main')!.getBlockById('main-entry')!;root.setDeletable(false);root.setMovable(false);
+      const saved=session.save();expect(saved.tabs[0].workspace.blocks.blocks[0]).not.toHaveProperty('deletable');
+      expect(saved.tabs[0].workspace.blocks.blocks[0]).not.toHaveProperty('movable');
+    } finally {session.dispose();}
+  });
+  it('owns factory workspaces and cleans up partial construction failures', () => {
+    const before=Blockly.Workspace.getAll().map(w=>w.id).sort();let calls=0;
+    expect(()=>loadProject(createDefaultProject(),()=>{if(calls++)throw Error('mount failed');return new Blockly.Workspace();})).toThrow('mount failed');
+    expect(Blockly.Workspace.getAll().map(w=>w.id).sort()).toEqual(before);
+  });
   it('rejects malformed source instead of letting Blockly silently repair it', () => {
     expect(() => parseProject('{')).toThrow(/JSON/i);
     expect(() => parseProject('null')).toThrow(/project/i);

@@ -4,7 +4,8 @@ import type { UpgradeId } from '../game/upgrades/catalog';
 import { factionPalette } from '../board/palette';
 import { UpgradeOptions } from './UpgradeOptions';
 
-export function EnemySettings({ map, upgrades, onUpgrades, aiBehaviors, onAiBehaviors }: {
+export function EnemySettings({ map, upgrades, onUpgrades, aiBehaviors, onAiBehaviors, onEditLogic }: {
+  onEditLogic: (enemy: string, name: string) => void;
   map: FieldMap;
   upgrades: Readonly<Record<string, readonly UpgradeId[]>>;
   onUpgrades: (value: Readonly<Record<string, readonly UpgradeId[]>>) => void;
@@ -22,6 +23,13 @@ export function EnemySettings({ map, upgrades, onUpgrades, aiBehaviors, onAiBeha
       const name = `Enemy ${index + 1}`, selected = upgrades[factionId] ?? [];
       return <section key={factionId} className="home-enemy-option">
         <h3><span className="home-faction-dot" style={{ background: factionPalette(factionId).fill }} />{name}<span className="home-summary-count">{selected.length ? `${selected.length} upgrades` : 'No upgrades'}</span></h3>
+        <label className="home-behavior-option">Logic
+          <select aria-label={`${name} logic`} value="normal" onChange={() => {}} aria-describedby={`${factionId}-logic-gate`}>
+            <option value="normal">Normal</option><option value="custom" disabled>Custom — not enabled yet</option>
+          </select>
+        </label>
+        <button type="button" className="home-edit-logic" aria-label={`Edit ${name} logic`} onClick={() => onEditLogic(factionId, name)}>Edit logic</button>
+        <p id={`${factionId}-logic-gate`} className="home-logic-note">Save custom drafts now. Custom matches are not enabled yet; Normal AI stays active.</p>
         <label className="home-behavior-option">Behavior
           <select aria-label={`${name} behavior`} value={aiBehaviors[factionId] ?? 'balanced'}
             onChange={event => onAiBehaviors({ ...aiBehaviors, [factionId]: event.currentTarget.value as AiBehavior })}>

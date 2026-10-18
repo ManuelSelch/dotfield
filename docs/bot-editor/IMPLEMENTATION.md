@@ -74,7 +74,7 @@ Structural source guards: 256 KiB UTF-8, 128 authored blocks (including roots/sc
 
 - TDD: initial missing-module test failed, then format/model/block implementation; a parameter-reorder regression was reproduced red and fixed without rebinding values.
 - **46 focused tests**, plus full suite: **939 tests / 108 files pass**. Coverage includes golden and edited round trips, default completeness, IDs/order/cleanup/slot kinds, renames and signature edits, typed nested forwarding, malformed and oversized input, retained shadows and headless repeated disposal.
-- TypeScript and production build pass. Current application output still has no editor import/chunk. An additional standalone browser-target Vite bundle of the headless module also builds (write-disabled; no production config changes).
+- TypeScript and production build passed at the slice-2 checkpoint, without an editor import/chunk. An additional standalone browser-target Vite bundle of the headless module also builds (write-disabled; no production config changes).
 - Browser/PWA suites and rendered mount/listener/device checks were **not run** for this headless slice. No new UI or offline editor availability is claimed. The separately documented PWA header-overlap baseline is unchanged.
 - License texts retained under [licenses](licenses/). Blockly and block-shareable-procedures are Apache-2.0; upstream notices remain in installed packages. Production editor packaging must retain notices and test its lazy/offline assets in the later UI/integration slices.
 
@@ -107,8 +107,36 @@ Structural source guards: 256 KiB UTF-8, 128 authored blocks (including roots/sc
 
 Verification: **1008 unit tests / 114 files**, TypeScript and production/PWA build pass (25 new tactic/compiler/runtime tests). The standalone browser compiler bundle also passes:8 modules/31792 unminified bytes, no Blockly/React dependency. No browser/device acceptance was claimed for this headless slice.
 
-No editor screen, localStorage Save, Home activation or match snapshot integration is included yet. The responsiveness gate above remains separate and NOT PASSED. Browser/device/offline UI acceptance is still outstanding.
+The slice-4 checkpoint included no editor screen, localStorage Save, Home activation or match snapshot integration. Slice5 adds editing/storage below; activation remains separate.
+
+## Slice 5: editor and local drafts
+
+### Entry and editing
+- Normal Home has **Edit logic** for every configured enemy, independent of development flags. Normal/Custom is visible, but **Custom is explicitly disabled** with an explanation until slice6 integration. Saving an editor project does not change the existing utility controller, presets, match preferences or any running/restored match.
+- The approved revision-2 shell is implemented with real Blockly/Zelos: compact desktop library beside a dotted scrollable/zoomable canvas; horizontal phone library above it; Main/tactic tabs and native tap/keyboard controls below. Essential actions do not require dragging: select a step, add after it/inside a group, reorder siblings, move into a chosen group, delete, edit literals/typed slot fields and change literal/input bindings. Structural-cycle commands reject without modifying the draft.
+- Tactics and inputs provides creation, stable-ID rename, guarded deletion, typed parameter addition/removal/reordering, call literals and enclosing-parameter forwarding. New tactics get the same small local typed-slot set. Referenced tactic deletion is blocked until calls are removed. Signature changes preserve old incompatible/removed arguments and references; missing inputs remain empty. Binding/replacing/removing obsolete arguments is explicit and undoable.
+- Shared procedure models are reused across all tabs of a session, never across enemy sessions. `loadProject` accepts a workspace factory for SVG ownership while preserving its headless default. Rendered entry protection flags are stripped from serialization as editor invariants, not accepted as new untrusted source properties.
+- Whole-project history (32 snapshots, bounded rather than unbounded event logs) includes signature/tab creation/deletion and workspace edits. Property ordering and tab navigation alone do not create fake edits. Blockly canvas undo and Ctrl/Cmd-Z use the same source history as the native Undo/Redo buttons. An unrepresentable rendered edit beyond source limits can explicitly Undo to its last editable snapshot; it cannot bypass Save validation.
+- Reset replaces only the working draft and is undoable. Back with changes offers **Discard changes / Keep editing**. Browser unload checks flush pending canvas edits and request the browser's normal unsaved-change prompt. Save, Reset and Back never secretly change the other enemies' projects.
+
+### Save and recovery
+- `readEnemyProject` / `saveEnemyProject` in `src/botEditor/storage.ts` store only the editable source under `dotfield.bot-project.v1.<encoded faction ID>`. Both persisted source and its generated native definition are validated on read/Save; compiled JSON and runtime memory are not editor storage. Only a successful one-key write updates the saved baseline.
+- Invalid/recursive/out-of-admission drafts do not overwrite the last valid project. Storage read/write/quota failures remain readable errors while the working draft stays open. A stale read token detects newer saves from another tab; this is an optimistic check, not transactional multi-tab merging.
+- Unsupported/corrupt stored projects are preserved. The editor explains the failure and offers a default working draft; replacement requires **Replace unreadable save → Confirm replacement → Save**. Reset alone does not authorize replacement. No migration, automatic overwrite or arbitrary source import/export UI is added.
+- Lazy-load errors explain reconnect/retry and allow returning Home without modifying saved data. PWA update actions are unavailable while editing, just as while playing; return Home through the draft guard before applying an update.
+
+### Lazy loading, offline assets and disposal
+- `BotEditorEntry` lazy-loads the editor. Normal Home/gameplay imports neither Blockly nor project models; no workspaces initialize before entering the editor. The lazy editor chunk is approximately837kB raw/231kB gzip, separate from the approximately494kB main JS. Vite's existing500kB chunk warning remains visible; it is not a build failure or a performance approval.
+- Blockly media is local under `public/blockly-media/`, not fetched from a demo CDN. Full upstream licenses are served under `public/licenses/` and linked in the editor. VitePWA explicitly precaches media/licenses and includes lazy JS/CSS (26 entries, approximately1.63MiB total).
+- Production tests actually open the editor **for the first time offline**, change/Save/reload/reopen source, and fetch media/licenses offline. No prior editor visit is used to make caching appear successful. This does not establish real-iPhone installed behavior.
+- All workspaces, model attachments, resize observers, change listeners, pending callbacks and owned DOM are disposed on source-session replacement/unmount. Partial mounting failures also clean up and disable Save. Tests exercise repeated mount/disposal and injected observer failures; no general heap-leak/security guarantee is claimed.
+
+### Verification and outstanding gates
+- **1029 unit tests / 116 files pass**, including93 focused editor tests. TypeScript/production build passes. **156 standard browser tests pass**, including13 editor cases for save/reopen/isolation, native and real SVG edits, whole-project undo, parameter bindings/rename/type invalidation, reset/discard, storage/version and lazy-load recovery, partial mount/disposal and320×480 /430×932 /1280×900 layouts.
+- **Both new production-PWA editor tests pass**: first-use offline editing/assets and update safety for unsaved drafts.
+- **Full PWA suite is NOT green:** both existing `tests/pwa/updates.spec.ts` cases time out on the Home action at320px. Reproduced with unchanged slice-4 `048407d` sources in an isolated archive using the same installed dependencies. The dashboard/list icon subtree intercepts the Home button; current trace stops at `updates.spec.ts:61`, baseline at`:100`. No existing assertions were removed/relaxed and this unrelated header-layout repair was not smuggled into slice5. Local baseline trace retained at `mockups/.runtime/slice5-baseline-update-trace.zip`; temporary source archive/server cleaned up.
+- User-led phone/desktop/keyboard acceptance is still outstanding. Automated browser geometry/interactions are not human approval. The pre-existing runtime responsiveness release gate remains **NOT PASSED**; editor availability does not authorize custom game activation.
 
 ## Next
 
-Slice 5: the approved responsive editor, tactic/signature controls, draft Save/Reset/discard and per-enemy Home entry (activation gated until slice6). No custom bot may be activated merely because source compilation succeeds.
+Slice6: validated immutable per-enemy runtime snapshots and exactly-one-controller integration for new/restored/replayed matches. Custom remains disabled until integration and responsiveness release prerequisites are satisfied. The existing320px PWA update/header blocker remains separately outstanding.
