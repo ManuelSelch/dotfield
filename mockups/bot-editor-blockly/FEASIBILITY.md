@@ -1,7 +1,7 @@
 # Slice 1 feasibility findings
 
 ## Outcome
-- **Editor spike viable enough for user review, not approved. Runtime responsiveness gate NOT PASSED.** No production code or application packages changed.
+- **Editor revision 2 approved by the user; preview cleanup complete. Runtime responsiveness gate NOT PASSED.** No production code or application packages changed.
 - Real Blockly/Zelos supports nested custom statement blocks, bounded numeric fields and headless serialization. Five headless tests cover example arguments/cleanup, ID-preserving round trip, numeric constraints and safe native-control sibling reordering.
 - Project size/retry limits alone do not bound the simulation cost of a forecast. Before normal release, require either measured, enforceable world-work limits plus a resumable/budgeted forecast, or an isolated runtime with bounded work and explicit cancellation/fault handling. A worker is not a security sandbox. No hard synchronous wall-clock timeout is claimed.
 
@@ -52,5 +52,5 @@ The 128-block synthetic project serializes to 10654 bytes. It is a long sibling 
 ## Bundle and unverified gates
 - Isolated Vite build passes: JS **726.72 kB raw / 199.79 kB gzip**, CSS 2.79 kB raw. Vite reports its >500 kB chunk warning; not suppressed. This is the standalone mockup, not the incremental production bundle. Lazy editor loading remains required.
 - HTTP checks confirm feature HTML and transformed modules serve on the owned port. JS syntax checks/headless tests/build do not prove rendered behavior, touch/keyboard usability, or design approval.
-- Outstanding: explicit user design review; real iPhone rendering/touch/keyboard/performance; procedure-model/signature spike during slice 2; bounded expansion/recursive rejection; maximum-depth/bytes stress; busy PlanCapture/ExecutePlan at real cadence; multiple custom factions; complex physics; fault cleanup/isolation; listener disposal under repeated mounts; lazy/offline assets. Existing PWA header-overlap baseline is untouched and untested here.
-- Slice 2 remains gated on approval and verified preview cleanup. Normal activation in slice 6 remains gated on resolving responsiveness; neither mockup availability nor these measurements waive it.
+- Outstanding: specific real-iPhone rendering/touch/keyboard/performance coverage (not reported by the user); procedure-model/signature spike during slice 2; bounded expansion/recursive rejection; maximum-depth/bytes stress; busy PlanCapture/ExecutePlan at real cadence; multiple custom factions; complex physics; fault cleanup/isolation; listener disposal under repeated mounts; lazy/offline assets. Existing PWA header-overlap baseline is untouched and untested here.
+- Slice 2's design approval and verified preview-cleanup gates are complete; see [DESIGN.md](DESIGN.md). Normal activation in slice 6 remains gated on resolving responsiveness; design approval and these measurements do not waive it.

@@ -1,10 +1,10 @@
 # Blockly enemy editor — revision 2
 
 ## Review and scope
-- Status: **in review; not approved**. This implements the isolated prototype portion of [slice 1](../../docs/bot-editor/REQUIREMENTS.md), not production integration. Slice 1 is awaiting user interaction review and explicit approval.
+- Status: **revision 2 approved for implementation**. This completes the isolated design handoff for [slice 1](../../docs/bot-editor/REQUIREMENTS.md), not production integration. Runtime responsiveness remains a separate release gate.
 - Supersedes the handwritten revision 1 as the current review candidate; that source remains untouched at [bot-editor](../bot-editor/DESIGN.md).
 - Real Blockly **13.4.0**, Zelos renderer, custom nested blocks, inline fields and a Dotfield-colored shell. Dependencies are installed only in the shared `mockups/` workspace. Blockly's Apache-2.0 license is retained in the installed dependency; see [license notes](LICENSES.md).
-- Preview: <http://localhost:5176/bot-editor-blockly/>. Capture directly: <http://localhost:5176/bot-editor-blockly/?script=capture>.
+- Review preview was served at <http://localhost:5176/bot-editor-blockly/>; now stopped. Approved sources are preserved here.
 
 ## Reviewable interactions
 - Main contains a selector with distinct Capture(neutral) and Capture(enemy) calls. The Capture tab edits their single shared body; its query uses `$kind`. Both call arguments remain independently editable.
@@ -22,7 +22,7 @@
 - No browser automation, screenshots, or human visual acceptance has been performed by the agent. HTTP checks and headless tests are not visual evidence.
 
 ## Verification and release gate
-See [FEASIBILITY.md](FEASIBILITY.md) for repeatable measurements, proposed admission ceilings and the **not-passed runtime responsiveness gate**. Rendering, touch behavior, real iPhone performance, final call expansion and multi-faction runtime costs remain unverified.
+See [FEASIBILITY.md](FEASIBILITY.md) for repeatable measurements, proposed admission ceilings and the **not-passed runtime responsiveness gate**. User approved the reviewed design; specific real-iPhone/touch/keyboard coverage was not reported. Target-device performance, final call expansion and multi-faction runtime costs remain unverified.
 
 ## User review checklist
 1. On desktop and narrow phone, change neutral/enemy call arguments, then edit Capture minimum army, retries and forecast duration; return to Main and inspect shared summary.
@@ -30,7 +30,6 @@ See [FEASIBILITY.md](FEASIBILITY.md) for repeatable measurements, proposed admis
 3. Decide whether Zelos nesting/scrolling/zoom and the phone library feel simple enough. Any requested layout changes require another revision.
 
 ## Approval and cleanup
-- Approval evidence: **none**. The request to implement slice 1 does not approve this newly built design.
-- Ask: **Approve revision 2 for implementation, or continue iterating?**
-- Keep preview running during review. Runtime ownership is recorded in ignored `mockups/.runtime/scratch-editor-preview.json` (managed preview, verified Vite PID/cwd/port).
-- Before slice 2: record explicit approval of this exact revision, preserve its sources, reverify process identity, stop the owned managed preview, verify process/listener exit and clear the runtime record. Do not stop servers belonging to other worktrees.
+- User explicitly approved revision 2: “yes I approve this revision for iomplementation”, following the revision-2 approval question. This authorizes the reviewed design, not unverified performance claims or later scope changes.
+- Cleanup completed: verified Vite PID 28073, its command and this worktree's `mockups/` cwd; stopped the owned managed preview; verified PID exit and no listener on port 5176. Runtime ownership record cleared. Other worktree servers were untouched.
+- Approved sources are preserved. Slice 2 may proceed; normal runtime activation remains blocked on the documented responsiveness gate.
