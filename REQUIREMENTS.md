@@ -150,7 +150,7 @@ Implemented items describe the current baseline; unresolved product targets are 
 
 The opt-in [MDSL real-game prototype](docs/ai-mdsl/REQUIREMENTS.md) experiments with player-authored behavior trees without replacing the default utility AI.
 
-The proposed [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) adds a Blockly-based authoring workflow, versioned editor projects and generated Mistreevous JSON. Its initial single-tree scope and normal-versus-development release exposure remain open decisions; this plan does not authorize implementation or replace the existing AI by default.
+The planned [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) adds a Blockly-based authoring workflow, reusable tactics with parameters, versioned editor projects and generated Mistreevous JSON. Custom logic will be selectable per enemy in normal Home settings. These scope decisions are confirmed; the plan does not authorize implementation or replace the existing AI by default.
 
 ### FR-06: Difficulty and tuning
 
