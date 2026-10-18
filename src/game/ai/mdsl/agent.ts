@@ -52,9 +52,10 @@ export class CaptureAgent {
   }
   SelectCity(query: string, ranking: string, output: string) {
     this.memory.delete(output);
-    if (query !== 'neutral' || ranking !== 'nearest-reachable') throw new Error('Unsupported prototype city query/ranking.');
+    if (!['neutral', 'enemy'].includes(query) || ranking !== 'nearest-reachable') throw new Error('Unsupported prototype city query/ranking.');
     const state = this.read(), sources = this.sources(state, 1);
-    const candidates = state.territories.filter(c => c.owner === 'neutral'
+    const candidates = state.territories.filter(c => (query === 'neutral' ? c.owner === 'neutral'
+      : c.owner !== 'neutral' && c.owner !== this.factionId)
       && !state.transfers.some(t => t.owner === this.factionId && t.targetId === c.id))
       .map(city => ({ city, distance: Math.min(...sources.filter(s => canGroundOrder(state, s, city, this.factionId))
         .map(s => distance(s, city))) }))
@@ -82,7 +83,7 @@ export class CaptureAgent {
     if (state.roundStatus !== 'playing') return false;
     const source = state.territories.find(c => c.id === plan.sourceId);
     const target = state.territories.find(c => c.id === plan.targetId);
-    if (!source || !target || source.owner !== this.factionId || target.owner !== 'neutral'
+    if (!source || !target || source.owner !== this.factionId || target.owner === this.factionId
       || this.sources(state, 1).every(c => c.id !== source.id)) return false;
     const proposed = dispatchUnits(state, source.id, target.id, this.factionId);
     if (proposed === state) return false;
@@ -136,7 +137,8 @@ export class CaptureAgent {
     if (!this.feasible(plan)) return fail('invalidated');
     // No callback can step this agent again until the synchronous command boundary
     // reports acceptance. No worker-issued command is optimistically marked sent.
-    const next = this.apply({ type: 'ground', sourceId: plan.sourceId, targetId: plan.targetId, kind: 'expand', score: 0 });
+    const kind = state.territories.find(c => c.id === plan.targetId)!.owner === 'neutral' ? 'expand' : 'attack';
+    const next = this.apply({ type: 'ground', sourceId: plan.sourceId, targetId: plan.targetId, kind, score: 0 });
     if (next === state) return fail('rejected');
     plan.issuedIds = next.transfers.filter(t => t.id >= state.nextTransferId && t.owner === this.factionId
       && t.sourceId === plan.sourceId && t.targetId === plan.targetId).map(t => t.id);

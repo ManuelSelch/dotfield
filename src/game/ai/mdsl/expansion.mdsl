@@ -1,8 +1,17 @@
 root {
-    sequence exit(ReleasePlan, "capturePlan") {
-        action [SelectCity, "neutral", "nearest-reachable", "target"]
-        action [SelectSources, "target", 6, "sources"]
-        action [PlanCapture, "target", "sources", 15000, "capturePlan"]
-        action [ExecutePlan, "capturePlan"]
+    selector {
+        sequence exit(ReleasePlan, "capturePlan") {
+            action [SelectCity, "neutral", "nearest-reachable", "target"]
+            action [SelectSources, "target", 6, "sources"]
+            action [PlanCapture, "target", "sources", 15000, "capturePlan"]
+            action [ExecutePlan, "capturePlan"]
+        }
+
+        sequence exit(ReleasePlan, "attackPlan") {
+            action [SelectCity, "enemy", "nearest-reachable", "attackTarget"]
+            action [SelectSources, "attackTarget", 6, "attackSources"]
+            action [PlanCapture, "attackTarget", "attackSources", 15000, "attackPlan"]
+            action [ExecutePlan, "attackPlan"]
+        }
     }
 }

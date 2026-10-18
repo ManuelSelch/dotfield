@@ -86,6 +86,46 @@ test('pause and reload preserve live orders without a duplicate dispatch', async
   expect(log.errors).toEqual([]);
 });
 
+test('expands first, then captures an enemy city using the same persistent plan capabilities', async ({ page }) => {
+  const log = observe(page);
+  const opening = [
+    { id: 'home', owner: 'enemy', units: 50, x: 60, y: 80 },
+    { id: 'neutral', owner: 'neutral', units: 5, x: 60, y: 180 },
+    { id: 'victim', owner: 'player', units: 6, x: 60, y: 280 },
+    { id: 'player-home', owner: 'player', units: 50, x: 300, y: 400 },
+  ];
+  await page.goto('/tests/fixtures/round.html?passive');
+  const game = { territories: opening, state: createSimulation(opening, { unitsPerSecond: 0 }),
+    ai: { enemy: DEFAULT_AI }, phase: 'running' };
+  await page.evaluate(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
+  await page.goto('/?bot=mdsl');
+  await page.clock.runFor(18000);
+  const details = page.getByRole('list', { name: 'Territory details' });
+  await expect(details.getByRole('listitem').filter({ hasText: /^neutral:/ })).toContainText('Opponent');
+  await expect(details.getByRole('listitem').filter({ hasText: /^victim:/ })).toContainText('Opponent');
+  await expect.poll(log.dispatched).toHaveLength(2);
+  expect(log.dispatched().map(e => e.targetId)).toEqual(['neutral', 'victim']);
+  expect(log.errors).toEqual([]);
+});
+
+test('a feasible enemy attack can win by capturing the last player city', async ({ page }) => {
+  const log = observe(page);
+  const opening = [
+    { id: 'home', owner: 'enemy', units: 36, x: 60, y: 80 },
+    { id: 'victim', owner: 'player', units: 5, x: 60, y: 190 },
+  ];
+  await page.goto('/tests/fixtures/round.html?passive');
+  const game = { territories: opening, state: createSimulation(opening, { unitsPerSecond: 0 }),
+    ai: { enemy: DEFAULT_AI }, phase: 'running' };
+  await page.evaluate(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
+  await page.goto('/?bot=mdsl');
+  await page.clock.runFor(10000);
+  await expect(page.getByRole('heading', { name: 'Defeat', exact: true })).toBeVisible();
+  await expect.poll(log.dispatched).toHaveLength(1);
+  expect(log.dispatched()[0]).toMatchObject({ targetId: 'victim', sourceId: 'home' });
+  expect(log.errors).toEqual([]);
+});
+
 test('without the URL flag the default worker still controls the same real board', async ({ page }) => {
   const log = observe(page);
   await page.goto('/');

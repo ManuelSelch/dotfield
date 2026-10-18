@@ -33,6 +33,76 @@ function prepare(agent: CaptureAgent) {
 }
 
 describe('minimal real-game MDSL agent', () => {
+  const attackCities: Territory[] = [
+    { id: 'home', owner: 'enemy', units: 36, x: 60, y: 80 },
+    { id: 'victim', owner: 'player', units: 5, x: 60, y: 190 },
+    { id: 'player-home', owner: 'player', units: 36, x: 300, y: 400 },
+  ];
+  it('uses the same capabilities to capture an enemy after neutral expansion is unavailable', () => {
+    const h = harness(attackCities), bot = h.bot();
+    expect(bot.step()).toBe(State.RUNNING);
+    expect(h.dispatch).toHaveBeenCalledOnce();
+    expect(h.dispatch.mock.lastCall![0]).toMatchObject({ type: 'ground', kind: 'attack', sourceId: 'home', targetId: 'victim' });
+    bot.step();
+    expect(h.dispatch).toHaveBeenCalledOnce();
+    h.set(forecastBattle(h.read(), 10000));
+    expect(h.read().territories.find(c => c.id === 'victim')?.owner).toBe('enemy');
+    expect(bot.step()).toBe(State.SUCCEEDED);
+  });
+  it('falls through to an enemy attack when a remaining neutral cannot be captured', () => {
+    const h = harness([...attackCities, { id: 'neutral', owner: 'neutral', units: 200, x: 140, y: 80 }]);
+    h.bot().step();
+    expect(h.dispatch.mock.lastCall![0]).toMatchObject({ kind: 'attack', targetId: 'victim' });
+  });
+  it('retains neutral expansion priority when both tactics are feasible', () => {
+    const h = harness([...attackCities, { id: 'neutral', owner: 'neutral', units: 5, x: 140, y: 80 }]);
+    h.bot().step();
+    expect(h.dispatch.mock.lastCall![0]).toMatchObject({ kind: 'expand', targetId: 'neutral' });
+  });
+  it('defines enemy relative to the acting faction, not the literal enemy ID', () => {
+    const h = harness([
+      { id: 'mine', owner: 'enemy-2', units: 36, x: 60, y: 80 },
+      { id: 'neutral', owner: 'neutral', units: 1, x: 60, y: 110 },
+      { id: 'ally', owner: 'enemy-2', units: 1, x: 60, y: 140 },
+      { id: 'hostile', owner: 'enemy', units: 5, x: 60, y: 190 },
+      { id: 'player', owner: 'player', units: 36, x: 300, y: 400 },
+    ], 'enemy-2');
+    expect(h.agent.SelectCity('enemy', 'nearest-reachable', 'target')).toBe(State.SUCCEEDED);
+    expect(h.events).toHaveBeenLastCalledWith(expect.objectContaining({ targetId: 'hostile' }));
+    expect(h.agent.SelectSources('target', 6, 'sources')).toBe(State.SUCCEEDED);
+    expect(h.agent.PlanCapture('target', 'sources', 15000, 'plan')).toBe(State.SUCCEEDED);
+    expect(h.agent.ExecutePlan('plan')).toBe(State.RUNNING);
+    expect(h.read().transfers.every(t => t.owner === 'enemy-2' && t.targetId === 'hostile')).toBe(true);
+  });
+  it('forecasts enemy production and shields instead of attacking on garrison count alone', () => {
+    for (const defense of ['growth', 'shields']) {
+      const h = harness(attackCities.map(c => c.id === 'home' ? { ...c, units: 20 } : c));
+      const state = h.read();
+      h.set(defense === 'growth' ? { ...state, rules: { factions: { ...state.rules.factions,
+        player: { ...state.rules.factions.player, unitsPerSecond: 4 } } } }
+        : { ...state, captureShields: { victim: { remaining: 10 } } });
+      expect(h.bot().step()).toBe(State.FAILED);
+      expect(h.dispatch).not.toHaveBeenCalled();
+    }
+  });
+  it('permits a winning final enemy capture even though player-relative status becomes defeat', () => {
+    const h = harness(attackCities.filter(c => c.id !== 'player-home'));
+    // Relay forecasts evaluate conquest boundaries and report a player-relative
+    // defeat even when this acting faction is the winner.
+    h.set({ ...h.read(), relay: { cityId: 'victim', activateAtMs: 120000, targetMs: 180000, scoresMs: {} } });
+    expect(h.bot().step()).toBe(State.RUNNING);
+    h.set(forecastBattle(h.read(), 10000));
+    expect(h.read().territories.find(c => c.id === 'victim')?.owner).toBe('enemy');
+    expect(h.read().roundStatus).toBe('defeat');
+  });
+  it('does not interrupt a running attack merely because a neutral candidate appears', () => {
+    const h = harness(attackCities), bot = h.bot(); bot.step();
+    h.set({ ...h.read(), territories: [...h.read().territories,
+      { id: 'new-neutral', owner: 'neutral', units: 1, x: 140, y: 80, growthRemainder: 0 }] });
+    expect(bot.step()).toBe(State.RUNNING);
+    expect(h.dispatch).toHaveBeenCalledOnce();
+    expect(h.dispatch.mock.lastCall![0]).toMatchObject({ targetId: 'victim' });
+  });
   it('selects and plans without changing game state or issuing commands', () => {
     const h = harness(), before = h.read();
     expect(prepare(h.agent)).toBe(State.SUCCEEDED);
@@ -189,6 +259,6 @@ describe('minimal real-game MDSL agent', () => {
     h.set({ ...h.read(), roundStatus: 'defeat' });
     expect(h.agent.ExecutePlan('plan')).toBe(State.FAILED);
     expect(h.dispatch).not.toHaveBeenCalled();
-    expect(() => h.agent.SelectCity('enemy', 'nearest-reachable', 'target')).toThrow();
+    expect(() => h.agent.SelectCity('unknown', 'nearest-reachable', 'target')).toThrow();
   });
 });
