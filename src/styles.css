@@ -63,6 +63,8 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
    Fit the field in both axes; widescreen margins are outside the Canvas.
    Keep this reservation in sync with AppHeader and FieldCanvas controls. */
 .app-shell--playing { max-width: none; width: min(100cqw, calc((100cqh - 109px) * .75)); }
+/* Prioritize gameplay controls and readable connection/update status on phones. */
+@media (max-width: 639px) { .app-shell--playing .app-logo { display: none; } }
 .app-shell--playing .field-viewport { flex: none; width: 100%; aspect-ratio: 3 / 4; margin-block: auto; }
 /* Reserve management space from the first render, even without a selection.
    The logical 3:4 field fits inside this stable Canvas; no selection/targeting reflow. */

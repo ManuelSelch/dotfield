@@ -137,6 +137,10 @@ The slice-4 checkpoint included no editor screen, localStorage Save, Home activa
 - **Full PWA suite is NOT green:** both existing `tests/pwa/updates.spec.ts` cases time out on the Home action at320px. Reproduced with unchanged slice-4 `048407d` sources in an isolated archive using the same installed dependencies. The dashboard/list icon subtree intercepts the Home button; current trace stops at `updates.spec.ts:61`, baseline at`:100`. No existing assertions were removed/relaxed and this unrelated header-layout repair was not smuggled into slice5. Local baseline trace retained at `mockups/.runtime/slice5-baseline-update-trace.zip`; temporary source archive/server cleaned up.
 - User-led phone/desktop/keyboard acceptance is still outstanding. Automated browser geometry/interactions are not human approval. The pre-existing runtime responsiveness release gate remains **NOT PASSED**; editor availability does not authorize custom game activation.
 
+### Follow-up: small-screen header repair
+
+At the user's request, gameplay now hides the dotfield logo below640px; Home/editor and desktop retain it. Full-sized controls and readable update status fit without changing update/reload policy or adding a header row. A red-first browser test covers Home/gameplay/resize visibility and actionable controls. Existing layout/theme assertions now reflect the intentionally hidden mobile logo. **157 standard browser tests, all4 production PWA tests (including both previously failing update tests), and TypeScript/production build pass.** The historical320px PWA blocker above is resolved; runtime responsiveness and human device acceptance gates remain unchanged.
+
 ## Next
 
-Slice6: validated immutable per-enemy runtime snapshots and exactly-one-controller integration for new/restored/replayed matches. Custom remains disabled until integration and responsiveness release prerequisites are satisfied. The existing320px PWA update/header blocker remains separately outstanding.
+Slice6: validated immutable per-enemy runtime snapshots and exactly-one-controller integration for new/restored/replayed matches. Custom remains disabled until integration and responsiveness release prerequisites are satisfied. The320px PWA update/header blocker is resolved by the follow-up above.

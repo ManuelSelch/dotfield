@@ -60,8 +60,9 @@ for (const viewport of [
       await expect(button).toHaveAttribute('title', name);
       const bounds = (await button.boundingBox())!;
       expect(bounds.y + bounds.height).toBeLessThanOrEqual(box.y);
-      const title = (await page.getByRole('heading', { name: 'dotfield' }).boundingBox())!;
-      expect(Math.abs(bounds.y - title.y)).toBeLessThan(20);
+      const header = (await page.locator('header').boundingBox())!;
+      expect(bounds.y).toBeGreaterThanOrEqual(header.y);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(header.y + header.height);
     }
     await page.screenshot({ path: `test-results/desktop-layout-paused-${viewport.width}x${viewport.height}.png` });
     await page.getByRole('button', { name: 'Resume', exact: true }).click();

@@ -15,7 +15,9 @@ for (const viewport of [
       if (message.type() === 'error') errors.push(message.text());
     });
     await openAuthoredMatch(page);
-    await expect(page.getByRole('heading', { name: 'dotfield', exact: true })).toBeVisible();
+    const logo = page.getByRole('heading', { name: 'dotfield', exact: true });
+    if (viewport.width < 640) await expect(logo).toBeHidden();
+    else await expect(logo).toBeVisible();
     const composition = page.getByRole('region', { name: 'Troop composition' });
     await expect(composition).toBeVisible();
     const pauseButton = page.getByRole('button', { name: 'Pause' });

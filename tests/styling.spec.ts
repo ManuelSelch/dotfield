@@ -3,7 +3,6 @@ import { expect, test } from '@playwright/test';
 test('Mantine components and Tailwind utilities share the intended light theme', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
   const title = page.getByRole('heading', { name: 'dotfield', exact: true });
   await expect(title).toHaveClass(/mantine-Title-root/);
   await expect(page.locator('main')).toHaveClass(/flex-col/);
@@ -12,6 +11,8 @@ test('Mantine components and Tailwind utilities share the intended light theme',
     size: getComputedStyle(el).fontSize,
     color: getComputedStyle(el).color,
   }))).toEqual({ size: '24px', color: 'rgb(37, 60, 51)' });
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect(title).toBeHidden();
   await expect(page.getByText('Growth preview', { exact: true })).toHaveCount(0);
   expect(await page.getByRole('img', { name: 'Territory board' })
     .evaluate((el) => getComputedStyle(el).borderRadius)).toBe('20px');
