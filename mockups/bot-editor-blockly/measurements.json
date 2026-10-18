@@ -1,0 +1,90 @@
+{
+  "measuredAt": "2026-10-18T19:15:07.514Z",
+  "stress": false,
+  "node": "v26.5.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cases": [
+    {
+      "name": "128-block headless load/serialize/dispose",
+      "samples": 20,
+      "medianMs": 1.979,
+      "maxMs": 3.98
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 15000ms / production",
+      "samples": 3,
+      "medianMs": 2.281,
+      "maxMs": 3.451
+    },
+    {
+      "name": "8 failed authored prefixes / 15000ms / production",
+      "samples": 1,
+      "medianMs": 7.065,
+      "maxMs": 7.065
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 60000ms / production",
+      "samples": 3,
+      "medianMs": 1.798,
+      "maxMs": 1.94
+    },
+    {
+      "name": "8 failed authored prefixes / 60000ms / production",
+      "samples": 1,
+      "medianMs": 6.959,
+      "maxMs": 6.959
+    },
+    {
+      "name": "busy opposing transfers / 15000ms / production",
+      "samples": 1,
+      "medianMs": 46.504,
+      "maxMs": 46.504
+    },
+    {
+      "name": "busy opposing transfers / 60000ms / production",
+      "samples": 1,
+      "medianMs": 42.992,
+      "maxMs": 42.992
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 15000ms / weapons",
+      "samples": 3,
+      "medianMs": 9.475,
+      "maxMs": 10.242
+    },
+    {
+      "name": "8 failed authored prefixes / 15000ms / weapons",
+      "samples": 1,
+      "medianMs": 40.773,
+      "maxMs": 40.773
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 60000ms / weapons",
+      "samples": 3,
+      "medianMs": 13.217,
+      "maxMs": 13.703
+    },
+    {
+      "name": "8 failed authored prefixes / 60000ms / weapons",
+      "samples": 1,
+      "medianMs": 69.023,
+      "maxMs": 69.023
+    },
+    {
+      "name": "busy opposing transfers / 15000ms / weapons",
+      "samples": 1,
+      "medianMs": 59.603,
+      "maxMs": 59.603
+    },
+    {
+      "name": "busy opposing transfers / 60000ms / weapons",
+      "samples": 1,
+      "medianMs": 65.306,
+      "maxMs": 65.306
+    }
+  ],
+  "projectBytes": 10654,
+  "productionTransfers": 176,
+  "weaponTransfers": 176
+}

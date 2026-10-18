@@ -1,0 +1,77 @@
+{
+  "measuredAt": "2026-10-18T19:11:16.319Z",
+  "node": "v26.5.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cases": [
+    {
+      "name": "128-block headless load/serialize/dispose",
+      "samples": 20,
+      "medianMs": 1.871,
+      "maxMs": 3.706
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 15000ms / production",
+      "samples": 3,
+      "medianMs": 2.233,
+      "maxMs": 3.597
+    },
+    {
+      "name": "8 failed authored prefixes / 15000ms / production",
+      "samples": 1,
+      "medianMs": 6.94,
+      "maxMs": 6.94
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 60000ms / production",
+      "samples": 3,
+      "medianMs": 1.665,
+      "maxMs": 1.87
+    },
+    {
+      "name": "8 failed authored prefixes / 60000ms / production",
+      "samples": 1,
+      "medianMs": 7.066,
+      "maxMs": 7.066
+    },
+    {
+      "name": "busy opposing transfers / 60000ms / production",
+      "samples": 1,
+      "medianMs": 36316.043,
+      "maxMs": 36316.043
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 15000ms / weapons",
+      "samples": 3,
+      "medianMs": 9.797,
+      "maxMs": 11.119
+    },
+    {
+      "name": "8 failed authored prefixes / 15000ms / weapons",
+      "samples": 1,
+      "medianMs": 41.567,
+      "maxMs": 41.567
+    },
+    {
+      "name": "PlanCapture 24 cities / 8 chosen / 60000ms / weapons",
+      "samples": 3,
+      "medianMs": 13.264,
+      "maxMs": 13.589
+    },
+    {
+      "name": "8 failed authored prefixes / 60000ms / weapons",
+      "samples": 1,
+      "medianMs": 70.125,
+      "maxMs": 70.125
+    },
+    {
+      "name": "busy opposing transfers / 60000ms / weapons",
+      "samples": 1,
+      "medianMs": 63293.815,
+      "maxMs": 63293.815
+    }
+  ],
+  "projectBytes": 10654,
+  "productionTransfers": 16048,
+  "weaponTransfers": 16048
+}
