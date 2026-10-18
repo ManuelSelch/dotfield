@@ -1,0 +1,332 @@
+{
+  "format": "dotfield-bot",
+  "version": 1,
+  "blocklyVersion": "13.4.0",
+  "proceduresVersion": "13.4.0",
+  "procedures": [
+    {
+      "id": "capture",
+      "name": "Capture",
+      "returnTypes": null,
+      "parameters": [
+        {
+          "id": "kind",
+          "name": "kind",
+          "types": [
+            "query"
+          ]
+        }
+      ]
+    }
+  ],
+  "tabs": [
+    {
+      "id": "main",
+      "slots": [
+        {
+          "id": "target",
+          "name": "target",
+          "kind": "city"
+        },
+        {
+          "id": "sources",
+          "name": "sources",
+          "kind": "source-list"
+        },
+        {
+          "id": "source",
+          "name": "source",
+          "kind": "city"
+        },
+        {
+          "id": "chosen",
+          "name": "chosen",
+          "kind": "chosen-set"
+        },
+        {
+          "id": "plan",
+          "name": "plan",
+          "kind": "capture-plan"
+        }
+      ],
+      "workspace": {
+        "blocks": {
+          "languageVersion": 0,
+          "blocks": [
+            {
+              "type": "df_main",
+              "id": "main-entry",
+              "x": 24,
+              "y": 24,
+              "inputs": {
+                "BODY": {
+                  "block": {
+                    "type": "df_selector",
+                    "id": "main-priority",
+                    "inputs": {
+                      "BODY": {
+                        "block": {
+                          "type": "df_call",
+                          "id": "neutral-call",
+                          "extraState": {
+                            "tacticId": "capture",
+                            "arguments": [
+                              {
+                                "parameterId": "kind",
+                                "type": "query"
+                              }
+                            ]
+                          },
+                          "inputs": {
+                            "ARG_kind": {
+                              "shadow": {
+                                "type": "df_query",
+                                "id": "neutral-call-kind",
+                                "fields": {
+                                  "VALUE": "neutral"
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "df_call",
+                              "id": "enemy-call",
+                              "extraState": {
+                                "tacticId": "capture",
+                                "arguments": [
+                                  {
+                                    "parameterId": "kind",
+                                    "type": "query"
+                                  }
+                                ]
+                              },
+                              "inputs": {
+                                "ARG_kind": {
+                                  "shadow": {
+                                    "type": "df_query",
+                                    "id": "enemy-call-kind",
+                                    "fields": {
+                                      "VALUE": "enemy"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "capture",
+      "slots": [
+        {
+          "id": "target",
+          "name": "target",
+          "kind": "city"
+        },
+        {
+          "id": "sources",
+          "name": "sources",
+          "kind": "source-list"
+        },
+        {
+          "id": "source",
+          "name": "source",
+          "kind": "city"
+        },
+        {
+          "id": "chosen",
+          "name": "chosen",
+          "kind": "chosen-set"
+        },
+        {
+          "id": "plan",
+          "name": "plan",
+          "kind": "capture-plan"
+        }
+      ],
+      "workspace": {
+        "blocks": {
+          "languageVersion": 0,
+          "blocks": [
+            {
+              "type": "df_tactic",
+              "id": "capture-entry",
+              "x": 24,
+              "y": 24,
+              "extraState": {
+                "tacticId": "capture"
+              },
+              "inputs": {
+                "BODY": {
+                  "block": {
+                    "type": "df_sequence",
+                    "id": "capture-body",
+                    "fields": {
+                      "CLEANUP": "release-plan",
+                      "PLAN": "plan"
+                    },
+                    "inputs": {
+                      "BODY": {
+                        "block": {
+                          "type": "df_select_city",
+                          "id": "select-target",
+                          "fields": {
+                            "TARGET": "target"
+                          },
+                          "inputs": {
+                            "QUERY": {
+                              "block": {
+                                "type": "df_parameter",
+                                "id": "kind-reference",
+                                "extraState": {
+                                  "parameterId": "kind",
+                                  "type": "query"
+                                }
+                              }
+                            },
+                            "RANKING": {
+                              "shadow": {
+                                "type": "df_ranking",
+                                "id": "target-ranking",
+                                "fields": {
+                                  "VALUE": "nearest-reachable"
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "df_select_sources",
+                              "id": "select-sources",
+                              "fields": {
+                                "TARGET": "target",
+                                "OUTPUT": "sources"
+                              },
+                              "inputs": {
+                                "MINIMUM": {
+                                  "shadow": {
+                                    "type": "df_army",
+                                    "id": "minimum-army",
+                                    "fields": {
+                                      "VALUE": 6
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "df_clear_set",
+                                  "id": "clear-chosen",
+                                  "fields": {
+                                    "SET": "chosen"
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "df_retry",
+                                      "id": "grow-source-set",
+                                      "inputs": {
+                                        "ATTEMPTS": {
+                                          "shadow": {
+                                            "type": "df_attempts",
+                                            "id": "source-limit",
+                                            "fields": {
+                                              "VALUE": 4
+                                            }
+                                          }
+                                        },
+                                        "BODY": {
+                                          "block": {
+                                            "type": "df_sequence",
+                                            "id": "attempt-capture",
+                                            "fields": {
+                                              "CLEANUP": "none",
+                                              "PLAN": "plan"
+                                            },
+                                            "inputs": {
+                                              "BODY": {
+                                                "block": {
+                                                  "type": "df_next_city",
+                                                  "id": "next-source",
+                                                  "fields": {
+                                                    "LIST": "sources",
+                                                    "OUTPUT": "source"
+                                                  },
+                                                  "next": {
+                                                    "block": {
+                                                      "type": "df_add_to_set",
+                                                      "id": "choose-source",
+                                                      "fields": {
+                                                        "SET": "chosen",
+                                                        "CITY": "source"
+                                                      },
+                                                      "next": {
+                                                        "block": {
+                                                          "type": "df_plan_capture",
+                                                          "id": "forecast",
+                                                          "fields": {
+                                                            "TARGET": "target",
+                                                            "SOURCES": "chosen",
+                                                            "PLAN": "plan"
+                                                          },
+                                                          "inputs": {
+                                                            "HORIZON": {
+                                                              "shadow": {
+                                                                "type": "df_horizon",
+                                                                "id": "capture-horizon",
+                                                                "fields": {
+                                                                  "VALUE": 15000
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "df_execute_plan",
+                                          "id": "execute",
+                                          "fields": {
+                                            "PLAN": "plan"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "editor": {
+    "activeTab": "main"
+  }
+}
