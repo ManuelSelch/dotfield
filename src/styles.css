@@ -87,6 +87,15 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
 .enemy-dashboard__list { display: grid; align-content: start; gap: 9px; }
 .enemy-dashboard__card { min-width: 0; padding: 11px 12px; border: 1px solid #e5e9e3; border-radius: 12px; background: #fbfcfa; }
 .enemy-dashboard__card h3 { margin: 0 0 8px; color: var(--color-muted); font-size: 11px; font-weight: 700; }
+.enemy-dashboard__current { display: grid; gap: 4px; margin-bottom: 12px; padding: 10px; border-radius: 7px; background: #f2f5f0; }
+.enemy-dashboard__current strong { font-size: 14px; }
+.enemy-dashboard__current small { color: var(--color-muted); font-size: 11px; line-height: 1.5; }
+.enemy-dashboard__label, .enemy-dashboard__result-label { color: var(--color-muted); font-size: 11px; }
+.enemy-dashboard__result-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.enemy-dashboard__outcome { margin: 6px 0; font-size: 11px; color: #53615a; }
+.enemy-dashboard__evaluation { margin-top: 12px; border-top: 1px solid #e5e9e3; padding-top: 8px; }
+.enemy-dashboard__evaluation > summary { min-height: 32px; color: #49645a; font-size: 11px; cursor: pointer; }
+.enemy-dashboard__evaluation > summary:focus-visible { outline: 2px solid var(--color-player); outline-offset: 2px; }
 .enemy-dashboard__action { margin: 0; font-size: 14px; font-weight: 700; }
 .enemy-dashboard__route { margin: 5px 0 0; color: #53615a; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
 .enemy-dashboard__score { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 9px 0 0; padding-top: 7px; border-top: 1px solid #e8ece6; color: var(--color-muted); font-size: 10px; }

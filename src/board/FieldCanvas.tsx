@@ -34,7 +34,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const aiFactionIds = (ai ? ('decisionIntervalMs' in ai ? ['enemy'] : Object.keys(ai).filter(id => ai[id])) : [])
     .filter(id => id !== 'player' && id !== 'neutral' && !!state.rules.factions[id]).sort();
   const numbers = useMemo(() => cityNumbers(territories), [territories]);
-  useEffect(() => { if (state.roundStatus !== 'playing') { setDashboardOpen(false); setHighlightedCityIds(null); } }, [state.roundStatus]);
+  useEffect(() => { if (state.roundStatus !== 'playing') setHighlightedCityIds(null); }, [state.roundStatus]);
   useEffect(() => { setHighlightedCityIds(null); }, [session.aiDecisions]);
   const markerCityIds = highlightedCityIds ?? [...new Set(Object.values(session.aiDecisions).flatMap(decision => {
     const action = decision.action;
@@ -107,7 +107,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
-      {dashboardOpen && aiFactionIds.length > 0 && <EnemyDashboard factions={aiFactionIds} decisions={session.aiDecisions} numbers={numbers}
+      {dashboardOpen && aiFactionIds.length > 0 && <EnemyDashboard factions={aiFactionIds} decisions={session.aiDecisions} activity={session.aiActivity} numbers={numbers}
         relayCityId={state.relay?.cityId} onHighlight={ids => setHighlightedCityIds(ids)} onClose={() => {
           document.getElementById('enemy-dashboard-toggle')?.focus();
           setHighlightedCityIds(null); setDashboardOpen(false);

@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import type { AiTraceBlockReason } from '../game/ai/trace';
 import type { AiTraceExample } from '../game/ai/trace';
-import type { RecordedAiDecision } from './enemyDashboard';
-import { actionView, decisionView } from './enemyDashboard';
+import type { AiActivity, RecordedAiDecision } from './enemyDashboard';
+import { actionView, aiStatusView, decisionView } from './enemyDashboard';
 
 interface Props {
   readonly factions: readonly string[];
   readonly decisions: Readonly<Record<string, RecordedAiDecision>>;
+  readonly activity: Readonly<Record<string, AiActivity>>;
   readonly numbers: ReadonlyMap<string, number>;
   readonly relayCityId?: string;
   readonly onHighlight: (cityIds: readonly string[]) => void;
@@ -75,7 +76,7 @@ function blockerExample(decision: RecordedAiDecision, example: AiTraceExample, n
   return `${route ?? 'Map'}${blocker ? ` · blocked by ${blocker}` : ''}${relayCityId && (example.targetId === relayCityId || example.cityId === relayCityId) ? ' · Relay' : ''}`;
 }
 
-export function EnemyDashboard({ factions, decisions, numbers, relayCityId, onHighlight, onClose }: Props) {
+export function EnemyDashboard({ factions, decisions, activity, numbers, relayCityId, onHighlight, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -100,14 +101,28 @@ export function EnemyDashboard({ factions, decisions, numbers, relayCityId, onHi
       <div className="enemy-dashboard__list">
         {factions.map(factionId => {
           const decision = decisions[factionId];
+          const current = activity[factionId];
+          const status = current ? aiStatusView(current, decision) : { status: 'Connecting…', detail: 'Waiting for lifecycle status' };
+          const age = (time: number) => `${Math.floor(Math.max(0, (current?.elapsedMs ?? time) - time) / 1000)}s ago`;
           const selected = decision ? decisionView(decision, numbers, relayCityId) : undefined;
           const trace = decision?.trace;
           const otherCount = Math.max(0, (trace?.viableCount ?? 0) - (decision?.action ? 1 : 0));
           return <section className="enemy-dashboard__card" key={factionId} aria-label={selected?.faction ?? factionLabel(factionId)}>
             <h3>{selected?.faction ?? factionLabel(factionId)}</h3>
+            <div className="enemy-dashboard__current" aria-label="Current status">
+              <span className="enemy-dashboard__label">Current status</span>
+              <strong>{status.status}</strong>
+              <small>{status.detail}</small>
+            </div>
+            <div className="enemy-dashboard__result-label"><span>Last result</span>{decision && <span>{age(decision.completedAtMs)}</span>}</div>
             {selected ? <>
               <p className="enemy-dashboard__action">{selected.action}</p>
               {selected.route && <p className="enemy-dashboard__route">{selected.route}</p>}
+              <p className="enemy-dashboard__outcome">{{ applied: 'Applied · command accepted at that time', rejected: 'Rejected · command no longer valid', inactive: 'Not applied · session inactive', 'no-command': 'No command issued' }[decision.outcome]}</p>
+              <p className="enemy-dashboard__waiting">Evaluation #{decision.evaluation} · board snapshot {age(decision.evaluatedAtMs)}</p>
+              <details className="enemy-dashboard__evaluation" open={!decision.action}>
+              <summary>Last evaluation details</summary>
+              <p className="enemy-dashboard__waiting">Details describe the evaluated board snapshot, not the current board.</p>
               {selected.score && <p className="enemy-dashboard__score"><span>AI score</span><strong>{selected.score}</strong></p>}
               {!decision?.action && <p className="enemy-dashboard__empty">No candidate passed feasibility and priority checks this decision.</p>}
               {trace && otherCount > 0 && <details className="enemy-dashboard__details">
@@ -142,7 +157,8 @@ export function EnemyDashboard({ factions, decisions, numbers, relayCityId, onHi
                 </ul>
               </details>}
               {trace && !decision.action && trace.blockers.length === 0 && <p className="enemy-dashboard__empty">No legal candidates were evaluated.</p>}
-            </> : <p className="enemy-dashboard__waiting">Waiting for first decision…</p>}
+              </details>
+            </> : <p className="enemy-dashboard__waiting">No completed evaluation yet.</p>}
           </section>;
         })}
       </div>

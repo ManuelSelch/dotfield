@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SimulationState, TerritoryState } from '../game/types';
 import type { AiAction } from '../game/ai/actions';
 import { AiDecisionTraceCollector } from '../game/ai/trace';
-import { cityNumbers, decisionView, recordDecision } from './enemyDashboard';
+import { cityNumbers, decisionView, recordDecision, aiStatusView } from './enemyDashboard';
 
 const territories: readonly TerritoryState[] = [
   { id: 'east', owner: 'neutral', units: 10, x: 250, y: 80, growthRemainder: 0 },
@@ -15,6 +15,33 @@ function view(action: AiAction | null, relayCityId?: string) {
   const decision = recordDecision(state, 'enemy', action, new AiDecisionTraceCollector().finish(action));
   return decisionView(decision, cityNumbers(territories), relayCityId);
 }
+
+describe('enemy dashboard lifecycle', () => {
+  const activity = { elapsedMs: 10000, nowMs: 20000, phase: 'running' as const, hidden: false,
+    playing: true, alive: true, workerAvailable: true, nextDecisionMs: 11000 };
+  it('distinguishes a pending evaluation from its old attack result', () => {
+    expect(aiStatusView({ ...activity, pendingSinceMs: 14000 })).toEqual({
+      status: 'Evaluating…', detail: 'Waiting for worker response · 6s elapsed',
+    });
+    expect(aiStatusView(activity).status).toBe('Waiting for next evaluation');
+  });
+  it('shows no-action only after an actual completed no-action result', () => {
+    const trace = new AiDecisionTraceCollector().finish(null);
+    const first = recordDecision(state, 'enemy', null, trace, { completedAtMs: 2000, evaluation: 1, outcome: 'no-command' });
+    const second = recordDecision(state, 'enemy', null, trace, { completedAtMs: 4000, evaluation: 2, outcome: 'no-command' }, first);
+    expect(second).toMatchObject({ evaluation: 2, completedAtMs: 4000, noActionSinceMs: 2000, noActionCount: 2 });
+    expect(aiStatusView(activity, second)).toEqual({ status: 'No action selected', detail: 'No action selected for 8s · 2 evaluations' });
+    expect(aiStatusView({ ...activity, pendingSinceMs: 19000 }, second).status).toBe('Evaluating…');
+  });
+  it('reports errors and lifecycle holds without inventing a result', () => {
+    expect(aiStatusView({ ...activity, error: true }).status).toBe('Worker error');
+    expect(aiStatusView({ ...activity, phase: 'paused', pendingSinceMs: 0 }).status).toBe('Paused');
+    expect(aiStatusView({ ...activity, hidden: true }).status).toBe('Paused');
+    expect(aiStatusView({ ...activity, playing: false }).status).toBe('Finished');
+    expect(aiStatusView({ ...activity, alive: false }).status).toBe('Eliminated');
+    expect(aiStatusView({ ...activity, workerAvailable: false }).status).toBe('Status unavailable');
+  });
+});
 
 describe('enemy dashboard decision labels', () => {
   it('numbers cities in stable top-to-bottom, left-to-right order', () => {

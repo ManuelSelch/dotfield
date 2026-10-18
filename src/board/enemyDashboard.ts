@@ -2,7 +2,37 @@ import type { AiAction } from '../game/ai/actions';
 import type { AiDecisionTrace } from '../game/ai/trace';
 import type { FactionId, SimulationState, Territory, Owner } from '../game/types';
 
+export interface AiActivity {
+  readonly elapsedMs: number;
+  readonly nowMs: number;
+  readonly phase: 'ready' | 'running' | 'paused';
+  readonly hidden: boolean;
+  readonly playing: boolean;
+  readonly alive: boolean;
+  readonly workerAvailable: boolean;
+  readonly nextDecisionMs: number;
+  readonly pendingSinceMs?: number;
+  readonly error?: boolean;
+}
+
+export function aiStatusView(activity: AiActivity, decision?: RecordedAiDecision): { status: string; detail: string } {
+  if (!activity.playing) return { status: 'Finished', detail: 'No more evaluations expected' };
+  if (!activity.alive) return { status: 'Eliminated', detail: 'No remaining cities or troops' };
+  if (activity.phase !== 'running' || activity.hidden) return { status: activity.phase === 'ready' ? 'Ready' : 'Paused', detail: 'AI scheduling paused · result age frozen' };
+  if (activity.error) return { status: 'Worker error', detail: 'No new result received since the error' };
+  if (!activity.workerAvailable) return { status: 'Status unavailable', detail: 'Synchronous AI · worker diagnostics unavailable' };
+  if (activity.pendingSinceMs !== undefined) return { status: 'Evaluating…', detail: `Waiting for worker response · ${Math.floor(Math.max(0, activity.nowMs - activity.pendingSinceMs) / 1000)}s elapsed` };
+  if (decision && !decision.action) return { status: 'No action selected', detail: `No action selected for ${Math.floor(Math.max(0, activity.elapsedMs - (decision.noActionSinceMs ?? decision.completedAtMs)) / 1000)}s · ${decision.noActionCount} evaluations` };
+  return { status: 'Waiting for next evaluation', detail: `Next check in ${(Math.max(0, activity.nextDecisionMs - activity.elapsedMs) / 1000).toFixed(1)}s` };
+}
+
 export interface RecordedAiDecision {
+  readonly evaluation: number;
+  readonly evaluatedAtMs: number;
+  readonly completedAtMs: number;
+  readonly outcome: 'applied' | 'rejected' | 'inactive' | 'no-command';
+  readonly noActionSinceMs?: number;
+  readonly noActionCount: number;
   readonly factionId: FactionId;
   readonly action: AiAction | null;
   readonly trace: AiDecisionTrace;
@@ -24,7 +54,9 @@ export function cityNumbers(territories: readonly Territory[]): ReadonlyMap<stri
 }
 
 export function recordDecision(state: SimulationState, factionId: FactionId, action: AiAction | null,
-  trace: AiDecisionTrace): RecordedAiDecision {
+  trace: AiDecisionTrace,
+  result = { completedAtMs: state.elapsedMs, evaluation: 0, outcome: (action ? 'inactive' : 'no-command') as RecordedAiDecision['outcome'] },
+  previous?: RecordedAiDecision): RecordedAiDecision {
   const actionIds = (candidate: AiAction): string[] => candidate.type === 'convert'
     ? [candidate.cityId] : [candidate.sourceId, candidate.targetId];
   const cityIds = new Set<string>(action ? actionIds(action) : []);
@@ -39,7 +71,10 @@ export function recordDecision(state: SimulationState, factionId: FactionId, act
     const city = state.territories.find(candidate => candidate.id === id);
     return city ? [[id, city.owner] as const] : [];
   }));
-  return { factionId, action, trace, ownersAtDecision };
+  return { factionId, action, trace, ownersAtDecision, ...result, evaluatedAtMs: state.elapsedMs,
+    noActionSinceMs: action ? undefined : previous && !previous.action ? previous.noActionSinceMs : result.completedAtMs,
+    noActionCount: action ? 0 : (previous && !previous.action ? previous.noActionCount : 0) + 1,
+  };
 }
 
 const factionLabel = (id: FactionId): string => id === 'player' ? 'You'

@@ -9,6 +9,8 @@ import type { SimulationState } from '../game/types';
 import * as roundRules from '../game/round';
 import { createSnapshotSaver } from '../game/snapshotSaver';
 import { TERRITORY_RADIUS, TRAVEL_SPEED } from '../game/settings';
+import { AiDecisionTraceCollector } from '../game/ai/trace';
+import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
 
 vi.mock('./drawBoard', () => ({ drawBoard: vi.fn() }));
 vi.mock('./bindDrag', () => ({ bindDrag: vi.fn(() => ({ cancel: vi.fn(), validate: vi.fn(), dispose: vi.fn() })) }));
@@ -39,9 +41,92 @@ function harness(territories = TERRITORIES, ai: AiConfig | null = null, autoStar
   const onSnapshot = vi.fn();
   const onCitySelection = vi.fn();
   const onFeedback = vi.fn();
-  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection, onFeedback });
-  return { onFeedback, focus, onCitySelection, setBounds: (width: number, height: number) => { bounds = { width, height }; }, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
+  const onAiDecision = vi.fn();
+  const onAiActivity = vi.fn();
+  const stop = startBoard(canvas, onCounts, territories, ai, { autoStart, onSnapshot, onCitySelection, onFeedback, onAiDecision, onAiActivity });
+  return { onAiDecision, onAiActivity, onFeedback, focus, onCitySelection, setBounds: (width: number, height: number) => { bounds = { width, height }; }, resize: (width = 360, height = 480) => { bounds = { width, height }; onResize(); }, frame: (time: number) => callback(time), document, window, request, cancel, disconnect, onCounts, onSnapshot, stop };
 }
+
+describe('worker dashboard lifecycle', () => {
+  function workerHarness() {
+    class WorkerStub {
+      static instance: WorkerStub;
+      constructor() { WorkerStub.instance = this; }
+      postMessage = vi.fn<(request: AiWorkerRequest) => void>();
+      terminate = vi.fn();
+      onmessage?: (event: { data: AiWorkerResponse }) => void;
+      onerror?: () => void;
+      onmessageerror?: () => void;
+    }
+    vi.stubGlobal('Worker', WorkerStub);
+    const board = harness(TERRITORIES, DEFAULT_AI);
+    board.frame(0); board.frame(1850);
+    return { board, worker: WorkerStub.instance };
+  }
+  it('publishes pending status before replies and counts repeated no-action results', () => {
+    const { board, worker } = workerHarness();
+    expect(worker.postMessage).toHaveBeenCalledOnce();
+    expect(board.onAiActivity.mock.lastCall![0].enemy.pendingSinceMs).toEqual(expect.any(Number));
+    board.frame(2000);
+    expect(worker.postMessage).toHaveBeenCalledOnce();
+    const reply = () => worker.onmessage!({ data: { requestId: worker.postMessage.mock.lastCall![0].requestId,
+      factionId: 'enemy', action: null, order: null, trace: new AiDecisionTraceCollector().finish(null) } });
+    reply();
+    expect(board.onAiDecision.mock.lastCall![0]).toMatchObject({ action: null, evaluation: 1, outcome: 'no-command', noActionCount: 1 });
+    expect(board.onAiActivity.mock.lastCall![0].enemy.pendingSinceMs).toBeUndefined();
+    board.frame(4000); reply();
+    expect(board.onAiDecision.mock.lastCall![0]).toMatchObject({ evaluation: 2, noActionCount: 2 });
+    const completed = board.onAiActivity.mock.lastCall![0].enemy.elapsedMs;
+    board.stop.pause(); board.frame(9000);
+    expect(board.onAiActivity.mock.lastCall![0].enemy).toMatchObject({ phase: 'paused', elapsedMs: completed });
+    board.stop();
+  });
+  it('records actual command acceptance rather than just an attack selection', () => {
+    const { board, worker } = workerHarness();
+    const action = { type: 'ground' as const, kind: 'attack' as const, sourceId: 'missing', targetId: 'south', score: 55 };
+    worker.onmessage!({ data: { requestId: worker.postMessage.mock.lastCall![0].requestId,
+      factionId: 'enemy', action, order: action, trace: new AiDecisionTraceCollector().finish(action) } });
+    expect(board.onAiDecision.mock.lastCall![0]).toMatchObject({ action, outcome: 'rejected' });
+    board.frame(4000);
+    const legal = { ...action, sourceId: 'north', targetId: 'centre', kind: 'expand' as const };
+    worker.onmessage!({ data: { requestId: worker.postMessage.mock.lastCall![0].requestId,
+      factionId: 'enemy', action: legal, order: legal, trace: new AiDecisionTraceCollector().finish(legal) } });
+    expect(board.onAiDecision.mock.lastCall![0]).toMatchObject({ outcome: 'applied', evaluation: 2 });
+    board.stop();
+  });
+  it('keeps an in-flight evaluation visible through pause and records non-application honestly', () => {
+    const { board, worker } = workerHarness();
+    const requestId = worker.postMessage.mock.lastCall![0].requestId;
+    board.stop.pause();
+    expect(board.onAiActivity.mock.lastCall![0].enemy.pendingSinceMs).toEqual(expect.any(Number));
+    const action = { type: 'ground' as const, kind: 'expand' as const, sourceId: 'north', targetId: 'centre', score: 55 };
+    worker.onmessage!({ data: { requestId, factionId: 'enemy', action, order: action, trace: new AiDecisionTraceCollector().finish(action) } });
+    expect(board.onAiDecision.mock.lastCall![0]).toMatchObject({ action, outcome: 'inactive' });
+    expect(board.onCounts.mock.lastCall![0].transfers).toHaveLength(0);
+    expect(board.onAiActivity.mock.lastCall![0].enemy).toMatchObject({ phase: 'paused', pendingSinceMs: undefined });
+    board.stop.resume(); board.frame(5000); board.frame(7000);
+    expect(worker.postMessage).toHaveBeenCalledTimes(2);
+    board.stop();
+  });
+  it('publishes the terminal status even inside the heartbeat throttle window', () => {
+    const { board } = workerHarness();
+    const before: SimulationState = board.onCounts.mock.lastCall![0];
+    const spy = vi.spyOn(roundRules, 'advanceRound').mockReturnValueOnce({ ...before, roundStatus: 'victory' });
+    board.frame(1900);
+    expect(board.onAiActivity.mock.lastCall![0].enemy.playing).toBe(false);
+    spy.mockRestore(); board.stop();
+  });
+  it('reports worker errors and ignores late results after restart or disposal', () => {
+    const { board, worker } = workerHarness();
+    const requestId = worker.postMessage.mock.lastCall![0].requestId;
+    worker.onerror!();
+    expect(board.onAiActivity.mock.lastCall![0].enemy.error).toBe(true);
+    board.stop.restart();
+    worker.onmessage!({ data: { requestId, factionId: 'enemy', action: null, order: null, trace: new AiDecisionTraceCollector().finish(null) } });
+    expect(board.onAiDecision).not.toHaveBeenCalled();
+    board.stop();
+  });
+});
 
 describe('board lifecycle adapter', () => {
   it('retains rejected-order feedback through keyboard target focus restoration', () => {

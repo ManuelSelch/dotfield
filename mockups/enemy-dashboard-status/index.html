@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Enemy dashboard — status mockup</title><link rel="stylesheet" href="./styles.css"></head>
+<body>
+<header><strong>dotfield</strong><span>Dashboard status · mockup</span></header>
+<main>
+<section class="field" aria-label="Illustrative game field"><span class="city player" style="left:24%;top:70%">50</span><span class="city enemy" style="left:65%;top:25%">50</span><span class="city enemy" style="left:28%;top:35%">50</span><span class="city player relay" style="left:52%;top:49%">80</span></section>
+<aside aria-label="Enemy dashboard">
+<div class="heading"><div><small>Live AI decisions</small><h1>Enemy dashboard</h1></div></div>
+<section class="card">
+<h2>Enemy 1</h2>
+<div class="current"><span class="label">Current status</span><strong id="status">Evaluating…</strong><span id="detail" class="muted"></span></div>
+<div class="result"><span class="label">Last result <span id="age"></span></span><strong id="action">Attack</strong><p id="route">Enemy 1 · City #8 → You · City #11</p><span id="outcome" class="outcome">Applied</span><p id="snapshot" class="muted"></p></div>
+<details><summary>Last evaluation details</summary><p class="muted" id="explanation"></p><p class="muted">Details belong to the last completed evaluation, not the current board.</p></details>
+</section>
+<section class="review"><label for="scenario">Preview state</label><select id="scenario"><option value="evaluating">Evaluating after an old attack</option><option value="waiting">Waiting after an applied attack</option><option value="no-action">Repeated no-action results</option><option value="rejected">Selected attack was rejected</option><option value="error">Worker error</option><option value="paused">Paused</option><option value="finished">Finished</option><option value="eliminated">Eliminated</option><option value="first">First evaluation pending</option></select><p>Fake data · timers illustrate freshness, not live AI.</p></section>
+</aside>
+</main><script type="module" src="./main.js"></script>
+</body></html>

@@ -12,7 +12,8 @@ import { hasAircraftAnimation } from './drawAircraft';
 import { TERRITORIES } from './map';
 import { DEFAULT_AI, type AiConfig } from '../game/ai/config';
 import type { AiWorkerRequest, AiWorkerResponse } from '../game/ai/worker';
-import { recordDecision, type RecordedAiDecision } from './enemyDashboard';
+import { recordDecision, type AiActivity, type RecordedAiDecision } from './enemyDashboard';
+import { factionArmyUnits } from '../game/ai/logistics';
 import { pairedCityId, type River } from '../game/river';
 import type { Terrain } from '../game/terrain/types';
 import { groundOrderFeedback } from './groundOrderFeedback';
@@ -25,6 +26,7 @@ interface BoardOptions {
   onFeedback?: (message: string) => void;
   onSnapshot?: (state: SimulationState, phase: SessionPhase, force?: boolean) => void;
   onAiDecision?: (decision: RecordedAiDecision) => void;
+  onAiActivity?: (activity: Readonly<Record<string, AiActivity>>) => void;
   rules?: RulesInput;
   river?: River;
   terrain?: Terrain;
@@ -73,7 +75,27 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   }
   let frameId = 0;
   let requestId = 0;
-  const pendingAi = new Map<number, { factionId: string; decisionState: SimulationState }>();
+  const pendingAi = new Map<number, { factionId: string; decisionState: SimulationState; sentAtMs: number; evaluation: number }>();
+  const evaluations = new Map<string, number>();
+  const decisions = new Map<string, RecordedAiDecision>();
+  let workerError = false;
+  let lastActivityAt = -Infinity;
+  function publishAiActivity(force = false) {
+    const nowMs = performance.now();
+    if (!force && nowMs - lastActivityAt < 250) return;
+    lastActivityAt = nowMs;
+    const current = session.state;
+    options.onAiActivity?.(Object.fromEntries(Object.entries(aiConfigs).map(([factionId, config]) => {
+      const pending = [...pendingAi.values()].find(p => p.factionId === factionId);
+      return [factionId, {
+        elapsedMs: current.elapsedMs, nowMs, phase: session.phase, hidden: document.hidden,
+        playing: current.roundStatus === 'playing', workerAvailable: !!aiWorker,
+        alive: current.territories.some(c => c.owner === factionId) || factionArmyUnits(current, factionId) > 0,
+        nextDecisionMs: current.aiDecisionDeadlines[factionId] ?? config.initialDelayMs,
+        pendingSinceMs: pending?.sentAtMs, error: workerError,
+      } satisfies AiActivity];
+    })));
+  }
   function redraw() {
     const bounds = canvas.getBoundingClientRect();
     drawBoard(canvas, state, bounds.width, bounds.height, window.devicePixelRatio || 1, selection, citySelection?.targeting === 'fly');
@@ -162,8 +184,16 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       if (!config || !session.reserveAiDecision(factionId, config)) continue;
       const id = ++requestId;
       const decisionState = session.state;
-      pendingAi.set(id, { factionId, decisionState });
-      aiWorker.postMessage({ requestId: id, state: decisionState, factionId, config } satisfies AiWorkerRequest);
+      const evaluation = (evaluations.get(factionId) ?? 0) + 1;
+      evaluations.set(factionId, evaluation);
+      pendingAi.set(id, { factionId, decisionState, sentAtMs: performance.now(), evaluation });
+      publishAiActivity(true);
+      try {
+        aiWorker.postMessage({ requestId: id, state: decisionState, factionId, config } satisfies AiWorkerRequest);
+      } catch {
+        workerError = true;
+        publishAiActivity(true);
+      }
     }
   }
 
@@ -174,6 +204,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
     state = session.frame(timestamp);
     drag.validate();
     requestAiDecisions();
+    publishAiActivity(state.roundStatus !== previous.roundStatus);
     const changed = state.territories.some((node, index) => node.units !== previous.territories[index].units || node.owner !== previous.territories[index].owner || node.cityType !== previous.territories[index].cityType)
       || state.transfers.length !== previous.transfers.length || state.arrivals.length !== previous.arrivals.length
       || state.transfers.reduce((sum, t) => sum + t.units, 0) !== previous.transfers.reduce((sum, t) => sum + t.units, 0)
@@ -202,24 +233,35 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
       const { requestId: id, factionId, action, trace } = event.data;
       const pending = pendingAi.get(id);
       if (pending?.factionId !== factionId || !pendingAi.delete(id) || disposed) return;
-      options.onAiDecision?.(recordDecision(pending.decisionState, factionId, action, trace));
+      session.setHidden(document.hidden);
+      let outcome: RecordedAiDecision['outcome'] = action ? 'inactive' : 'no-command';
       if (action && session.active) {
-        session.setHidden(document.hidden);
+        const before = session.state;
         state = session.applyFactionAction(action, factionId);
+        outcome = state === before ? 'rejected' : 'applied';
         drag.validate();
         if (citySelection && !managedCity()) clearCity();
         onState(state);
         options.onSnapshot?.(state, session.phase, true);
         redraw();
       }
+      const decision = recordDecision(pending.decisionState, factionId, action, trace, {
+        completedAtMs: session.state.elapsedMs, evaluation: pending.evaluation, outcome,
+      }, decisions.get(factionId));
+      decisions.set(factionId, decision);
+      options.onAiDecision?.(decision);
+      publishAiActivity(true);
     };
-    aiWorker.onerror = () => { /* The synchronous fallback remains available on the next session. */ };
+    const reportWorkerError = () => { if (!disposed) { workerError = true; publishAiActivity(true); } };
+    aiWorker.onerror = reportWorkerError;
+    aiWorker.onmessageerror = reportWorkerError;
   }
 
   function onVisibilityChange() {
     cancelAnimationFrame(frameId);
     drag.cancel(); clearCity();
     session.setHidden(document.hidden);
+    publishAiActivity(true);
     options.onSnapshot?.(session.state, session.phase, true);
     if (session.active) frameId = requestAnimationFrame(frame);
   }
@@ -244,13 +286,15 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   onState(state);
   options.onSnapshot?.(session.state, session.phase, true);
   options.onPhase?.(session.phase);
+  publishAiActivity(true);
   if (session.active) frameId = requestAnimationFrame(frame);
   function command(action: 'start' | 'pause' | 'resume' | 'restart') {
     if (disposed) return;
     cancelAnimationFrame(frameId);
     drag.cancel(); clearCity(); session.setHidden(document.hidden); session[action]();
-    pendingAi.clear();
+    if (action === 'restart') { pendingAi.clear(); evaluations.clear(); decisions.clear(); }
     state = session.state; onState(state); options.onSnapshot?.(state, session.phase, true); options.onPhase?.(session.phase); redraw();
+    publishAiActivity(true);
     if (session.active) frameId = requestAnimationFrame(frame);
   }
   const dispose = () => {
