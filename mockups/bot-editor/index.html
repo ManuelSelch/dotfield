@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dotfield · Logic editor mockup</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="identity"><span class="brand-dot" aria-hidden="true"></span><strong>Dotfield</strong><span class="divider">/</span><span>Enemy logic</span><span class="enemy-badge">Enemy 1</span></div>
+      <div class="header-actions"><span id="save-status" class="save-status" aria-live="polite">Example strategy</span><button id="reset">Reset</button><button id="save" class="primary">Save draft</button></div>
+    </header>
+    <div class="intro"><div><h1>Build a little strategy.</h1><p>Snap together decisions. Reuse a tactic wherever you need it.</p></div><span class="prototype-label">DESIGN MOCKUP</span></div>
+    <main class="editor">
+      <aside class="library" id="library" aria-label="Block library">
+        <div class="library-heading"><h2>Blocks</h2><button id="close-library" class="mobile-only" aria-label="Close block library">×</button></div>
+        <p class="library-hint">Drag into a group, or select a group and tap a block to add it.</p>
+        <div id="palette"></div>
+        <section class="library-note"><span class="call-mark">↗</span><div><strong>One tactic, many uses</strong><p>Open <b>Capture</b> to edit the shared steps. Both calls in Main use it.</p></div></section>
+      </aside>
+      <section class="workspace" aria-label="Strategy workspace">
+        <div class="workspace-top"><nav id="scripts" class="scripts" aria-label="Tactics"></nav><button id="new-tactic" class="new-tactic" aria-label="Create reusable tactic">＋ Tactic</button></div>
+        <div class="workspace-controls"><div class="workspace-meta"><strong id="script-name">Main</strong><span id="script-description">The entry point for this enemy.</span></div><div class="view-switch" aria-label="Editor view"><button id="blocks-view" class="active" aria-pressed="true">Blocks</button><button id="code-view" aria-pressed="false">MDSL</button></div></div>
+        <div id="parameters" class="parameters" hidden></div>
+        <div class="selection-bar"><span id="selection-label">Select a block to edit or move it.</span><div id="selection-actions" hidden><button id="move-up" aria-label="Move selected block up">↑</button><button id="move-down" aria-label="Move selected block down">↓</button><button id="remove" aria-label="Delete selected block">Delete</button></div><button id="open-library" class="mobile-only">＋ Blocks</button></div>
+        <div class="stage-scroll"><div id="stage" class="stage"></div><div id="code-panel" hidden><div class="code-note">Illustrative MDSL · reusable calls are expanded into ordinary tree nodes. This is not connected to the game.</div><pre id="code"></pre></div></div>
+        <div class="workspace-footer"><span id="validation" role="status">Ready to edit</span><span class="execution-note">Top to bottom · first successful branch wins</span></div>
+      </section>
+    </main>
+    <footer class="page-footer"><span>Mockup only. Edits stay in this tab; nothing is saved to the game.</span><span>Visual blocks first. MDSL underneath.</span></footer>
+    <div id="toast" role="status" hidden></div>
+  </div>
+  <dialog id="tactic-dialog"><form id="tactic-form"><span class="eyebrow">REUSABLE LOGIC</span><h2>Create a tactic</h2><p>Give a group of steps a name, then call it from another tactic.</p><label for="tactic-name">Name</label><input id="tactic-name" maxlength="32" placeholder="e.g. Defend" required pattern="[A-Za-z][A-Za-z0-9 ]*"><p id="name-error" class="error" aria-live="polite"></p><div class="dialog-actions"><button type="button" id="cancel-tactic">Cancel</button><button class="primary">Create tactic</button></div></form></dialog>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
