@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Dotfield Enemy Dashboard Mockup</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="game-shell" id="gameShell">
+      <div class="game-header">
+        <div class="header-left">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <div>
+            <small>Round 12</small>
+            <strong>North front</strong>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <span class="status-pill ok">Enemy moving</span>
+          <button type="button" class="debug-toggle" id="debugToggle" aria-expanded="true">Hide AI debug</button>
+        </div>
+      </div>
+
+      <div class="main-stage">
+        <div class="game-board" aria-label="Game board preview">
+          <svg viewBox="0 0 920 520" role="img" aria-label="Dotfield board with enemy movement and relay objective">
+            <defs>
+              <linearGradient id="terrainFade" x1="0" x2="1">
+                <stop offset="0%" stop-color="#edf1eb"/>
+                <stop offset="100%" stop-color="#dde8df"/>
+              </linearGradient>
+            </defs>
+
+            <rect x="0" y="0" width="920" height="520" rx="24" fill="url(#terrainFade)" />
+
+            <g opacity="0.85">
+              <path d="M110 110 L340 135 L290 246 L110 230 Z" fill="#dfe8df" />
+              <path d="M590 110 L820 120 L760 265 L550 248 Z" fill="#dfe8df" />
+              <path d="M250 310 L470 325 L435 458 L210 450 Z" fill="#e6eee1" />
+              <path d="M440 80 L520 70 L560 160 L470 180 Z" fill="#d8e1d5" />
+            </g>
+
+            <g stroke="#c0c9bf" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+              <path d="M130 125 L252 160 L278 242 L125 232" />
+              <path d="M610 130 L768 146 L724 252 L585 250" />
+              <path d="M285 320 L425 342 L404 440 L237 429" />
+            </g>
+
+            <g>
+              <circle class="map-city player" cx="170" cy="180" r="18" />
+              <circle class="map-city player" cx="254" cy="208" r="18" />
+              <circle class="map-city enemy" cx="336" cy="182" r="18" />
+              <circle class="map-city neutral" cx="470" cy="180" r="17" />
+              <circle class="map-city relay" cx="470" cy="110" r="22" />
+              <circle class="map-city enemy" cx="610" cy="156" r="18" />
+              <circle class="map-city player" cx="700" cy="182" r="18" />
+              <circle class="map-city enemy" cx="740" cy="258" r="18" />
+              <circle class="map-city player" cx="303" cy="352" r="18" />
+              <circle class="map-city enemy" cx="420" cy="380" r="18" />
+            </g>
+
+            <g class="routes" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M336 182 L470 180" class="route red" />
+              <path d="M470 180 L610 156" class="route red" />
+              <path d="M470 110 L470 180" class="route gold" stroke-dasharray="10 8" />
+              <path d="M170 180 L254 208 L336 182" class="route green" />
+              <path d="M610 156 L700 182" class="route red" />
+              <path d="M420 380 L740 258" class="route red" />
+            </g>
+
+            <g class="labels" font-size="14" font-weight="700" fill="#53615d">
+              <text x="160" y="214">A</text>
+              <text x="326" y="214">B</text>
+              <text x="460" y="212">Relay</text>
+              <text x="600" y="188">C</text>
+              <text x="690" y="212">D</text>
+            </g>
+          </svg>
+        </div>
+
+        <aside class="ai-panel" id="aiPanel" aria-live="polite">
+          <div class="panel-head">
+            <div>
+              <small>AI debug</small>
+              <h2>Enemy decision</h2>
+            </div>
+            <span class="panel-badge">Aggressive</span>
+          </div>
+
+          <div class="mini-summary">
+            <div>
+              <span class="mini-label">Chosen action</span>
+              <strong>Attack relay</strong>
+            </div>
+            <div class="score-box">
+              <span class="mini-label">Score</span>
+              <strong>88.4</strong>
+            </div>
+          </div>
+
+          <div class="decision-box">
+            <div class="decision-pill">Attack</div>
+            <div class="route-summary">
+              <div class="route-node source">
+                <span>Source</span>
+                <strong>Northwest</strong>
+                <small>32 troops</small>
+              </div>
+              <div class="arrow">→</div>
+              <div class="route-node target">
+                <span>Target</span>
+                <strong>Relay</strong>
+                <small>Neutral</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="metric"><span>Attack</span><strong>54</strong></div>
+            <div class="metric"><span>Frontline</span><strong>18</strong></div>
+            <div class="metric"><span>Defense</span><strong>12</strong></div>
+          </div>
+
+          <div class="bar-block">
+            <div class="bar-row">
+              <label>Forecast</label>
+              <div class="bar"><span style="width: 88%"></span></div>
+              <strong>88%</strong>
+            </div>
+            <div class="bar-row">
+              <label>Reserve</label>
+              <div class="bar"><span style="width: 94%"></span></div>
+              <strong>94%</strong>
+            </div>
+            <div class="bar-row">
+              <label>Relief</label>
+              <div class="bar"><span style="width: 52%"></span></div>
+              <strong>52%</strong>
+            </div>
+          </div>
+
+          <div class="candidate-box">
+            <div class="candidate-head">
+              <h3>Top candidates</h3>
+              <span>5 evaluated</span>
+            </div>
+
+            <ul>
+              <li class="candidate selected">
+                <span>NW → Relay</span>
+                <strong>88.4</strong>
+              </li>
+              <li class="candidate">
+                <span>West → Relay</span>
+                <strong>67.2</strong>
+              </li>
+              <li class="candidate">
+                <span>South → Factory</span>
+                <strong>58.9</strong>
+              </li>
+              <li class="candidate">
+                <span>Home → Border</span>
+                <strong>41.4</strong>
+              </li>
+            </ul>
+          </div>
+
+          <div class="log-box">
+            <div class="log-item ok">
+              <span>Approved</span>
+              <p>Forecast feasible and home reserve remains above the minimum threshold.</p>
+            </div>
+            <div class="log-item reject">
+              <span>Rejected</span>
+              <p>Factory push lost because source safety and growth delta were lower.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
