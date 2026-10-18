@@ -1,0 +1,318 @@
+{
+  "definition": {
+    "type": "root",
+    "child": {
+      "type": "selector",
+      "children": [
+        {
+          "type": "sequence",
+          "children": [
+            {
+              "type": "action",
+              "call": "SelectCity",
+              "args": [
+                "neutral",
+                "nearest-reachable",
+                "c/12:neutral-call6:target"
+              ]
+            },
+            {
+              "type": "action",
+              "call": "SelectSources",
+              "args": [
+                "c/12:neutral-call6:target",
+                6,
+                "c/12:neutral-call7:sources"
+              ]
+            },
+            {
+              "type": "action",
+              "call": "ClearSet",
+              "args": [
+                "c/12:neutral-call6:chosen"
+              ]
+            },
+            {
+              "type": "retry",
+              "attempts": 4,
+              "child": {
+                "type": "sequence",
+                "children": [
+                  {
+                    "type": "action",
+                    "call": "NextCity",
+                    "args": [
+                      "c/12:neutral-call7:sources",
+                      "c/12:neutral-call6:source"
+                    ]
+                  },
+                  {
+                    "type": "action",
+                    "call": "AddToSet",
+                    "args": [
+                      "c/12:neutral-call6:chosen",
+                      "c/12:neutral-call6:source"
+                    ]
+                  },
+                  {
+                    "type": "action",
+                    "call": "PlanCapture",
+                    "args": [
+                      "c/12:neutral-call6:target",
+                      "c/12:neutral-call6:chosen",
+                      15000,
+                      "c/12:neutral-call4:plan"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "type": "action",
+              "call": "ExecutePlan",
+              "args": [
+                "c/12:neutral-call4:plan"
+              ]
+            }
+          ],
+          "exit": {
+            "call": "ReleasePlan",
+            "args": [
+              "c/12:neutral-call4:plan"
+            ]
+          }
+        },
+        {
+          "type": "sequence",
+          "children": [
+            {
+              "type": "action",
+              "call": "SelectCity",
+              "args": [
+                "enemy",
+                "nearest-reachable",
+                "c/10:enemy-call6:target"
+              ]
+            },
+            {
+              "type": "action",
+              "call": "SelectSources",
+              "args": [
+                "c/10:enemy-call6:target",
+                6,
+                "c/10:enemy-call7:sources"
+              ]
+            },
+            {
+              "type": "action",
+              "call": "ClearSet",
+              "args": [
+                "c/10:enemy-call6:chosen"
+              ]
+            },
+            {
+              "type": "retry",
+              "attempts": 4,
+              "child": {
+                "type": "sequence",
+                "children": [
+                  {
+                    "type": "action",
+                    "call": "NextCity",
+                    "args": [
+                      "c/10:enemy-call7:sources",
+                      "c/10:enemy-call6:source"
+                    ]
+                  },
+                  {
+                    "type": "action",
+                    "call": "AddToSet",
+                    "args": [
+                      "c/10:enemy-call6:chosen",
+                      "c/10:enemy-call6:source"
+                    ]
+                  },
+                  {
+                    "type": "action",
+                    "call": "PlanCapture",
+                    "args": [
+                      "c/10:enemy-call6:target",
+                      "c/10:enemy-call6:chosen",
+                      15000,
+                      "c/10:enemy-call4:plan"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "type": "action",
+              "call": "ExecutePlan",
+              "args": [
+                "c/10:enemy-call4:plan"
+              ]
+            }
+          ],
+          "exit": {
+            "call": "ReleasePlan",
+            "args": [
+              "c/10:enemy-call4:plan"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "origins": {
+    "0": {
+      "tabId": "main",
+      "blockId": "main-entry",
+      "callPath": []
+    },
+    "0.0": {
+      "tabId": "main",
+      "blockId": "main-priority",
+      "callPath": []
+    },
+    "0.0.0": {
+      "tabId": "capture",
+      "blockId": "capture-body",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.0": {
+      "tabId": "capture",
+      "blockId": "select-target",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.1": {
+      "tabId": "capture",
+      "blockId": "select-sources",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.2": {
+      "tabId": "capture",
+      "blockId": "clear-chosen",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.3": {
+      "tabId": "capture",
+      "blockId": "grow-source-set",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.3.0": {
+      "tabId": "capture",
+      "blockId": "attempt-capture",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.3.0.0": {
+      "tabId": "capture",
+      "blockId": "next-source",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.3.0.1": {
+      "tabId": "capture",
+      "blockId": "choose-source",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.3.0.2": {
+      "tabId": "capture",
+      "blockId": "forecast",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.0.4": {
+      "tabId": "capture",
+      "blockId": "execute",
+      "callPath": [
+        "neutral-call"
+      ]
+    },
+    "0.0.1": {
+      "tabId": "capture",
+      "blockId": "capture-body",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.0": {
+      "tabId": "capture",
+      "blockId": "select-target",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.1": {
+      "tabId": "capture",
+      "blockId": "select-sources",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.2": {
+      "tabId": "capture",
+      "blockId": "clear-chosen",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.3": {
+      "tabId": "capture",
+      "blockId": "grow-source-set",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.3.0": {
+      "tabId": "capture",
+      "blockId": "attempt-capture",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.3.0.0": {
+      "tabId": "capture",
+      "blockId": "next-source",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.3.0.1": {
+      "tabId": "capture",
+      "blockId": "choose-source",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.3.0.2": {
+      "tabId": "capture",
+      "blockId": "forecast",
+      "callPath": [
+        "enemy-call"
+      ]
+    },
+    "0.0.1.4": {
+      "tabId": "capture",
+      "blockId": "execute",
+      "callPath": [
+        "enemy-call"
+      ]
+    }
+  }
+}

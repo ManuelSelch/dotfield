@@ -13,23 +13,23 @@
               "args": [
                 "neutral",
                 "nearest-reachable",
-                "n-target"
+                "m/8:n-target"
               ]
             },
             {
               "type": "action",
               "call": "SelectSources",
               "args": [
-                "n-target",
+                "m/8:n-target",
                 6,
-                "n-sources"
+                "m/9:n-sources"
               ]
             },
             {
               "type": "action",
               "call": "ClearSet",
               "args": [
-                "n-chosen"
+                "m/8:n-chosen"
               ]
             },
             {
@@ -42,26 +42,26 @@
                     "type": "action",
                     "call": "NextCity",
                     "args": [
-                      "n-sources",
-                      "n-source"
+                      "m/9:n-sources",
+                      "m/8:n-source"
                     ]
                   },
                   {
                     "type": "action",
                     "call": "AddToSet",
                     "args": [
-                      "n-chosen",
-                      "n-source"
+                      "m/8:n-chosen",
+                      "m/8:n-source"
                     ]
                   },
                   {
                     "type": "action",
                     "call": "PlanCapture",
                     "args": [
-                      "n-target",
-                      "n-chosen",
+                      "m/8:n-target",
+                      "m/8:n-chosen",
                       15000,
-                      "n-plan"
+                      "m/6:n-plan"
                     ]
                   }
                 ]
@@ -71,14 +71,14 @@
               "type": "action",
               "call": "ExecutePlan",
               "args": [
-                "n-plan"
+                "m/6:n-plan"
               ]
             }
           ],
           "exit": {
             "call": "ReleasePlan",
             "args": [
-              "n-plan"
+              "m/6:n-plan"
             ]
           }
         },
@@ -91,23 +91,23 @@
               "args": [
                 "enemy",
                 "nearest-reachable",
-                "e-target"
+                "m/8:e-target"
               ]
             },
             {
               "type": "action",
               "call": "SelectSources",
               "args": [
-                "e-target",
+                "m/8:e-target",
                 6,
-                "e-sources"
+                "m/9:e-sources"
               ]
             },
             {
               "type": "action",
               "call": "ClearSet",
               "args": [
-                "e-chosen"
+                "m/8:e-chosen"
               ]
             },
             {
@@ -120,26 +120,26 @@
                     "type": "action",
                     "call": "NextCity",
                     "args": [
-                      "e-sources",
-                      "e-source"
+                      "m/9:e-sources",
+                      "m/8:e-source"
                     ]
                   },
                   {
                     "type": "action",
                     "call": "AddToSet",
                     "args": [
-                      "e-chosen",
-                      "e-source"
+                      "m/8:e-chosen",
+                      "m/8:e-source"
                     ]
                   },
                   {
                     "type": "action",
                     "call": "PlanCapture",
                     "args": [
-                      "e-target",
-                      "e-chosen",
+                      "m/8:e-target",
+                      "m/8:e-chosen",
                       15000,
-                      "e-plan"
+                      "m/6:e-plan"
                     ]
                   }
                 ]
@@ -149,14 +149,14 @@
               "type": "action",
               "call": "ExecutePlan",
               "args": [
-                "e-plan"
+                "m/6:e-plan"
               ]
             }
           ],
           "exit": {
             "call": "ReleasePlan",
             "args": [
-              "e-plan"
+              "m/6:e-plan"
             ]
           }
         }

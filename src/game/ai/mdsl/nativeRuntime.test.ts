@@ -8,6 +8,7 @@ import type { Territory } from '../../types';
 import { createMdslBot, createProgramBot } from './runtime';
 import { compileProject } from '../../../botEditor/compiler';
 import { directProject } from '../../../botEditor/fixtures/directProject';
+import { scopedSlot } from '../../../botEditor/tactics';
 import { PROGRAM_LIMITS } from '../program/limits';
 
 function definition() {
@@ -33,7 +34,7 @@ describe('admitted native program execution', () => {
     expect(h.bot.step()).toBe(State.RUNNING);expect(h.apply).toHaveBeenCalledOnce();
     h.advance(1000);h.bot.step();expect(h.apply).toHaveBeenCalledTimes(2);
     h.advance(12000);expect(h.bot.step()).toBe(State.SUCCEEDED);
-    expect(h.events).toHaveBeenCalledWith(expect.objectContaining({ method: 'ReleasePlan', outcome: 'completed', planSlot: 'e-plan' }));
+    expect(h.events).toHaveBeenCalledWith(expect.objectContaining({ method: 'ReleasePlan', outcome: 'completed', planSlot: scopedSlot([], 'e-plan') }));
     expect(h.bot.fault).toBeNull();expect(h.faults).not.toHaveBeenCalled();h.bot.dispose();
   });
   it('keeps the untrusted native entry separate from the legacy MDSL string path', () => {

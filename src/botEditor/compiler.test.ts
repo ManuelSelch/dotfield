@@ -5,6 +5,7 @@ import type { BlockState } from './types';
 import { compileProject } from './compiler';
 import { directProject } from './fixtures/directProject';
 import { createDefaultProject } from './defaultProject';
+import { scopedSlot } from './tactics';
 
 describe('direct Blockly → native Mistreevous compiler', () => {
   it('compiles native nodes, authored order/arguments and exit cleanup with block origins', () => {
@@ -22,7 +23,7 @@ describe('direct Blockly → native Mistreevous compiler', () => {
     if (!result.ok) return;
     const replacements: Record<string, string> = { target: 'n-target', sources: 'n-sources', source: 'n-source', chosen: 'n-chosen', capturePlan: 'n-plan',
       attackTarget: 'e-target', attackSources: 'e-sources', attackSource: 'e-source', attackChosen: 'e-chosen', attackPlan: 'e-plan' };
-    const baseline = JSON.parse(JSON.stringify(convertMDSLToJSON(expansion)[0]), (_key, value) => typeof value === 'string' ? replacements[value] ?? value : value);
+    const baseline = JSON.parse(JSON.stringify(convertMDSLToJSON(expansion)[0]), (_key, value) => typeof value === 'string' && replacements[value] ? scopedSlot([], replacements[value]) : value);
     expect(result.program.definition).toEqual(baseline);
     await expect(JSON.stringify(result.program, null, 2) + '\n').toMatchFileSnapshot('./fixtures/direct-program.json');
   });
@@ -55,11 +56,11 @@ describe('direct Blockly → native Mistreevous compiler', () => {
     const result = compileProject(project);expect(result.ok).toBe(false);
     if (!result.ok) expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: 'read-before-write', blockId: 'n-select-sources' }));
   });
-  it('reports unsupported reusable calls/parameter references explicitly until slice 4', () => {
-    const result = compileProject(createDefaultProject());
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.diagnostics).toContainEqual(expect.objectContaining({ blockId: 'neutral-call', code: 'call-not-supported' }));
-    expect(result.diagnostics).toContainEqual(expect.objectContaining({ blockId: 'kind-reference', code: 'parameter-not-supported' }));
+  it('compiles the shared Capture definition with distinct bound neutral/enemy calls', async () => {
+    const result = compileProject(createDefaultProject());expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.program.origins['0.0.0']).toEqual({ tabId: 'capture', blockId: 'capture-body', callPath: ['neutral-call'] });
+    expect(result.program.origins['0.0.1']).toEqual({ tabId: 'capture', blockId: 'capture-body', callPath: ['enemy-call'] });
+    await expect(JSON.stringify(result.program, null, 2) + '\n').toMatchFileSnapshot('./fixtures/tactic-program.json');
   });
 });
