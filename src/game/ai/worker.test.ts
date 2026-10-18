@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSimulation } from '../state';
 import { advanceWorldStep } from '../worldStep';
 import { createTerrain } from '../terrain/terrain';
-import { chooseAction, applyAiAction } from './actions';
+import { chooseAction, chooseActionWithTrace, applyAiAction } from './actions';
 import { DEFAULT_AI } from './config';
 import { advanceAi } from './tick';
 import type { AiWorkerRequest, AiWorkerResponse } from './worker';
@@ -32,6 +32,7 @@ describe.each([false, true])('worker action contract (relay %s)', relay => {
     const response = postMessage.mock.calls[0][0] as AiWorkerResponse;
     expect(response).toMatchObject({ requestId: 42, factionId, action: { type } });
     expect(response.action).toEqual(chooseAction(state, DEFAULT_AI, factionId));
+    expect(response.trace).toEqual(chooseActionWithTrace(state, DEFAULT_AI, factionId).trace);
     expect(response.order).toEqual(type === 'ground' ? expect.objectContaining({ sourceId: expect.any(String) }) : null);
     const sync = advanceAi(state, { [factionId]: DEFAULT_AI });
     const applied = applyAiAction(state, response.action!, factionId);

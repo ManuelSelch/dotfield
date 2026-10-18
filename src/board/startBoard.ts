@@ -199,10 +199,10 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
   }
   if (aiWorker) {
     aiWorker.onmessage = (event: MessageEvent<AiWorkerResponse>) => {
-      const { requestId: id, factionId, action } = event.data;
+      const { requestId: id, factionId, action, trace } = event.data;
       const pending = pendingAi.get(id);
       if (pending?.factionId !== factionId || !pendingAi.delete(id) || disposed) return;
-      options.onAiDecision?.(recordDecision(pending.decisionState, factionId, action));
+      options.onAiDecision?.(recordDecision(pending.decisionState, factionId, action, trace));
       if (action && session.active) {
         session.setHidden(document.hidden);
         state = session.applyFactionAction(action, factionId);

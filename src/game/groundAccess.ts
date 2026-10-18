@@ -5,11 +5,22 @@ import { getFactionRules } from './rules';
 import type { SimulationState, Territory } from './types';
 import type { Terrain } from './terrain/types';
 
+export type GroundOrderBlockReason =
+  | { readonly reason: 'same-city' | 'river' | 'terrain' }
+  | { readonly reason: 'defender'; readonly blockerId: string };
+
+export function groundOrderBlockReason(state: SimulationState, source: Territory, target: Territory,
+  faction = source.owner, terrain: Terrain | undefined = state.terrain): GroundOrderBlockReason | null {
+  if (source.id === target.id) return { reason: 'same-city' };
+  if (!canRiverOrder(source, target, state.river)) return { reason: 'river' };
+  if (!canDirectTerrainOrder(source, target, terrain, getFactionRules(state, faction))) return { reason: 'terrain' };
+  const blocker = firstDefenderBlocker(state.territories, source, target, state.river, faction);
+  return blocker ? { reason: 'defender', blockerId: blocker.id } : null;
+}
+
 export function canGroundOrder(state: SimulationState, source: Territory, target: Territory,
   faction = source.owner, terrain: Terrain | undefined = state.terrain): boolean {
-  return source.id !== target.id && canRiverOrder(source, target, state.river)
-    && canDirectTerrainOrder(source, target, terrain, getFactionRules(state, faction))
-    && !firstDefenderBlocker(state.territories, source, target, state.river, faction);
+  return groundOrderBlockReason(state, source, target, faction, terrain) === null;
 }
 
 /** Reservations still belong to source garrisons. Cancellation never refunds or

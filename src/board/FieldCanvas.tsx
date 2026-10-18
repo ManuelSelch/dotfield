@@ -30,10 +30,16 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
   const session = useBoardSession(canvasRef, territories, ai, autoStart, rules, initialState, initialPhase, onSnapshot, river, terrain, relay);
   const { state, phase } = session;
   const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [highlightedCityIds, setHighlightedCityIds] = useState<readonly string[] | null>(null);
   const aiFactionIds = (ai ? ('decisionIntervalMs' in ai ? ['enemy'] : Object.keys(ai).filter(id => ai[id])) : [])
     .filter(id => id !== 'player' && id !== 'neutral' && !!state.rules.factions[id]).sort();
   const numbers = useMemo(() => cityNumbers(territories), [territories]);
-  useEffect(() => { if (state.roundStatus !== 'playing') setDashboardOpen(false); }, [state.roundStatus]);
+  useEffect(() => { if (state.roundStatus !== 'playing') { setDashboardOpen(false); setHighlightedCityIds(null); } }, [state.roundStatus]);
+  useEffect(() => { setHighlightedCityIds(null); }, [session.aiDecisions]);
+  const markerCityIds = highlightedCityIds ?? [...new Set(Object.values(session.aiDecisions).flatMap(decision => {
+    const action = decision.action;
+    return !action ? [] : action.type === 'convert' ? [action.cityId] : [action.sourceId, action.targetId];
+  }))];
   const networkEnabled = state.rules.factions.player?.connectedDefense ?? false;
   const connectedIds = networkEnabled
     ? connectedTerritoryIds(state.territories, 'player', state.homeCityIds?.player, state.river) : new Set<string>();
@@ -58,10 +64,7 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
           Your browser does not support Canvas. Territory details are listed below.
         </canvas>
         {dashboardOpen && <svg className="enemy-dashboard-map-markers" viewBox="0 0 360 480" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-          {[...new Set(Object.values(session.aiDecisions).flatMap(decision => {
-            const action = decision.action;
-            return !action ? [] : action.type === 'convert' ? [action.cityId] : [action.sourceId, action.targetId];
-          }))].map(cityId => {
+          {markerCityIds.map(cityId => {
             const city = state.territories.find(candidate => candidate.id === cityId);
             const number = numbers.get(cityId);
             return city && number ? <g className="enemy-dashboard-map-marker" transform={`translate(${city.x} ${city.y})`} key={cityId}>
@@ -97,15 +100,17 @@ export function FieldCanvas({ territories = TERRITORIES, ai = DEFAULT_AI, autoSt
         </p>}
         {state.roundStatus === 'playing' && <>
           <SessionControls phase={phase} onPause={session.pause} onResume={session.resume} onRestart={session.restart}
-            dashboardOpen={dashboardOpen} onToggleDashboard={aiFactionIds.length ? () => setDashboardOpen(open => !open) : undefined} />
+            dashboardOpen={dashboardOpen} onToggleDashboard={aiFactionIds.length ? () => {
+              setHighlightedCityIds(null); setDashboardOpen(open => !open);
+            } : undefined} />
           <SessionNavigationControls onRestart={session.restart} onHome={onHome} />
         </>}
         <RoundResult status={state.roundStatus} onReplay={session.replay} onHome={onHome} />
       </div>
       {dashboardOpen && aiFactionIds.length > 0 && <EnemyDashboard factions={aiFactionIds} decisions={session.aiDecisions} numbers={numbers}
-        relayCityId={state.relay?.cityId} onClose={() => {
+        relayCityId={state.relay?.cityId} onHighlight={ids => setHighlightedCityIds(ids)} onClose={() => {
           document.getElementById('enemy-dashboard-toggle')?.focus();
-          setDashboardOpen(false);
+          setHighlightedCityIds(null); setDashboardOpen(false);
         }} />}
       </div>
       <div className="city-action-strip">

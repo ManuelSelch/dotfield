@@ -5,7 +5,7 @@ import { resolveAiBehavior } from './behaviors';
 
 const city = (id: string, owner: string, units: number, x: number, y: number) => ({ id, owner, units, x, y });
 
-it('Aggressive takes a feasible Relay-era attack before buying artillery', () => {
+it('Aggressive captures an available active Relay before optional Artillery investment', () => {
   const state = createSimulation([
     city('home', 'enemy', 50, 30, 400), city('rear', 'enemy', 50, 70, 350),
     city('plant', 'enemy', 50, 130, 250), city('front', 'enemy', 50, 180, 200),
@@ -16,12 +16,12 @@ it('Aggressive takes a feasible Relay-era attack before buying artillery', () =>
   const activeRelay = { ...state, elapsedMs: 120_000 };
   const aggressive = resolveAiBehavior('aggressive');
   expect(chooseAction(activeRelay, aggressive, 'enemy'))
-    .toMatchObject({ type: 'ground', kind: 'attack', targetId: 'player' });
+    .toMatchObject({ type: 'ground', kind: 'expand', targetId: 'relay' });
   // Running rounds saved before this policy have the same attack score but no new field.
   const legacyAggressive = { ...aggressive } as typeof aggressive & { roleConversionPenalty?: number };
   delete legacyAggressive.roleConversionPenalty;
   expect(chooseAction(activeRelay, legacyAggressive, 'enemy'))
-    .toMatchObject({ type: 'ground', kind: 'attack', targetId: 'player' });
+    .toMatchObject({ type: 'ground', kind: 'expand', targetId: 'relay' });
 });
 
 it('still buys useful artillery when no hostile capture is forecastable', () => {

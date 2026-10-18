@@ -91,8 +91,22 @@ body { margin: 0; position: fixed; inset: 0; color: var(--color-ink); background
 .enemy-dashboard__route { margin: 5px 0 0; color: #53615a; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
 .enemy-dashboard__score { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 9px 0 0; padding-top: 7px; border-top: 1px solid #e8ece6; color: var(--color-muted); font-size: 10px; }
 .enemy-dashboard__score strong { color: var(--color-player); font-size: 13px; }
-.enemy-dashboard__waiting, .enemy-dashboard__footnote { margin: 0; color: var(--color-muted); font-size: 10px; line-height: 1.4; }
+.enemy-dashboard__waiting, .enemy-dashboard__empty, .enemy-dashboard__footnote { margin: 0; color: var(--color-muted); font-size: 10px; line-height: 1.4; }
+.enemy-dashboard__empty { margin-top: 8px; color: #a34f40; }
 .enemy-dashboard__footnote { margin-top: auto; padding-top: 6px; }
+.enemy-dashboard__details { margin-top: 9px; border-top: 1px solid #e8ece6; padding-top: 7px; }
+.enemy-dashboard__details summary { color: #49645a; font-size: 10px; font-weight: 700; cursor: pointer; }
+.enemy-dashboard__trace-list { display: grid; gap: 7px; margin: 7px 0 0; padding: 0; list-style: none; }
+.enemy-dashboard__trace-list li { display: grid; gap: 3px; min-width: 0; padding: 7px 8px; border-radius: 8px; background: #f3f6f1; color: #52635a; font-size: 9px; line-height: 1.35; overflow-wrap: anywhere; }
+.enemy-dashboard__trace-list li strong, .enemy-dashboard__candidate strong { color: var(--color-ink); font-size: 10px; }
+.enemy-dashboard__trace-list li small, .enemy-dashboard__candidate small { color: var(--color-muted); font-size: 9px; }
+.enemy-dashboard__candidate, .enemy-dashboard__example {
+  display: grid; width: 100%; gap: 3px; padding: 0; border: 0; background: transparent; color: inherit;
+  font: inherit; font-size: 9px; line-height: 1.35; text-align: left; cursor: pointer;
+}
+.enemy-dashboard__candidate:hover strong, .enemy-dashboard__example:hover { color: var(--color-player); }
+.enemy-dashboard__candidate:focus-visible, .enemy-dashboard__example:focus-visible { outline: 2px solid var(--color-player); outline-offset: 2px; border-radius: 3px; }
+.enemy-dashboard__trace-list .enemy-dashboard__omitted { display: block; color: var(--color-muted); font-style: italic; }
 
 @media (min-width: 900px) {
   .app-shell--playing:has(.field-layout--open) { width: min(100cqw, calc((100cqh - 109px) * .75 + 346px)); }

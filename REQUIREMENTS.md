@@ -146,7 +146,7 @@ Implemented items describe the current baseline; unresolved product targets are 
 - Implemented baseline: pure modules separate config, known-order forecasting, candidate scoring/selection and simulation-time scheduling. Default first decision and interval: 1.8 seconds; minimum sent army: six units. No resource or growth bonuses.
 - Forecast current orders, per-dot collisions and defender growth through the relevant arrivals; avoid duplicate secured captures and abandoning a source under known threat. Concentrate reserves toward the frontline when individual armies are insufficient.
 - The current heuristic does not predict future player orders or guarantee optimal play. Difficulty presets and tactical refinements remain milestone 6.
-- The first [enemy dashboard implementation slice](docs/enemy-dashboard/IMPLEMENTATION.md) exposes each AI worker's latest chosen action, source/target city numbers and heuristic score in an optional responsive panel. Candidate rankings, rejected alternatives, forecast breakdowns, and reason logs remain deferred until the AI pipeline exposes those values.
+- The [enemy dashboard](docs/enemy-dashboard/IMPLEMENTATION.md) shows each AI worker's latest action, viable alternatives, grouped candidate blockers and a no-action explanation in an optional responsive panel. It reports only reasons emitted by actual AI evaluation gates; forecast internals and exhaustive search remain out of scope.
 
 ### FR-06: Difficulty and tuning
 

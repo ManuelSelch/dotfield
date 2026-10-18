@@ -1,20 +1,23 @@
-# Enemy dashboard — first implementation slice
+# Enemy dashboard — implementation status
 
-## Scope
+## In-round panel
 
-The in-round dashboard can be opened from a compact header button while an AI-controlled round is active. It starts closed. At desktop widths (900px and above), it docks to the right of the field; below that breakpoint, it opens as a scrollable bottom-sheet overlay over the field. The mobile field does not reflow. Close with the button, overlay backdrop, or Escape.
+The dashboard opens from a compact header button while an AI-controlled round is active. It starts closed. At desktop widths (900px and above), it docks to the right of the field; below that breakpoint, it opens as a scrollable bottom-sheet overlay without reflowing the mobile field. Close with the toggle, close button, backdrop, or Escape.
 
-## Live data
+## Decision diagnostics
 
-- The AI worker reports its latest selected action for each configured enemy faction, including a null result when it chooses no action.
-- Each enemy card shows the latest action type, its source/target (or conversion city), and the heuristic AI score. Score is a ranking value, not a probability.
-- City labels use stable match-local numbers assigned top-to-bottom, then left-to-right. The current owner at decision time is shown; a Relay host is tagged. Matching numbered markers highlight the latest action endpoints while the dashboard is open.
-- Latest decisions are in-memory UI state only. Restart/replay clears them; the dashboard does not change simulation, AI scheduling, or saves.
+- The AI worker returns the selected action plus a trace from the same evaluation pass. Trace collection does not run a second simulation or change the chosen action.
+- Each enemy card shows its latest action, source/target (or conversion city), and heuristic AI score. The score is a ranking value, not a probability.
+- Up to four highest-priority viable alternatives are listed with scores and why they lost selection (lower priority, stable tie-break, or an explicit priority rule). Further viable candidates are counted rather than flooding the phone panel.
+- Rejected source, route, airlift, and conversion checks are grouped by the actual rejection gate, with counts and up to two example cities/routes per group. If no action is selected, **Why no action?** opens by default instead of showing only an empty decision label.
+- Selecting an alternative or a blocker example highlights its numbered endpoint(s) on the map. This is diagnostic display only and does not issue a command.
+- City numbers are stable for the match, ordered top-to-bottom then left-to-right; owner labels are captured at decision time. Relay hosts are identified.
+- Traces and decision display are in-memory only. Restart/replay clears them; nothing is persisted.
 
-## Deliberately deferred
+## Limits
 
-Candidate rankings, rejected alternatives, score-factor breakdowns, forecast metrics, reason logs, AI behavior badges, and decision history are not in this first slice. The current AI worker returns the chosen action and its aggregate score, but does not expose those explanations. No explanatory values are fabricated.
+The trace includes only candidate paths and rejection gates that the AI actually evaluates. It aggregates equivalent blockers, retains at most two examples per group, and shows at most four viable alternatives plus an omitted count. A Relay multi-wave recapture plan that cannot be built safely is reported as unavailable rather than exposing every internal forecast step. This is an explanation of the heuristic's decision, not a claim that the AI searched every theoretically possible command or found an optimal move.
 
 ## Verification
 
-Pure tests cover stable city numbering and action labels. Browser tests exercise a real worker decision, mobile overlay/map stability and dismissal, 320×480 fit, multiple enemy cards, and desktop side-by-side layout. Full project verification is recorded in the implementation session/commit.
+Pure tests cover stable city numbering, blocker aggregation/caps, candidate ranking, and action parity. Browser tests exercise a real worker decision, a real no-action explanation, route highlighting, mobile overlay/map stability and dismissal, 320×480 fit, multiple enemy cards, and desktop side-by-side layout. Full project verification is recorded in the implementation session/commit.

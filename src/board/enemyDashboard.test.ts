@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SimulationState, TerritoryState } from '../game/types';
 import type { AiAction } from '../game/ai/actions';
+import { AiDecisionTraceCollector } from '../game/ai/trace';
 import { cityNumbers, decisionView, recordDecision } from './enemyDashboard';
 
 const territories: readonly TerritoryState[] = [
@@ -11,7 +12,7 @@ const territories: readonly TerritoryState[] = [
 const state = { territories, elapsedMs: 1800 } as SimulationState;
 
 function view(action: AiAction | null, relayCityId?: string) {
-  const decision = recordDecision(state, 'enemy', action);
+  const decision = recordDecision(state, 'enemy', action, new AiDecisionTraceCollector().finish(action));
   return decisionView(decision, cityNumbers(territories), relayCityId);
 }
 
@@ -47,7 +48,7 @@ describe('enemy dashboard decision labels', () => {
   it('preserves owners from decision time when a target is immediately captured', () => {
     const before = { ...state, territories: territories.map(city => city.id === 'east' ? { ...city, owner: 'neutral' } : city) } as SimulationState;
     const action: AiAction = { type: 'ground', kind: 'expand', sourceId: 'west', targetId: 'east', score: 30 };
-    const decision = recordDecision(before, 'enemy', action);
+    const decision = recordDecision(before, 'enemy', action, new AiDecisionTraceCollector().finish(action));
     const after = { ...before, territories: before.territories.map(city => city.id === 'east' ? { ...city, owner: 'enemy' } : city) } as SimulationState;
     expect(decisionView(decision, cityNumbers(after.territories), 'east').route).toBe('Enemy 1 · City 1 → Neutral · City 2 (Relay)');
   });

@@ -21,6 +21,10 @@ test('shows real enemy decisions in a dismissible mobile overlay without resizin
   await page.clock.runFor(2050);
   await expect(dashboard).toContainText('Enemy 1 · City 1 → Neutral · City 2');
   await expect(dashboard).toContainText('AI score');
+  await expect(dashboard.getByText(/Other viable actions/)).toBeVisible();
+  await expect(dashboard.getByText(/Why others were blocked/)).toBeVisible();
+  await dashboard.locator('.enemy-dashboard__details').first().locator('summary').click();
+  await dashboard.locator('.enemy-dashboard__candidate').first().click();
   await expect(page.locator('.enemy-dashboard-map-marker')).toHaveCount(2);
   await page.screenshot({ path: 'test-results/enemy-dashboard-mobile.png' });
 
@@ -28,6 +32,21 @@ test('shows real enemy decisions in a dismissible mobile overlay without resizin
   await expect(dashboard).toHaveCount(0);
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(toggle).toBeFocused();
+});
+
+test('explains a real no-action decision with its actual blockers', async ({ page }) => {
+  await page.goto('/tests/fixtures/ai-dashboard.html');
+  await page.getByRole('button', { name: 'Show enemy dashboard' }).click();
+  await page.clock.runFor(2050);
+  const dashboard = page.getByRole('complementary', { name: 'Enemy dashboard' });
+  await expect(dashboard).toContainText('No action selected');
+  await expect(dashboard.getByText(/Why no action/)).toBeVisible();
+  await expect(dashboard).toContainText('Too few dispatchable troops');
+  const blockerExample = dashboard.locator('.enemy-dashboard__example').first();
+  await expect(blockerExample).not.toContainText('Relay');
+  await page.screenshot({ path: 'test-results/enemy-dashboard-no-action.png' });
+  await blockerExample.click();
+  await expect(page.locator('.enemy-dashboard-map-marker')).toHaveCount(1);
 });
 
 test('fits the overlay in a short 320px mobile viewport', async ({ page }) => {
