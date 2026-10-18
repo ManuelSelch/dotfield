@@ -10,6 +10,8 @@ export interface AiConfig {
   readonly travelCostPerSecond: number;
   readonly defenceBuffer: number;
   readonly frontlineAdvance: number;
+  // Aggressive behavior delays optional role investment when a feasible attack exists.
+  readonly roleConversionPenalty?: number;
   // Optional for saved rounds compiled before behavior-specific logistics.
   readonly productionThreatTravelMs?: number;
 }

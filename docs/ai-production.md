@@ -8,6 +8,7 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 - Sources feed the best legally reachable staging city rather than distribute their reserves across many almost-full cities. A staging city may accumulate well above 50 while donor cities resume growing.
 - A useful staging city has a legal manual-staging path toward a hostile city. Strategic distances account for mountains and paired river crossings. The distance estimate does not forward armies automatically or assume neutral cities are already captured.
 - Existing attack, expansion and emergency-defense candidates remain available. Large collected armies can attack when the normal battle forecast finds a successful order; they are not permanently assigned a passive staging role.
+- Aggressive prioritizes a forecast-feasible attack/expansion over optional role conversion. It can still build a useful role when no offensive ground order is available; older saved Aggressive configs infer this preference from their attack score.
 
 ## Candidate evaluation
 
@@ -29,7 +30,7 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 
 ## Tuning and verification
 
-`PRODUCTION_AI` in `src/game/ai/config.ts` contains the lookahead, cap lead time, default source-threat window, minimum gain and bounded bonus scale. Aggressive overrides the production source-threat window with optional `AiConfig.productionThreatTravelMs: 3000`; Balanced/Defensive and legacy saved configs without that field use the five-second default. Existing saved rounds retain their compiled settings; start a new match to receive the new Aggressive override. All AI factions use this policy independently; their existing defense/attack/frontline scores still differ.
+`PRODUCTION_AI` in `src/game/ai/config.ts` contains the lookahead, cap lead time, default source-threat window, minimum gain and bounded bonus scale. Aggressive's optional `roleConversionPenalty` affects action selection only; legacy configs derive the same penalty from their existing attack score. Aggressive overrides the production source-threat window with optional `AiConfig.productionThreatTravelMs: 3000`; Balanced/Defensive and legacy saved configs without that field use the five-second default. Existing saved rounds retain their compiled settings; start a new match to receive the new Aggressive override. All AI factions use this policy independently; their existing defense/attack/frontline scores still differ.
 
 `src/game/ai/production.test.ts` covers pre-cap relief, repeated decisions without ping-pong, consolidation above 100, premature evacuation, Factory timing and priority, a net-negative Factory sink, queue accounting, stronghold preservation, known threats, emergency defense, attacks from collected armies, disabled production, bridge/mountain legality, independent factions and immutability. `tests/ai-production.spec.ts` exercises the real worker and production round-save entry path at mobile and desktop widths.
 

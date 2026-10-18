@@ -171,6 +171,10 @@ export function chooseAction(state: SimulationState, config: AiConfig = DEFAULT_
   const flight = chooseFlight(state, config, factionId);
   if (flight && (!best || flight.score > best.score)) best = flight;
   const conversion = chooseConversion(state, config, factionId);
-  if (conversion && (!best || conversion.score > best.score)) best = conversion;
+  // Existing saved aggressive profiles predate roleConversionPenalty. Infer the
+  // same modest bias from their stable attackScore so loaded rounds get the fix.
+  const conversionPenalty = config.roleConversionPenalty
+    ?? Math.max(0, (config.attackScore - DEFAULT_AI.attackScore) * 0.9);
+  if (conversion && (!best || conversion.score - conversionPenalty > best.score)) best = conversion;
   return best;
 }
