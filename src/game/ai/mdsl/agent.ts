@@ -6,6 +6,7 @@ import { SIMULATION_STEP_MS } from '../../settings';
 import type { SimulationState, TerritoryState } from '../../types';
 import type { AiAction } from '../actions';
 import { forecastBattle } from '../forecast';
+import type { ExecutionBudget } from '../program/budget';
 
 export interface MdslEvent {
   readonly factionId: string;
@@ -41,7 +42,7 @@ export class CaptureAgent {
   private readonly memory = new Map<string, Slot>();
   constructor(private readonly factionId: string, private readonly read: () => SimulationState,
     private readonly apply: ApplyBotAction, private readonly observe: BotObserver = () => {},
-    private readonly decisionIntervalMs = 1000) {
+    private readonly decisionIntervalMs = 1000, private readonly budget?: ExecutionBudget) {
     if (!Number.isFinite(decisionIntervalMs) || decisionIntervalMs <= 0) throw new RangeError('Decision interval must be positive.');
   }
 
@@ -99,12 +100,16 @@ export class CaptureAgent {
   AddToSet(setSlot: string, citySlot: string) {
     const set = this.memory.get(setSlot), id = this.memory.get(citySlot);
     if (typeof set !== 'object' || !('ids' in set) || 'cursor' in set || typeof id !== 'string') return State.FAILED;
-    if (!set.ids.includes(id)) set.ids.push(id);
+    if (!set.ids.includes(id)) {
+      this.budget?.chosen(set.ids.length + 1);
+      set.ids.push(id);
+    }
     return State.SUCCEEDED;
   }
   private get cadenceMs() { return Math.ceil(this.decisionIntervalMs / SIMULATION_STEP_MS) * SIMULATION_STEP_MS; }
   /** Replay exactly the supplied sources, at host cadence, against known orders. */
   private feasible(plan: CapturePlan): boolean {
+    this.budget?.forecast();
     const state = this.read(), deadline = plan.deadlineMs ?? state.elapsedMs + plan.maxDurationMs;
     if (state.roundStatus !== 'playing' || state.elapsedMs >= deadline) return false;
     const target = state.territories.find(c => c.id === plan.targetId);
@@ -116,15 +121,16 @@ export class CaptureAgent {
     let due = Math.max(state.elapsedMs, (plan.lastIssuedAtMs ?? state.elapsedMs - this.cadenceMs) + this.cadenceMs);
     for (const order of plan.orders.filter(o => !o.issuedIds)) {
       if (due >= deadline) break;
-      proposed = forecastBattle(proposed, due - proposed.elapsedMs);
+      proposed = forecastBattle(proposed, due - proposed.elapsedMs, this.budget?.worldStep);
       if (proposed.territories.find(c => c.id === plan.targetId)?.owner === this.factionId) break;
       if (proposed.roundStatus !== 'playing') return false;
+      this.budget?.dispatch(proposed, order.sourceId);
       const next = dispatchUnits(proposed, order.sourceId, plan.targetId, this.factionId);
       if (next === proposed) return false;
       proposed = next;
       due += this.cadenceMs;
     }
-    const result = forecastBattle(proposed, Math.max(0, deadline - proposed.elapsedMs));
+    const result = forecastBattle(proposed, Math.max(0, deadline - proposed.elapsedMs), this.budget?.worldStep);
     return result.territories.find(c => c.id === plan.targetId)?.owner === this.factionId
       && plan.orders.every(o => result.territories.find(c => c.id === o.sourceId)?.owner === this.factionId)
       // RoundStatus is player-relative; 'defeat' can mean this bot won.
@@ -140,6 +146,7 @@ export class CaptureAgent {
     const target = this.target(targetSlot), sources = this.memory.get(sourcesSlot);
     if (target && typeof sources === 'object' && 'ids' in sources && sources.ids.length
       && (!('targetId' in sources) || sources.targetId === target.id)) {
+      this.budget?.chosen(sources.ids.length);
       const sourceIds = [...sources.ids];
       const plan: CapturePlan = { sourceId: sourceIds[0], sourceIds, targetId: target.id, maxDurationMs,
         orders: sourceIds.map(sourceId => ({ sourceId })) };
@@ -176,6 +183,7 @@ export class CaptureAgent {
     // No callback can step this agent again until the synchronous command boundary
     // reports acceptance. No worker-issued command is optimistically marked sent.
     const kind = state.territories.find(c => c.id === plan.targetId)!.owner === 'neutral' ? 'expand' : 'attack';
+    this.budget?.dispatch(state, order.sourceId, true);
     const next = this.apply({ type: 'ground', sourceId: order.sourceId, targetId: plan.targetId, kind, score: 0 });
     if (next === state) return fail('rejected');
     order.issuedIds = next.transfers.filter(t => t.id >= state.nextTransferId && t.owner === this.factionId
@@ -190,7 +198,15 @@ export class CaptureAgent {
     const plan = this.memory.get(slot);
     if (!isPlan(plan)) return;
     this.memory.delete(slot);
-    this.event('ReleasePlan', result.aborted ? 'aborted' : result.succeeded ? 'completed' : 'failed', plan);
+    this.event('ReleasePlan', result.aborted ? 'aborted' : result.succeeded ? 'completed' : 'failed', { ...plan, planSlot: slot });
   }
-  clear() { this.memory.clear(); }
+  clear(abortPlans = false) {
+    let error: unknown;
+    try {
+      for (const [slot, value] of this.memory) if (abortPlans && isPlan(value)) {
+        try { this.ReleasePlan({ succeeded: false, aborted: true }, slot); } catch (cause) { error ??= cause; }
+      }
+    } finally { this.memory.clear(); }
+    if (error) throw error;
+  }
 }

@@ -2,7 +2,12 @@ import { BLOCK_TYPES, CATALOG, SCALARS } from './catalog';
 import { BLOCKLY_VERSION, PROCEDURES_VERSION, PROJECT_VERSION, SCALAR_TYPES, SLOT_KINDS, SOURCE_LIMITS } from './types';
 import type { ArgumentShape, BotProject, ScalarType, SlotKind } from './types';
 
-function fail(message: string): never { throw new Error(`Bot project: ${message}`); }
+export class ProjectFormatError extends Error {
+  blockId?: string;
+  tabId?: string;
+  constructor(message: string) { super(`Bot project: ${message}`); }
+}
+function fail(message: string): never { throw new ProjectFormatError(message); }
 function object(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) fail(`${label} must be an object.`);
   return value as Record<string, unknown>;
@@ -73,6 +78,7 @@ export function decodeProject(value: unknown): BotProject {
     const roots = array(blocks.blocks, SOURCE_LIMITS.blocks, 'top block');
     let entries = 0;
     const walk = (raw: unknown, expected: string, depth: number, nested = false): void => {
+      try {
       if (++count > SOURCE_LIMITS.blocks || depth > SOURCE_LIMITS.depth) fail('block count/depth limit exceeded.');
       const b = object(raw, 'block');
       keys(b, ['type', 'id', 'fields', 'inputs', 'next', 'extraState', 'x', 'y', 'collapsed', 'inline'], 'block');
@@ -134,6 +140,13 @@ export function decodeProject(value: unknown): BotProject {
         const next = object(b.next, 'next'); keys(next, ['block'], 'next');
         // Sibling length consumes count, not nesting depth.
         walk(next.block, 'step', depth, true);
+      }
+      } catch (error) {
+        if (error instanceof ProjectFormatError && !error.blockId) {
+          error.tabId = tab.id as string;
+          if (raw && typeof raw === 'object' && 'id' in raw && typeof raw.id === 'string') error.blockId = raw.id;
+        }
+        throw error;
       }
     };
     roots.forEach(b => walk(b, 'top', 0));

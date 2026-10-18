@@ -23,14 +23,16 @@ function physicalStep(state: SimulationState, elapsedMs: number) {
 
 // Shared physical update for live rounds and forecasts; never issues AI orders.
 // Orchestrators retain their existing stepping and round-evaluation semantics.
-export function advanceWorldStep(state: SimulationState, elapsedMs: number): SimulationState {
+export function advanceWorldStep(state: SimulationState, elapsedMs: number, beforeStep?: (state: SimulationState) => void): SimulationState {
   if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new RangeError('Elapsed time must be finite and non-negative.');
   if (state.roundStatus !== 'playing' || elapsedMs === 0) return state;
+  beforeStep?.(state);
   const newPhysics = !!state.relay || state.territories.some(c => ['airfield', 'defender', 'watchtower', 'artillery'].includes(c.cityType ?? 'production'));
   if (newPhysics) {
     state = normalizeAircraft(state);
     const end = state.elapsedMs + elapsedMs;
     while (state.elapsedMs < end - 1e-7 && state.roundStatus === 'playing') {
+      beforeStep?.(state);
       state = resolveAircraftEvents(state.relay ? evaluateRound(resolveCombat(state)) : state);
       if (state.roundStatus !== 'playing') break;
       let step = Math.min(end - state.elapsedMs,
@@ -63,6 +65,7 @@ export function advanceWorldStep(state: SimulationState, elapsedMs: number): Sim
     || state.territories.some(city => city.cityType === 'watchtower' || city.cityType === 'artillery'))
     && elapsedMs > SIMULATION_STEP_MS) {
     for (let remaining = elapsedMs; remaining > 0;) {
+      beforeStep?.(state);
       const step = Math.min(remaining, SIMULATION_STEP_MS);
       state = physicalStep(state, step);
       remaining -= step;
