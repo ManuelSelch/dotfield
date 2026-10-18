@@ -80,7 +80,7 @@ Tune `DEFAULT_AI` and `PRODUCTION_AI` in `config.ts`, or pass an `AiConfig` to `
 
 ### Experimental MDSL bot (development only)
 
-Open the development app with `?bot=mdsl` to replace configured enemies with a minimal Mistreevous tree: neutral expansion first, then feasible enemy-city captures. Both tactics reuse the same selection/planning/execution methods. Edit `src/game/ai/mdsl/expansion.mdsl`; watch `[MDSL]` debug messages in the browser console. Start with Open field, one enemy and Relay off. The prototype uses real commands/forecasts and persistent plans, but has no defense or multi-source attacks. Without the flag, normal AI remains unchanged; production builds ignore it. See [setup, method contracts and limits](docs/ai-mdsl/IMPLEMENTATION.md).
+Open the development app with `?bot=mdsl` to replace configured enemies with a minimal Mistreevous tree: neutral expansion first, then feasible enemy-city captures. Both tactics reuse the same selection/planning/execution methods. Edit `src/game/ai/mdsl/expansion.mdsl`; watch `[MDSL]` debug messages in the browser console. Start with Open field, one enemy and Relay off. The tree accumulates chosen sources through bounded retries; the agent forecasts exactly that set and dispatches one wave per normal decision interval. The prototype uses real commands/forecasts and persistent plans, but has no defense or staging. Without the flag, normal AI remains unchanged; production builds ignore it. See [setup, method contracts and limits](docs/ai-mdsl/IMPLEMENTATION.md).
 
 ## Run
 

@@ -194,7 +194,7 @@ export function startBoard(canvas: HTMLCanvasElement, onState: (state: Simulatio
         if (!bot) {
           bot = createMdslBot(factionId, () => session.state,
             action => session.applyFactionAction(action, factionId),
-            event => console.debug('[MDSL]', event));
+            event => console.debug('[MDSL]', event), undefined, aiConfigs[factionId]!.decisionIntervalMs);
           mdslBots.set(factionId, bot);
         }
         const before = session.state;

@@ -126,6 +126,38 @@ test('a feasible enemy attack can win by capturing the last player city', async 
   expect(log.errors).toEqual([]);
 });
 
+test('tree-authored source accumulation captures a target neither source can take alone', async ({ page }) => {
+  const log = observe(page);
+  const opening = [
+    { id: 'a', owner: 'enemy', units: 30, x: 60, y: 80 },
+    { id: 'b', owner: 'enemy', units: 30, x: 120, y: 80 },
+    { id: 'target', owner: 'player', units: 45, x: 60, y: 190 },
+    { id: 'other', owner: 'player', units: 100, x: 300, y: 400 },
+  ];
+  await page.goto('/tests/fixtures/round.html?passive');
+  const game = { territories: opening, state: createSimulation(opening, { unitsPerSecond: 0 }),
+    ai: { enemy: { ...DEFAULT_AI, decisionIntervalMs: 1800 } }, phase: 'running' };
+  await page.evaluate(({ key, game }) => localStorage.setItem(key, JSON.stringify(game)), { key: SAVED_GAME_KEY, game });
+  await page.goto('/?bot=mdsl');
+  await page.clock.runFor(4000);
+  await expect.poll(log.dispatched).toHaveLength(1);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await page.clock.runFor(20000);
+  expect(log.dispatched()).toHaveLength(1);
+  await page.getByRole('button', { name: 'Resume', exact: true }).click();
+  await page.clock.runFor(18000);
+  await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')
+    .filter({ hasText: /^target:/ })).toContainText('Opponent');
+  await expect.poll(log.dispatched).toHaveLength(2);
+  expect(log.dispatched().map(e => e.sourceId)).toEqual(['a', 'b']);
+  expect(log.dispatched()[1].elapsedMs - log.dispatched()[0].elapsedMs).toBe(1800);
+  expect(log.events).toContainEqual(expect.objectContaining({ method: 'PlanCapture', outcome: 'infeasible',
+    planSlot: 'attackPlan', sourceIds: ['a'] }));
+  expect(log.events).toContainEqual(expect.objectContaining({ method: 'PlanCapture', outcome: 'planned',
+    planSlot: 'attackPlan', sourceIds: ['a', 'b'] }));
+  expect(log.errors).toEqual([]);
+});
+
 test('without the URL flag the default worker still controls the same real board', async ({ page }) => {
   const log = observe(page);
   await page.goto('/');

@@ -32,6 +32,131 @@ function prepare(agent: CaptureAgent) {
   return agent.PlanCapture('target', 'sources', 15000, 'plan');
 }
 
+describe('source iteration and exact-set capture', () => {
+  const opening: Territory[] = [
+    { id: 'a', owner: 'enemy', units: 30, x: 60, y: 80 },
+    { id: 'b', owner: 'enemy', units: 30, x: 120, y: 80 },
+    { id: 'target', owner: 'player', units: 45, x: 60, y: 190 },
+    { id: 'other', owner: 'player', units: 100, x: 300, y: 400 },
+  ];
+  function select(h: ReturnType<typeof harness>) {
+    h.agent.SelectCity('enemy', 'nearest-reachable', 'target');
+    h.agent.SelectSources('target', 6, 'candidates');
+    h.agent.ClearSet('chosen');
+  }
+  it('lets the default tree grow a chosen set until the exact capture forecast succeeds', () => {
+    const h = harness(opening), bot = h.bot();
+    expect(bot.step()).toBe(State.RUNNING);
+    expect(h.dispatch).not.toHaveBeenCalled();
+    expect(bot.step()).toBe(State.RUNNING);
+    expect(h.dispatch).toHaveBeenCalledOnce();
+    h.set(forecastBattle(h.read(), 1000)); bot.step();
+    expect(h.dispatch.mock.calls.map(([a]) => a.type === 'ground' && a.sourceId)).toEqual(['a', 'b']);
+    h.set(forecastBattle(h.read(), 12000)); expect(bot.step()).toBe(State.SUCCEEDED);
+  });
+  it('lets authored retry limits refuse a feasible two-source attack', () => {
+    const h = harness(opening);
+    const definition = `root { sequence {
+      action [SelectCity, "enemy", "nearest-reachable", "target"]
+      action [SelectSources, "target", 6, "candidates"]
+      action [ClearSet, "chosen"]
+      retry [1] { sequence {
+        action [NextCity, "candidates", "source"]
+        action [AddToSet, "chosen", "source"]
+        action [PlanCapture, "target", "chosen", 15000, "plan"]
+      } }
+      action [ExecutePlan, "plan"]
+    } }`;
+    const bot = createMdslBot('enemy', h.read, h.dispatch, h.events, definition);
+    for (let i = 0; i < 4; i++) bot.step();
+    expect(h.dispatch).not.toHaveBeenCalled();
+    expect(h.events.mock.calls.filter(([e]) => e.method === 'PlanCapture').every(([e]) => e.sourceIds.length === 1)).toBe(true);
+  });
+  it('iterates once in source order, clears exhausted outputs and deduplicates chosen sources', () => {
+    const h = harness(opening); select(h);
+    expect(h.agent.NextCity('candidates', 'source')).toBe(State.SUCCEEDED);
+    expect(h.agent.AddToSet('chosen', 'source')).toBe(State.SUCCEEDED);
+    expect(h.agent.AddToSet('chosen', 'source')).toBe(State.SUCCEEDED);
+    expect(h.agent.PlanCapture('target', 'chosen', 15000, 'plan')).toBe(State.FAILED);
+    expect(h.agent.NextCity('candidates', 'source')).toBe(State.SUCCEEDED);
+    h.agent.AddToSet('chosen', 'source');
+    expect(h.agent.NextCity('candidates', 'source')).toBe(State.FAILED);
+    expect(h.agent.AddToSet('chosen', 'source')).toBe(State.FAILED);
+    h.agent.ClearSet('chosen');
+    expect(h.agent.PlanCapture('target', 'chosen', 15000, 'plan')).toBe(State.FAILED);
+  });
+  it('forecasts and executes the exact set at normal cadence without duplicate waves', () => {
+    const h = harness(opening); select(h);
+    const before = h.read();
+    expect(h.agent.PlanCapture('target', 'candidates', 15000, 'plan')).toBe(State.SUCCEEDED);
+    expect(h.read()).toBe(before); expect(h.dispatch).not.toHaveBeenCalled();
+    expect(h.agent.ExecutePlan('plan')).toBe(State.RUNNING);
+    h.agent.ExecutePlan('plan');
+    expect(h.dispatch).toHaveBeenCalledOnce();
+    h.set(forecastBattle(h.read(), 1000));
+    expect(h.agent.ExecutePlan('plan')).toBe(State.RUNNING);
+    expect(h.dispatch.mock.calls.map(([a]) => a.type === 'ground' && a.sourceId)).toEqual(['a', 'b']);
+    h.agent.ExecutePlan('plan'); expect(h.dispatch).toHaveBeenCalledTimes(2);
+    h.set(forecastBattle(h.read(), 12000));
+    expect(h.agent.ExecutePlan('plan')).toBe(State.SUCCEEDED);
+  });
+  it('snapshots the chosen set and never counts duplicate members twice', () => {
+    const h = harness(opening); select(h);
+    h.agent.NextCity('candidates', 'source');
+    h.agent.AddToSet('chosen', 'source'); h.agent.AddToSet('chosen', 'source');
+    expect(h.agent.PlanCapture('target', 'chosen', 15000, 'plan')).toBe(State.FAILED);
+    h.agent.NextCity('candidates', 'source'); h.agent.AddToSet('chosen', 'source');
+    expect(h.agent.PlanCapture('target', 'chosen', 15000, 'plan')).toBe(State.SUCCEEDED);
+    h.agent.ClearSet('chosen');
+    h.agent.ExecutePlan('plan');
+    h.set(forecastBattle(h.read(), 1000)); h.agent.ExecutePlan('plan');
+    expect(h.dispatch).toHaveBeenCalledTimes(2);
+  });
+  it('forecasts dispatch spacing rather than pretending all sources launch together', () => {
+    const h = harness(opening);
+    const agent = new CaptureAgent('enemy', h.read, h.dispatch, h.events, 16000);
+    agent.SelectCity('enemy', 'nearest-reachable', 'target'); agent.SelectSources('target', 6, 'sources');
+    expect(agent.PlanCapture('target', 'sources', 15000, 'plan')).toBe(State.FAILED);
+    expect(h.dispatch).not.toHaveBeenCalled();
+  });
+  it('allows early capture before a later wave would exceed the horizon', () => {
+    const h = harness(opening.map(c => c.id === 'a' ? { ...c, units: 80 } : c));
+    const agent = new CaptureAgent('enemy', h.read, h.dispatch, h.events, 16000);
+    agent.SelectCity('enemy', 'nearest-reachable', 'target'); agent.SelectSources('target', 6, 'sources');
+    expect(agent.PlanCapture('target', 'sources', 15000, 'plan')).toBe(State.SUCCEEDED);
+  });
+  it('revalidates the remaining combined plan and never replaces a weakened source', () => {
+    const h = harness(opening); select(h);
+    h.agent.PlanCapture('target', 'candidates', 15000, 'plan'); h.agent.ExecutePlan('plan');
+    h.set(forecastBattle(h.read(), 1000));
+    h.set({ ...h.read(), territories: h.read().territories.map(c => c.id === 'b' ? { ...c, units: 2 } : c) });
+    const before = h.read();
+    expect(h.agent.ExecutePlan('plan')).toBe(State.FAILED);
+    expect(h.read()).toBe(before); expect(h.dispatch).toHaveBeenCalledOnce();
+  });
+  it('does not fail just because the first wave is exhausted while a pending wave can capture', () => {
+    const h = harness(opening); select(h);
+    h.agent.PlanCapture('target', 'candidates', 15000, 'plan'); h.agent.ExecutePlan('plan');
+    h.set({ ...h.read(), elapsedMs: 1000, transfers: [], territories: h.read().territories.map(c =>
+      c.id === 'target' ? { ...c, units: 10 } : c) });
+    expect(h.agent.ExecutePlan('plan')).toBe(State.RUNNING);
+    expect(h.dispatch).toHaveBeenCalledTimes(2);
+  });
+  it('stops unused waves when the target has already been captured', () => {
+    const h = harness(opening.map(c => c.id === 'a' ? { ...c, units: 80 } : c)); select(h);
+    h.agent.PlanCapture('target', 'candidates', 15000, 'plan'); h.agent.ExecutePlan('plan');
+    h.set(forecastBattle(h.read(), 12000));
+    expect(h.agent.ExecutePlan('plan')).toBe(State.SUCCEEDED);
+    expect(h.dispatch).toHaveBeenCalledOnce();
+  });
+  it('does not silently remove an invalid member or search for a different source', () => {
+    const h = harness(opening.map(c => c.id === 'a' ? { ...c, units: 80 } : c)); select(h);
+    h.set({ ...h.read(), territories: h.read().territories.map(c => c.id === 'b' ? { ...c, owner: 'player' } : c) });
+    expect(h.agent.PlanCapture('target', 'candidates', 15000, 'plan')).toBe(State.FAILED);
+    expect(h.dispatch).not.toHaveBeenCalled();
+  });
+});
+
 describe('minimal real-game MDSL agent', () => {
   const attackCities: Territory[] = [
     { id: 'home', owner: 'enemy', units: 36, x: 60, y: 80 },
@@ -51,7 +176,10 @@ describe('minimal real-game MDSL agent', () => {
   });
   it('falls through to an enemy attack when a remaining neutral cannot be captured', () => {
     const h = harness([...attackCities, { id: 'neutral', owner: 'neutral', units: 200, x: 140, y: 80 }]);
-    h.bot().step();
+    const bot = h.bot();
+    // Authored retry advances one attempt per decision before selector fallback.
+    for (let i = 0; i < 12 && !h.dispatch.mock.calls.length; i++) bot.step();
+    expect(h.dispatch).toHaveBeenCalledOnce();
     expect(h.dispatch.mock.lastCall![0]).toMatchObject({ kind: 'attack', targetId: 'victim' });
   });
   it('retains neutral expansion priority when both tactics are feasible', () => {
@@ -81,7 +209,10 @@ describe('minimal real-game MDSL agent', () => {
       h.set(defense === 'growth' ? { ...state, rules: { factions: { ...state.rules.factions,
         player: { ...state.rules.factions.player, unitsPerSecond: 4 } } } }
         : { ...state, captureShields: { victim: { remaining: 10 } } });
-      expect(h.bot().step()).toBe(State.FAILED);
+      const bot = h.bot();
+      let result = bot.step();
+      for (let i = 0; i < 12 && result === State.RUNNING; i++) result = bot.step();
+      expect(result).toBe(State.FAILED);
       expect(h.dispatch).not.toHaveBeenCalled();
     }
   });
@@ -195,14 +326,14 @@ describe('minimal real-game MDSL agent', () => {
     expect(prepare(h.agent)).toBe(State.FAILED);
     expect(h.dispatch).not.toHaveBeenCalled();
   });
-  it('tries another selected source when the nearest source cannot capture', () => {
+  it('uses every supplied source rather than silently choosing a feasible subset', () => {
     const h = harness([
       { ...cities[0], units: 7 }, ...cities.slice(1),
       { id: 'backup', owner: 'enemy', units: 50, x: 90, y: 70 },
     ]);
     h.set({ ...h.read(), territories: h.read().territories.map(c => c.id === 'near' ? { ...c, units: 20 } : c) });
     expect(prepare(h.agent)).toBe(State.SUCCEEDED);
-    expect(h.events).toHaveBeenCalledWith(expect.objectContaining({ method: 'PlanCapture', sourceId: 'backup' }));
+    expect(h.events).toHaveBeenCalledWith(expect.objectContaining({ method: 'PlanCapture', sourceIds: ['home', 'backup'] }));
   });
   it('respects Defender, mountain and paired-river access and revalidates changed access', () => {
     const opening: Territory[] = [

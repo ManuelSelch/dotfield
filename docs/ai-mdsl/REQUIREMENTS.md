@@ -7,12 +7,12 @@ Validate that a small Mistreevous MDSL tree can control real Dotfield troops thr
 ### In Scope
 - A development-only `?bot=mdsl` opt-in using the existing game board and commands for configured AI factions.
 - Editable MDSL neutral-expansion and enemy-capture tactics sharing SelectCity, SelectSources, PlanCapture and ExecutePlan.
-- One source per capture; evaluate eligible sources using the real battle forecast.
+- Source-list iteration and ordered chosen-source sets; exact-set multi-source capture forecasting using real commands and battle simulation.
 - Simulation-time decision cadence, persistent tree/agent instances, console events and lifecycle tests.
 
 ### Out of Scope
 - Production bot picker, in-game editor, visual tree debugger and arbitrary player JavaScript.
-- Multi-source coordination, staging, air transport, conversion, defense, compound policy definitions and Relay tactics.
+- Automatic source-combination strategies inside the agent, synchronized-arrival tactics, staging, air transport, conversion, defense, compound policy definitions and Relay tactics.
 - Replacing utility AI, changing game rules, serialization of tree state or claiming competitive strategy quality.
 
 ## Requirements
@@ -21,12 +21,15 @@ Validate that a small Mistreevous MDSL tree can control real Dotfield troops thr
 - Selection supports neutral and enemy targets ranked by nearest legally reachable friendly source, with stable city-ID ties. Enemy means another non-neutral faction, not a fixed faction ID.
 - The default tree tries neutral expansion first, then enemy capture when the expansion branch fails. Running capture plans retain their branch. Both branches reuse the same planner/executor; attacks require a feasible real-game capture forecast, including enemy production and shields.
 - Sources must be owned, have the authored minimum dispatchable army and no existing outgoing order; legal ground access is mandatory.
-- Planning uses the same all-but-one dispatch and battle forecast as the game. It must forecast capture and retention of the source within the authored maximum planning duration. It invents no future hostile orders.
-- ExecutePlan revalidates before dispatch, issues at most one order, waits across decision ticks for actual target ownership, and fails on rejected commands, source loss, exhausted orders or timeout. It must not repeatedly replace launch queues.
+- NextCity advances an agent-local source-list cursor and clears its output on exhaustion. ClearSet resets an ordered city set; AddToSet inserts a selected city without duplicates. These operations issue no commands or reservations.
+- MDSL decides source combinations, source limits and fallback. The default tree adds one source per planning attempt with retry [4]; unsuccessful retries span decisions. The planner must never silently add/drop sources or search subsets.
+- Planning snapshots the exact supplied ordered source set, uses the same all-but-one dispatch and battle forecast as the game, and advances the simulation between commands at actual host decision cadence. It must forecast capture and retention of all supplied sources within the authored maximum planning duration. It invents no future hostile orders.
+- ExecutePlan revalidates the remaining combined schedule before each dispatch, issues at most one due order per decision interval, and tracks accepted transfer IDs per source. It waits across decision ticks for actual target ownership, stops unused waves on capture, and fails on rejected commands, source loss, exhausted orders or a fixed execution deadline. It must not repeatedly replace launch queues or replace sources.
 - Exit cleanup is idempotent and drops bot memory only; already accepted game orders continue.
 - Pause and hidden time do not step the tree. Restart discards tree/agent memory. Reload starts fresh bot memory and excludes cities with already active outgoing orders to avoid duplicate dispatch.
 - Console events identify faction, simulation time, method, outcome and selected city/source. Existing utility-AI dashboard traces must not be fabricated for this prototype.
-- Document limitations: nearest target within a query is not automatically replaced when infeasible, one source only, no defense against future commands and no saved plan resumption.
+- Console planning events expose the plan slot and chosen source IDs, and selection exposes the query, so neutral and enemy branches are distinguishable.
+- Document limitations: nearest target within a query is not automatically replaced when infeasible, greedy bounded source accumulation is an authored tactic rather than optimal combination search, no defense against future commands, no source reservations between parallel plans and no saved plan resumption.
 
 ## Assumptions
 - A development URL flag and source-file MDSL editing are sufficient for this first experiment; no new UI is needed.
@@ -44,6 +47,9 @@ Description: Implemented: [usage and behavior contract](IMPLEMENTATION.md), cons
 
 ### 4. Enemy Capture
 Description: Implemented: faction-relative enemy query, generic nonfriendly capture planning, correct attack command classification and a second MDSL branch. Verified by 882 unit tests and all five focused MDSL browser tests, including real neutral-then-enemy capture and conquest of the last player city. No staging, multi-source coordination, target-candidate iteration or new agent method.
+
+### 5. Tree-authored Multi-source Capture
+Description: Implemented: NextCity, ClearSet and AddToSet primitives; exact-set combined forecasting and per-source acknowledged execution at real host cadence. The editable MDSL—not PlanCapture—grows chosen sets through bounded retries. This supersedes slice 1's single-source planner search. Verified by 893 unit tests, all six focused MDSL browser tests and the production build, including an actual two-source capture with 1800ms dispatch spacing. No automatic source replacement, staging or synchronized-arrival strategy.
 
 ## Open Questions
 None.

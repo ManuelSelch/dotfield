@@ -3,14 +3,28 @@ root {
         sequence exit(ReleasePlan, "capturePlan") {
             action [SelectCity, "neutral", "nearest-reachable", "target"]
             action [SelectSources, "target", 6, "sources"]
-            action [PlanCapture, "target", "sources", 15000, "capturePlan"]
+            action [ClearSet, "chosen"]
+            retry [4] {
+                sequence {
+                    action [NextCity, "sources", "source"]
+                    action [AddToSet, "chosen", "source"]
+                    action [PlanCapture, "target", "chosen", 15000, "capturePlan"]
+                }
+            }
             action [ExecutePlan, "capturePlan"]
         }
 
         sequence exit(ReleasePlan, "attackPlan") {
             action [SelectCity, "enemy", "nearest-reachable", "attackTarget"]
             action [SelectSources, "attackTarget", 6, "attackSources"]
-            action [PlanCapture, "attackTarget", "attackSources", 15000, "attackPlan"]
+            action [ClearSet, "attackChosen"]
+            retry [4] {
+                sequence {
+                    action [NextCity, "attackSources", "attackSource"]
+                    action [AddToSet, "attackChosen", "attackSource"]
+                    action [PlanCapture, "attackTarget", "attackChosen", 15000, "attackPlan"]
+                }
+            }
             action [ExecutePlan, "attackPlan"]
         }
     }
