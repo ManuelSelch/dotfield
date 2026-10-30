@@ -38,3 +38,14 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 `src/game/ai/cappedStall.test.ts` reproduces the full-Airfield deadlock, checks all behaviors, partial room, reserved supplies, a non-default faction and Relay-off compatibility, then runs 130 seconds of repeated production/decisions through consolidation above 100 and a successful attack. `tests/ai-capped-stall.spec.ts` repeats the progression through the real asynchronous worker and saved-round entry; virtual stepping waits for worker replies rather than applying stale decisions after large clock jumps.
 
 These checks establish rule behavior, not optimal play or human balance. The policy remains a deterministic heuristic with known-order forecasts; it has no long-term campaign planner, predicted enemy feints or persistent logistics-role state.
+
+## Decision performance
+
+A decision runs inside the AI worker, so its cost is visible as *Waiting for worker response* in the enemy dashboard. Large Courtyard + Relay boards (30 cities, city roles, many in-flight armies) previously took 10–18 s per decision because `chooseOrder` ran a full battle forecast for every source/target pair and baselines were recomputed per candidate.
+
+Two kinds of work are now skipped **without changing which action is chosen**:
+
+- **Necessary-condition pruning.** A candidate that the feasibility rules would reject is dropped before its forecast. Friendly targets are skipped when they are neither front-line nor production relief nor a useful airlift sink, or when a full Airfield cannot take the order. Hostile/neutral targets are skipped when even the best possible case — every committed friendly troop plus every in-range artillery shot — cannot outnumber the current garrison. Since combat trades 1:1 and only artillery can lower a garrison without a matching attacker loss, this lower bound is exact for pruning.
+- **Shared baselines.** Ground, flight and conversion branches share one decision-scoped `BaselineForecasts` cache keyed by horizon; a relay recapture also stops before forecasting donor prefixes when no prefix can outnumber the holder.
+
+`src/game/ai/candidates.ts` holds the shared lower-bound helpers. `src/game/ai/forecast.ts` exposes `resetForecastCalls`/`forecastCallCount` for profiling. `src/game/ai/decisionLatency.test.ts` builds a 30-city Courtyard + Relay state and bounds both the forecast count and wall-clock time, so candidate enumeration cannot silently regress to forecasting every pair. These changes preserve outcomes; they do not add a time budget or a campaign planner.

@@ -9,7 +9,7 @@ import { AIRCRAFT_PREPARATION_MS, AIR_DELIVERY_INTERVAL_MS, BATCH_SIZE, CITY_CON
 import { artilleryTarget } from '../features/artillery';
 import type { CityType, FactionId, SimulationState } from '../types';
 import { DEFAULT_AI, type AiConfig } from './config';
-import { chooseOrder } from './decision';
+import { chooseOrder, getBaseline, type BaselineForecasts } from './decision';
 import { forecastBattle } from './forecast';
 import { frontlineDistances } from './logistics';
 import { groundLegal, hasBarrierOpportunity, incomingThreat, keepsHomeReserve, remainingDeliveryMs, safeAirDeparture } from './mobility';
@@ -37,10 +37,10 @@ function knownHorizon(state: SimulationState): number {
 }
 function grid(ms: number): number { return Math.ceil(ms / SIMULATION_STEP_MS) * SIMULATION_STEP_MS; }
 
-function chooseFlight(state: SimulationState, config: AiConfig, factionId: string, trace?: AiDecisionTraceCollector): AiAction | null {
+function chooseFlight(state: SimulationState, config: AiConfig, factionId: string, trace?: AiDecisionTraceCollector,
+  baselines: BaselineForecasts = new Map()): AiAction | null {
   const distances = frontlineDistances(state, factionId);
   let best: AiAction | null = null;
-  const baselines = new Map<number, SimulationState>();
   for (const source of state.territories) {
     if (source.owner !== factionId) continue;
     const planeState = state.aircraft?.[source.id];
@@ -63,8 +63,7 @@ function chooseFlight(state: SimulationState, config: AiConfig, factionId: strin
       const plane = launched.aircraft![source.id];
       const horizon = grid(Math.max(plane.durationMs + Math.ceil(plane.cargo / BATCH_SIZE) * AIR_DELIVERY_INTERVAL_MS,
         knownHorizon(state)));
-      let baseline = baselines.get(horizon);
-      if (!baseline) { baseline = forecastBattle(state, horizon); baselines.set(horizon, baseline); }
+      const baseline = getBaseline(baselines, state, horizon);
       const proposed = forecastBattle(launched, horizon);
       // Even if the target would fall eventually, losing the home destroys the
       // remaining cargo. Never score a flight as a ground army that survives it.
@@ -93,7 +92,7 @@ function distanceToTransfer(city: { x: number; y: number }, transfer: Simulation
 }
 
 function chooseConversion(state: SimulationState, config: AiConfig, factionId: string,
-  trace?: AiDecisionTraceCollector, conversionPenalty = 0): AiAction | null {
+  trace?: AiDecisionTraceCollector, conversionPenalty = 0, baselines: BaselineForecasts = new Map()): AiAction | null {
   const owned = state.territories.filter(c => c.owner === factionId);
   const producers = owned.filter(c => cityType(c) === 'production');
   // Keep at least two producers and at least two thirds of the economy intact.
@@ -146,7 +145,7 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
       const converted = convertCity(state, city.id, 'artillery', factionId);
       if (converted !== state) {
         const horizon = grid(Math.max(10_000, knownHorizon(state)));
-        const baseline = forecastBattle(state, horizon), proposed = forecastBattle(converted, horizon);
+        const baseline = getBaseline(baselines, state, horizon), proposed = forecastBattle(converted, horizon);
         const damage = baseline.territories.reduce((sum, target) => {
           if (target.owner === factionId || target.owner === 'neutral') return sum;
           const after = proposed.territories.find(city => city.id === target.id)!;
@@ -173,7 +172,7 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
       if (threats.length) {
         const converted = convertCity(state, city.id, 'watchtower', factionId);
         const horizon = grid(Math.max(5_000, Math.min(10_000, knownHorizon(state))));
-        const baseline = forecastBattle(state, horizon), proposed = forecastBattle(converted, horizon);
+        const baseline = getBaseline(baselines, state, horizon), proposed = forecastBattle(converted, horizon);
         const before = baseline.transfers.filter(transfer => transfer.owner !== factionId).reduce((sum, transfer) => sum + transfer.units, 0);
         const after = proposed.transfers.filter(transfer => transfer.owner !== factionId).reduce((sum, transfer) => sum + transfer.units, 0);
         const protectedUnits = Math.max(0, before - after);
@@ -231,7 +230,8 @@ function selectAction(state: SimulationState, config: AiConfig, factionId: Facti
     trace?.block('round-not-playing', 'decision');
     return { action: null, priority: Number.NEGATIVE_INFINITY, priorityOverride: false } as const;
   }
-  const ground = chooseOrder(state, config, factionId, trace);
+  const baselines: BaselineForecasts = new Map();
+  const ground = chooseOrder(state, config, factionId, trace, baselines);
   // Stop an active hostile holding clock before optional purchases or side
   // objectives. Ground recapture plans already pass real forecasts/home safety.
   if (ground?.kind === 'attack' && state.relay && state.elapsedMs >= state.relay.activateAtMs
@@ -245,13 +245,13 @@ function selectAction(state: SimulationState, config: AiConfig, factionId: Facti
   }
   let best: AiAction | null = ground ? { ...ground, type: 'ground' } : null;
   let bestPriority = ground?.score ?? Number.NEGATIVE_INFINITY;
-  const flight = chooseFlight(state, config, factionId, trace);
+  const flight = chooseFlight(state, config, factionId, trace, baselines);
   if (flight && (!best || flight.score > bestPriority)) { best = flight; bestPriority = flight.score; }
   // Existing saved aggressive profiles predate roleConversionPenalty. Infer the
   // same modest bias from their stable attackScore so loaded rounds get the fix.
   const conversionPenalty = config.roleConversionPenalty
     ?? Math.max(0, (config.attackScore - DEFAULT_AI.attackScore) * 0.9);
-  const conversion = chooseConversion(state, config, factionId, trace, conversionPenalty);
+  const conversion = chooseConversion(state, config, factionId, trace, conversionPenalty, baselines);
   const conversionPriority = conversion ? conversion.score - conversionPenalty : Number.NEGATIVE_INFINITY;
   if (conversion && (!best || conversionPriority > bestPriority)) { best = conversion; bestPriority = conversionPriority; }
   return { action: best, priority: bestPriority, priorityOverride: false } as const;

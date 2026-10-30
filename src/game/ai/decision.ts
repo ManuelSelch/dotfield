@@ -11,13 +11,22 @@ import { forecastBattle } from './forecast';
 import { evaluateOrder, type AiOrder } from './score';
 import type { AiDecisionTraceCollector } from './trace';
 import { canRelieveProduction, factionArmyUnits, frontlineDistances } from './logistics';
-import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
+import { airSupplyRoom, incomingThreat, keepsHomeReserve, remainingDeliveryMs, usefulAirSupply } from './mobility';
+import { cannotCaptureByNumbers } from './candidates';
 import { chooseRelayRecapture } from './relayRecapture';
 
-export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy', trace?: AiDecisionTraceCollector): AiOrder | null {
+/** Baselines are pure and deterministic for a given state and horizon, so a
+ * single decision shares them across ground, flight and conversion branches. */
+export type BaselineForecasts = Map<number, SimulationState>;
+export function getBaseline(baselines: BaselineForecasts, state: SimulationState, horizon: number): SimulationState {
+  let baseline = baselines.get(horizon);
+  if (!baseline) { baseline = forecastBattle(state, horizon); baselines.set(horizon, baseline); }
+  return baseline;
+}
+
+export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy', trace?: AiDecisionTraceCollector, baselines: BaselineForecasts = new Map()): AiOrder | null {
   if (state.roundStatus !== 'playing') { trace?.block('round-not-playing', 'decision'); return null; }
   let best: AiOrder | null = null;
-  const forecasts = new Map<number, SimulationState>();
   const distances = frontlineDistances(state, factionId);
   const minimumMultiplier = minimumTravelMultiplier(state);
   for (const source of state.territories) {
@@ -36,15 +45,31 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
         });
         continue;
       }
+      const productionRelief = canRelieveProduction(state, source, target, distances, config, factionId);
+      // Cheap necessary checks first: a candidate rejected here can never win, so
+      // skipping its full forecast preserves the chosen action while avoiding work.
+      if (target.owner === factionId && !incomingThreat(state, target.id, factionId)) {
+        if (target.cityType === 'airfield' && airSupplyRoom(state, target, factionId) < units) {
+          trace?.block('airfield-full', 'route', { sourceId: source.id, targetId: target.id }); continue;
+        }
+        const advance = distances.get(source.id)! - distances.get(target.id)!;
+        if (!(advance >= config.frontlineAdvance) && !productionRelief && !usefulAirSupply(state, source, target, factionId)) {
+          trace?.block('not-frontline', 'route', { sourceId: source.id, targetId: target.id }); continue;
+        }
+      }
       const relevantArrivals = state.transfers.filter(t => t.targetId === target.id || t.targetId === source.id)
         .map(t => remainingTravelBound(t, minimumMultiplier));
-      const productionRelief = canRelieveProduction(state, source, target, distances, config, factionId);
       const orderHorizon = Math.ceil(Math.max(orderDurationMs(source, target, units, getFactionRules(state, source.owner), minimumMultiplier),
         ...relevantArrivals, ...Object.values(state.aircraft ?? {}).filter(p => p.targetId === target.id || p.targetId === source.id)
           .map(remainingDeliveryMs)) / SIMULATION_STEP_MS) * SIMULATION_STEP_MS;
       const horizon = Math.max(orderHorizon, productionRelief ? PRODUCTION_AI.lookAheadMs : 0);
-      let baseline = forecasts.get(horizon);
-      if (!baseline) { baseline = forecastBattle(state, horizon); forecasts.set(horizon, baseline); }
+      if (target.owner !== factionId && cannotCaptureByNumbers(state, target, factionId, units, horizon)) {
+        trace?.block('forecast-cannot-capture', 'route', { sourceId: source.id, targetId: target.id }); continue;
+      }
+      const baseline = getBaseline(baselines, state, horizon);
+      if (target.owner !== factionId && baseline.territories.find(node => node.id === target.id)?.owner === factionId) {
+        trace?.block('already-secured', 'route', { sourceId: source.id, targetId: target.id }); continue;
+      }
       const dispatched = dispatchUnits(state, source.id, target.id, factionId);
       if (dispatched === state) { trace?.block('below-dispatch-minimum', 'route', { sourceId: source.id, targetId: target.id }); continue; }
       if (!keepsHomeReserve(state, dispatched, factionId)) {

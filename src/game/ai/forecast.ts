@@ -6,9 +6,15 @@ import { hasOpposingTransfers } from '../collisions';
 import { hasSlowZones } from '../features/slowZone';
 import { traveledTime } from '../movement';
 
+// Test/profiling instrumentation: how many forecasts a decision actually runs.
+let forecastCalls = 0;
+export function resetForecastCalls(): void { forecastCalls = 0; }
+export function forecastCallCount(): number { return forecastCalls; }
+
 // Replay known orders only, without inventing future player orders or running AI.
 // Skip quiet steps while keeping launches/impacts on the real simulation's grid.
 export function forecastBattle(state: SimulationState, horizonMs: number, beforeStep?: (state: SimulationState) => void): SimulationState {
+  forecastCalls += 1;
   if (!Number.isFinite(horizonMs) || horizonMs < 0) throw new RangeError('Forecast horizon must be finite and non-negative.');
   if (state.roundStatus !== 'playing' || horizonMs === 0) return state;
   beforeStep?.(state);

@@ -9,6 +9,7 @@ import type { SimulationState } from '../types';
 import type { AiConfig } from './config';
 import { forecastBattle } from './forecast';
 import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
+import { committedFriendly, hasArtillery } from './candidates';
 import { scoreOrder, type AiOrder } from './score';
 
 /** Consider our own follow-up orders, not fictional reinforcements or future
@@ -29,6 +30,10 @@ export function chooseRelayRecapture(state: SimulationState, config: AiConfig, f
     && !incomingThreat(state, source.id, factionId)
     && canGroundOrder(state, source, target, factionId))
     .sort((a, b) => duration(a) - duration(b) || a.id.localeCompare(b.id, 'en'));
+  // No prefix of donors can outnumber the holder through symmetric combat, so a
+  // hopeless recapture returns without forecasting every donor prefix.
+  const totalAttackers = sources.reduce((sum, source) => sum + availableUnits(state, source.id) - 1, 0);
+  if (!hasArtillery(state) && totalAttackers + committedFriendly(state, target.id, factionId) <= target.units) return null;
   let plan = state;
   const donors = new Set<string>();
   let firstSource: typeof sources[number] | undefined;
