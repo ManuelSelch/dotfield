@@ -12,6 +12,7 @@ import { chooseOrder } from './decision';
 import { forecastBattle } from './forecast';
 import { factionArmyUnits } from './logistics';
 import { DEFAULT_AI } from './config';
+import { resolveAiBehavior } from './behaviors';
 import { advanceAi } from './tick';
 
 const city = (id: string, owner: string, units: number, x: number, y = 0, cityType: Territory['cityType'] = 'production'): Territory =>
@@ -126,22 +127,31 @@ describe('conversion and flight actions', () => {
     expect(chooseAction(state)).toMatchObject({ type: 'convert', cityType: 'artillery' });
   });
 
-  it('converts an unthreatened producer into Artillery only for a useful in-range enemy garrison', () => {
+  it('prefers a feasible expansion over an optional Artillery build', () => {
+    const state = createSimulation([city('home', 'enemy', 50, 0, 400), city('rear', 'enemy', 50, 0, 300),
+      city('front', 'enemy', 50, 0, 0), city('neutral', 'neutral', 5, 200, 0)], { unitsPerSecond: 0 });
+    expect(chooseAction(state, resolveAiBehavior('aggressive')))
+      .toMatchObject({ type: 'ground', kind: 'expand', targetId: 'neutral' });
+  });
+
+  it('converts an unthreatened producer into Artillery when no offense or assembly is available', () => {
+    // A garrison beyond the whole faction's reach keeps assembly infeasible, so
+    // the optional role build is evaluated.
     const cities = [city('home', 'enemy', 50, 0, 400), city('rear', 'enemy', 50, 0, 300),
-      city('gun-site', 'enemy', 50, 0, 0), city('target', 'player', 100, 100, 0)];
+      city('gun-site', 'enemy', 50, 0, 0), city('target', 'player', 500, 100, 0)];
     const state = createSimulation(cities, { unitsPerSecond: 0 });
     const action = chooseAction(state);
     expect(action).toMatchObject({ type: 'convert', cityId: 'gun-site', cityType: 'artillery' });
     const built = applyAiAction(state, action!, 'enemy');
     expect(built.territories.find(city => city.id === 'gun-site')).toMatchObject({ cityType: 'artillery', units: 10 });
-    expect(forecastBattle(built, 10_000).territories.find(city => city.id === 'target')!.units).toBeLessThan(100);
+    expect(forecastBattle(built, 10_000).territories.find(city => city.id === 'target')!.units).toBeLessThan(500);
     expect(chooseAction(built)).not.toMatchObject({ type: 'convert', cityType: 'artillery' });
   });
 
-  it('builds a Watchtower only when it will actually destroy hostile ground troops', () => {
+  it('builds a Watchtower when no offense or assembly is available', () => {
     const cities = [city('home', 'enemy', 50, 0, 400), city('rear', 'enemy', 50, 0, 300),
-      city('tower-site', 'enemy', 50, 0, 100), city('raid-source', 'player', 100, 200, 0),
-      city('raid-target', 'player', 100, 0, 200)];
+      city('tower-site', 'enemy', 50, 0, 100), city('raid-source', 'player', 500, 200, 0),
+      city('raid-target', 'player', 500, 0, 200)];
     const initial = createSimulation(cities, { unitsPerSecond: 0 });
     const state = dispatchUnits(initial, 'raid-source', 'raid-target', 'player');
     const action = chooseAction(state);

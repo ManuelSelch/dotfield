@@ -14,6 +14,7 @@ import { canRelieveProduction, factionArmyUnits, frontlineDistances } from './lo
 import { airSupplyRoom, incomingThreat, keepsHomeReserve, remainingDeliveryMs, usefulAirSupply } from './mobility';
 import { cannotCaptureByNumbers } from './candidates';
 import { chooseRelayRecapture } from './relayRecapture';
+import type { DecisionBudget } from './budget';
 
 /** Baselines are pure and deterministic for a given state and horizon, so a
  * single decision shares them across ground, flight and conversion branches. */
@@ -24,12 +25,13 @@ export function getBaseline(baselines: BaselineForecasts, state: SimulationState
   return baseline;
 }
 
-export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy', trace?: AiDecisionTraceCollector, baselines: BaselineForecasts = new Map()): AiOrder | null {
+export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId = 'enemy', trace?: AiDecisionTraceCollector, baselines: BaselineForecasts = new Map(), budget?: DecisionBudget): AiOrder | null {
   if (state.roundStatus !== 'playing') { trace?.block('round-not-playing', 'decision'); return null; }
   let best: AiOrder | null = null;
   const distances = frontlineDistances(state, factionId);
   const minimumMultiplier = minimumTravelMultiplier(state);
   for (const source of state.territories) {
+    if (budget?.expired()) break;
     if (source.owner !== factionId) continue;
     const units = availableUnits(state, source.id) - 1;
     if (units < config.minDispatchUnits) { trace?.block('below-dispatch-minimum', 'source', { cityId: source.id }); continue; }
@@ -37,6 +39,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
       trace?.block('source-has-order', 'source', { cityId: source.id }); continue;
     }
     for (const target of state.territories) {
+      if (budget?.expired()) break;
       const routeBlock = groundOrderBlockReason(state, source, target, factionId);
       if (routeBlock) {
         if (routeBlock.reason !== 'same-city') trace?.block(routeBlock.reason === 'river' ? 'river-crossing'
@@ -95,7 +98,7 @@ export function chooseOrder(state: SimulationState, config: AiConfig = DEFAULT_A
         || (emergency(candidate) === emergency(best) && candidate.score > best.score))) best = candidate;
     }
   }
-  const recapture = chooseRelayRecapture(state, config, factionId, distances);
+  const recapture = chooseRelayRecapture(state, config, factionId, distances, budget);
   if (recapture) trace?.consider({ ...recapture, type: 'ground' }, recapture.score);
   else if (state.relay && state.elapsedMs >= state.relay.activateAtMs
     && state.territories.some(city => city.id === state.relay!.cityId && city.owner !== factionId && city.owner !== 'neutral')) {

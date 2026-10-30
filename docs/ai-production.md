@@ -48,4 +48,20 @@ Two kinds of work are now skipped **without changing which action is chosen**:
 - **Necessary-condition pruning.** A candidate that the feasibility rules would reject is dropped before its forecast. Friendly targets are skipped when they are neither front-line nor production relief nor a useful airlift sink, or when a full Airfield cannot take the order. Hostile/neutral targets are skipped when even the best possible case — every committed friendly troop plus every in-range artillery shot — cannot outnumber the current garrison. Since combat trades 1:1 and only artillery can lower a garrison without a matching attacker loss, this lower bound is exact for pruning.
 - **Shared baselines.** Ground, flight and conversion branches share one decision-scoped `BaselineForecasts` cache keyed by horizon; a relay recapture also stops before forecasting donor prefixes when no prefix can outnumber the holder.
 
-`src/game/ai/candidates.ts` holds the shared lower-bound helpers. `src/game/ai/forecast.ts` exposes `resetForecastCalls`/`forecastCallCount` for profiling. `src/game/ai/decisionLatency.test.ts` builds a 30-city Courtyard + Relay state and bounds both the forecast count and wall-clock time, so candidate enumeration cannot silently regress to forecasting every pair. These changes preserve outcomes; they do not add a time budget or a campaign planner.
+`src/game/ai/candidates.ts` holds the shared lower-bound helpers. `src/game/ai/forecast.ts` exposes `resetForecastCalls`/`forecastCallCount` for profiling. `src/game/ai/decisionLatency.test.ts` builds a 30-city Courtyard + Relay state and bounds both the forecast count and wall-clock time, so candidate enumeration cannot silently regress to forecasting every pair.
+
+## Decision time budget
+
+`chooseActionWithTrace` accepts `{ budgetMs, now }`. One `DecisionBudget` (see `src/game/ai/budget.ts`) is shared across ground, flight, conversion and relay-recapture enumeration and checked **before** each forecast, never inside one. On expiry each enumerator returns its best-so-far, so a decision never blocks the worker indefinitely. The worker passes `AI_DECISION_BUDGET_MS` (1500 ms); pure `chooseAction` calls stay unlimited so tests remain deterministic. A truncated decision records a `decision-budget` blocker, visible in the enemy dashboard.
+
+## Assemble-then-attack
+
+`src/game/ai/assembly.ts` adds a general preparation fallback (new behaviors, not a campaign planner):
+
+- For the highest-value objectives no single city can currently capture — an active hostile Relay first, then economic neutrals and breach targets — choose **one** stable staging city: the closest owned city that can legally reach the objective and can still receive troops (a full Airfield is never a staging city).
+- Pull from **rear-ward donors only** (strictly farther from the objective than the staging city) so assembly always flows toward the front and cannot shuffle troops backwards. The same all-but-one, home-reserve and Airfield-room rules apply.
+- Only assemble when the whole faction plus every in-range artillery shot could eventually outnumber the garrison; the AI never builds an army that can never capture.
+- A feasible direct attack/expansion and any emergency defence are never delayed; assembly only replaces a lower-value economic reinforcement.
+- Optional Artillery/Watchtower/Airfield builds are skipped while a feasible attack/expansion or a chosen assembly is available (`offense-available`), so the AI grows or attacks instead of buying weapons. A Defender for an exposed city is always considered.
+
+`src/game/ai/assembly.test.ts` covers staging, the multi-decision capture, the preserved direct-relay path and the no-donor case. `src/game/ai/decisionBudget.test.ts` covers budget equivalence, expiry and truncation trace. `tests/ai-capped-stall.spec.ts` still drives the real worker through resumed production and a real capture.

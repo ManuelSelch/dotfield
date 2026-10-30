@@ -47,6 +47,9 @@ const BLOCKER_LABELS: Record<AiTraceBlockReason, string> = {
   'watchtower-not-useful': 'No useful Watchtower intercept or protection found',
   'defender-not-useful': 'No exposed front or new route to block',
   'relay-recapture-not-feasible': 'Relay cannot be safely retaken in time',
+  'assembly-not-feasible': 'No safe staging city or donor for this objective',
+  'decision-budget': 'Decision time budget reached; evaluation was truncated',
+  'offense-available': 'Optional role build skipped while an attack or assembly is available',
   'round-not-playing': 'Round is not active',
   'no-target': 'No valid delivery target',
 };

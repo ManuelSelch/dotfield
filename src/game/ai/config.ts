@@ -23,6 +23,10 @@ export const PRODUCTION_AI = Object.freeze({
   minGain: 2, bonusHalfGain: 10,
 });
 
+// Hard wall-clock cap for one worker decision. The enumerators return their
+// best-so-far when it expires, so a large board stays responsive.
+export const AI_DECISION_BUDGET_MS = 1_500;
+
 // One prototype policy, not difficulty presets. No growth or resource advantages.
 export const DEFAULT_AI: AiConfig = {
   initialDelayMs: 1800, decisionIntervalMs: 1800, minDispatchUnits: 6,

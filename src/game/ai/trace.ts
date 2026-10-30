@@ -6,7 +6,8 @@ export type AiTraceBlockReason =
   | 'reinforce-no-benefit' | 'airfield-full' | 'not-frontline' | 'source-risk' | 'non-positive-score'
   | 'aircraft-not-ready' | 'insufficient-garrison' | 'unsafe-airlift' | 'conversion-economy-guard' | 'role-already-built' | 'city-is-home' | 'city-threatened'
   | 'city-has-pending-order' | 'below-conversion-cost' | 'conversion-forecast-fails' | 'airfield-not-useful' | 'artillery-not-useful' | 'watchtower-not-useful'
-  | 'defender-not-useful' | 'relay-recapture-not-feasible' | 'round-not-playing' | 'no-target';
+  | 'defender-not-useful' | 'relay-recapture-not-feasible' | 'round-not-playing' | 'no-target'
+  | 'decision-budget' | 'offense-available' | 'assembly-not-feasible';
 export type AiTraceScope = 'source' | 'route' | 'airlift' | 'conversion' | 'decision';
 
 export interface AiTraceExample {

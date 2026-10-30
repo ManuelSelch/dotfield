@@ -10,6 +10,8 @@ import { artilleryTarget } from '../features/artillery';
 import type { CityType, FactionId, SimulationState } from '../types';
 import { DEFAULT_AI, type AiConfig } from './config';
 import { chooseOrder, getBaseline, type BaselineForecasts } from './decision';
+import { chooseAssembly } from './assembly';
+import { createBudget, type DecisionBudget, type DecisionOptions } from './budget';
 import { forecastBattle } from './forecast';
 import { frontlineDistances } from './logistics';
 import { groundLegal, hasBarrierOpportunity, incomingThreat, keepsHomeReserve, remainingDeliveryMs, safeAirDeparture } from './mobility';
@@ -38,10 +40,11 @@ function knownHorizon(state: SimulationState): number {
 function grid(ms: number): number { return Math.ceil(ms / SIMULATION_STEP_MS) * SIMULATION_STEP_MS; }
 
 function chooseFlight(state: SimulationState, config: AiConfig, factionId: string, trace?: AiDecisionTraceCollector,
-  baselines: BaselineForecasts = new Map()): AiAction | null {
+  baselines: BaselineForecasts = new Map(), budget?: DecisionBudget): AiAction | null {
   const distances = frontlineDistances(state, factionId);
   let best: AiAction | null = null;
   for (const source of state.territories) {
+    if (budget?.expired()) break;
     if (source.owner !== factionId) continue;
     const planeState = state.aircraft?.[source.id];
     if (!planeState) continue;
@@ -51,6 +54,7 @@ function chooseFlight(state: SimulationState, config: AiConfig, factionId: strin
       trace?.block('source-has-order', 'airlift', { cityId: source.id }); continue;
     }
     for (const target of state.territories) {
+      if (budget?.expired()) break;
       if (target.id === source.id) continue;
       const launched = launchAircraft(state, source.id, target.id, factionId);
       if (launched === state) { trace?.block('no-target', 'airlift', { sourceId: source.id, targetId: target.id }); continue; }
@@ -92,7 +96,8 @@ function distanceToTransfer(city: { x: number; y: number }, transfer: Simulation
 }
 
 function chooseConversion(state: SimulationState, config: AiConfig, factionId: string,
-  trace?: AiDecisionTraceCollector, conversionPenalty = 0, baselines: BaselineForecasts = new Map()): AiAction | null {
+  trace?: AiDecisionTraceCollector, conversionPenalty = 0, baselines: BaselineForecasts = new Map(),
+  optionalRoles = true, budget?: DecisionBudget): AiAction | null {
   const owned = state.territories.filter(c => c.owner === factionId);
   const producers = owned.filter(c => cityType(c) === 'production');
   // Keep at least two producers and at least two thirds of the economy intact.
@@ -100,6 +105,9 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
   if (producers.length < 3 || owned.length - producers.length >= Math.floor(owned.length / 3)) {
     trace?.block('conversion-economy-guard', 'decision'); return null;
   }
+  // Optional Artillery/Watchtower/Airfield builds wait until no real offensive
+  // or assembly order is available; a Defender for a threat is always considered.
+  if (!optionalRoles) trace?.block('offense-available', 'conversion');
   let best: AiAction | null = null;
   const hasWatchtower = owned.some(city => cityType(city) === 'watchtower');
   const hasArtillery = owned.some(city => cityType(city) === 'artillery');
@@ -110,25 +118,27 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
   const watchtowerRole = owned.find(city => cityType(city) === 'watchtower');
   if (watchtowerRole) trace?.block('role-already-built', 'conversion', { cityId: watchtowerRole.id });
   for (const city of producers) {
+    if (budget?.expired()) break;
     if (city.id === state.homeCityIds?.[factionId]) { trace?.block('city-is-home', 'conversion', { cityId: city.id }); continue; }
     if (incomingThreat(state, city.id, factionId)) { trace?.block('city-threatened', 'conversion', { cityId: city.id }); continue; }
     if (state.transfers.some(t => t.sourceId === city.id || t.targetId === city.id)) {
       trace?.block('city-has-pending-order', 'conversion', { cityId: city.id }); continue;
     }
     const economicCost = getTerritoryGrowthRate(state, city) * 5;
+    if (optionalRoles) {
     if (!hasAirfield && hasBarrierOpportunity(state, city, factionId)) {
       const converted = convertCity(state, city.id, 'airfield', factionId);
       if (converted !== state && converted.territories.find(c => c.id === city.id)!.units >= 2) {
         // Consider the same legal supply order the next decision would choose.
         // Replay its real launch cadence/garrison cost during preparation; never
         // pretend that a nonproducer manufactures its own 100-troop cargo.
-        const supply = chooseOrder(converted, config, factionId);
+        const supply = chooseOrder(converted, config, factionId, undefined, undefined, budget);
         const supplied = supply?.kind === 'reinforce' && supply.targetId === city.id
           ? dispatchUnits(converted, supply.sourceId, supply.targetId, factionId) : converted;
         const prepared = forecastBattle(supplied, AIRCRAFT_PREPARATION_MS);
         // A conversion must enable an actual successful flight, not merely see a
         // mountain. This includes preparation, target growth and home-loss risk.
-        const flight = chooseFlight(prepared, config, factionId);
+        const flight = chooseFlight(prepared, config, factionId, undefined, undefined, budget);
         if (flight?.type === 'airlift' && flight.sourceId === city.id) {
           const score = flight.score * 0.7 - economicCost;
           if (score > 0) {
@@ -190,6 +200,7 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
         }
       } else trace?.block('watchtower-not-useful', 'conversion', { cityId: city.id });
     } else if (!hasWatchtower) trace?.block('below-conversion-cost', 'conversion', { cityId: city.id });
+    }
     const converted = convertCity(state, city.id, 'defender', factionId);
     if (converted === state || converted.territories.find(c => c.id === city.id)!.units < 20) {
       trace?.block('below-conversion-cost', 'conversion', { cityId: city.id }); continue;
@@ -225,13 +236,24 @@ function chooseConversion(state: SimulationState, config: AiConfig, factionId: s
 }
 
 /** One deterministic command per decision; legacy chooseOrder remains ground-only. */
-function selectAction(state: SimulationState, config: AiConfig, factionId: FactionId, trace?: AiDecisionTraceCollector) {
+function selectAction(state: SimulationState, config: AiConfig, factionId: FactionId, trace?: AiDecisionTraceCollector,
+  options?: DecisionOptions) {
   if (state.roundStatus !== 'playing' || !state.rules.factions[factionId] || factionId === 'neutral') {
     trace?.block('round-not-playing', 'decision');
     return { action: null, priority: Number.NEGATIVE_INFINITY, priorityOverride: false } as const;
   }
+  const budget = createBudget(options);
   const baselines: BaselineForecasts = new Map();
-  const ground = chooseOrder(state, config, factionId, trace, baselines);
+  const direct = chooseOrder(state, config, factionId, trace, baselines, budget);
+  const assembly = budget.expired() ? null : chooseAssembly(state, config, factionId, trace, budget);
+  // A feasible direct attack/expansion is never delayed by assembly; assembly can
+  // still replace a lower-value economic reinforcement.
+  const offense = direct?.kind === 'attack' || direct?.kind === 'expand';
+  const emergency = !!direct && (incomingThreat(state, direct.sourceId, factionId)
+    || direct.kind === 'reinforce' && incomingThreat(state, direct.targetId, factionId));
+  const ground = offense || emergency || !assembly ? direct
+    : (assembly.score > (direct?.score ?? Number.NEGATIVE_INFINITY) ? assembly : direct);
+  const offenseAvailable = offense || (assembly !== null && ground === assembly);
   // Stop an active hostile holding clock before optional purchases or side
   // objectives. Ground recapture plans already pass real forecasts/home safety.
   if (ground?.kind === 'attack' && state.relay && state.elapsedMs >= state.relay.activateAtMs
@@ -245,15 +267,17 @@ function selectAction(state: SimulationState, config: AiConfig, factionId: Facti
   }
   let best: AiAction | null = ground ? { ...ground, type: 'ground' } : null;
   let bestPriority = ground?.score ?? Number.NEGATIVE_INFINITY;
-  const flight = chooseFlight(state, config, factionId, trace, baselines);
+  const flight = budget.expired() ? null : chooseFlight(state, config, factionId, trace, baselines, budget);
   if (flight && (!best || flight.score > bestPriority)) { best = flight; bestPriority = flight.score; }
   // Existing saved aggressive profiles predate roleConversionPenalty. Infer the
   // same modest bias from their stable attackScore so loaded rounds get the fix.
   const conversionPenalty = config.roleConversionPenalty
     ?? Math.max(0, (config.attackScore - DEFAULT_AI.attackScore) * 0.9);
-  const conversion = chooseConversion(state, config, factionId, trace, conversionPenalty, baselines);
+  const conversion = budget.expired() ? null
+    : chooseConversion(state, config, factionId, trace, conversionPenalty, baselines, !offenseAvailable, budget);
   const conversionPriority = conversion ? conversion.score - conversionPenalty : Number.NEGATIVE_INFINITY;
   if (conversion && (!best || conversionPriority > bestPriority)) { best = conversion; bestPriority = conversionPriority; }
+  if (budget.expired()) trace?.block('decision-budget', 'decision');
   return { action: best, priority: bestPriority, priorityOverride: false } as const;
 }
 
@@ -261,9 +285,10 @@ export function chooseAction(state: SimulationState, config: AiConfig = DEFAULT_
   return selectAction(state, config, factionId).action;
 }
 
-export function chooseActionWithTrace(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId: FactionId = 'enemy') {
+export function chooseActionWithTrace(state: SimulationState, config: AiConfig = DEFAULT_AI, factionId: FactionId = 'enemy',
+  options?: DecisionOptions) {
   const trace = new AiDecisionTraceCollector();
-  const result = selectAction(state, config, factionId, trace);
+  const result = selectAction(state, config, factionId, trace, options);
   return { action: result.action, trace: trace.finish(result.action, {
     selectedPriority: result.priority, priorityOverride: result.priorityOverride,
   }) };

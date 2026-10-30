@@ -1,7 +1,7 @@
 import { chooseActionWithTrace, type AiAction } from './actions';
 import type { AiDecisionTrace } from './trace';
 import type { AiOrder } from './score';
-import type { AiConfig } from './config';
+import { AI_DECISION_BUDGET_MS, type AiConfig } from './config';
 import type { FactionId, SimulationState } from '../types';
 
 export interface AiWorkerRequest {
@@ -22,7 +22,7 @@ export interface AiWorkerResponse {
 
 self.onmessage = (event: MessageEvent<AiWorkerRequest>) => {
   const { requestId, state, factionId, config } = event.data;
-  const { action, trace } = chooseActionWithTrace(state, config, factionId);
+  const { action, trace } = chooseActionWithTrace(state, config, factionId, { budgetMs: AI_DECISION_BUDGET_MS });
   const order = action?.type === 'ground' ? { sourceId: action.sourceId, targetId: action.targetId,
     kind: action.kind, score: action.score } : null;
   self.postMessage({ requestId, factionId, action, trace, order } satisfies AiWorkerResponse);

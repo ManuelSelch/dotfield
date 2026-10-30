@@ -10,13 +10,14 @@ import type { AiConfig } from './config';
 import { forecastBattle } from './forecast';
 import { incomingThreat, keepsHomeReserve, remainingDeliveryMs } from './mobility';
 import { committedFriendly, hasArtillery } from './candidates';
+import type { DecisionBudget } from './budget';
 import { scoreOrder, type AiOrder } from './score';
 
 /** Consider our own follow-up orders, not fictional reinforcements or future
  * enemy commands. Only the first order is issued; every decision replans from
  * the live state, including waves already committed to the Relay. */
 export function chooseRelayRecapture(state: SimulationState, config: AiConfig, factionId: string,
-  distances: ReadonlyMap<string, number>): AiOrder | null {
+  distances: ReadonlyMap<string, number>, budget?: DecisionBudget): AiOrder | null {
   const relay = state.relay;
   if (!relay || state.elapsedMs < relay.activateAtMs) return null;
   const target = state.territories.find(city => city.id === relay.cityId)!;
@@ -38,6 +39,7 @@ export function chooseRelayRecapture(state: SimulationState, config: AiConfig, f
   const donors = new Set<string>();
   let firstSource: typeof sources[number] | undefined;
   for (const original of sources) {
+    if (budget?.expired()) return null;
     if (plan.roundStatus !== 'playing') break;
     const source = plan.territories.find(city => city.id === original.id)!;
     if (source.owner !== factionId || availableUnits(plan, source.id) - 1 < config.minDispatchUnits
