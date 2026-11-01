@@ -3,7 +3,7 @@
 ## Goal
 Let a player visually edit an enemy's strategy, save it locally, and play a new match against it. Replace handwritten block-editing mechanics with Blockly while preserving Dotfield's simple, Scratch-inspired interaction style and the existing persistent behavior-tree agent.
 
-Confirmed MVP scope includes reusable tactics with parameters and custom logic available in normal Home settings. This is an implementation plan, not authorization to implement. The [visual mockup](../../mockups/bot-editor/DESIGN.md) received positive UX feedback, but its illustrative functions and MDSL view are not implemented contracts. The approved [capture prototype](../ai-mdsl/IMPLEMENTATION.md) remains the gameplay baseline.
+Confirmed MVP scope includes reusable tactics with parameters and custom logic available in normal Home settings. This is an implementation plan, not authorization to implement. The [visual mockup](../../mockups/bot-editor/DESIGN.md) received positive UX feedback, but its illustrative functions and MDSL view are not implemented contracts. The approved [capture prototype](../../docs/ai-mdsl/IMPLEMENTATION.md) remains the gameplay baseline.
 
 ## Scope
 ### In Scope

@@ -4,7 +4,7 @@
 
 Keep faction upgrades independently configurable per player and AI faction, with attached map effects deterministic and shared with AI forecasting. Slow Zone remains a field-level map setting; Watchtower and Artillery are buildable exclusive city roles. Industry, Factory and Capture shield remain independently selectable faction upgrades.
 
-Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network mechanics are implemented; see the [effect catalog](EFFECTS.md). Slow Zone remains a seeded Home field setting; no weapon role is freely generated or toggled on Home. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/roles.
+Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network mechanics are implemented; see the [effect catalog](../../docs/upgrades/EFFECTS.md). Slow Zone remains a seeded Home field setting; no weapon role is freely generated or toggled on Home. General faction simulation and per-enemy rules, upgrades and AI behavior are implemented. No economy or unlocks exist. Match preferences persist locally; saved active rounds retain compiled effects/roles.
 
 ## Scope
 
@@ -35,7 +35,7 @@ Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shie
 - Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
 - Factory is now a typed territory feature with a stable ID and production multiplier (legacy beneficiary IDs remain readable). Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
 - Factory stays attached on capture and boosts its current non-neutral owner. It stacks multiplicatively with Industry. Silhouette and chevron indicators derive from feature/production state, not combat side effects.
-- Historical Watchtower feature behavior is superseded: Watchtower is an exclusive city role, costs30, produces no troops and fires every250ms (range150) at hostile ground dots. Artillery is an exclusive city role, costs40, produces no troops and attacks hostile city garrisons every1000/3ms (range150; mountains block). Both reset cooldown on build/capture, use the shared physical scheduler/forecast and render city coverage/icons. See [city conversion](../city-conversion/IMPLEMENTATION.md).
+- Historical Watchtower feature behavior is superseded: Watchtower is an exclusive city role, costs30, produces no troops and fires every250ms (range150) at hostile ground dots. Artillery is an exclusive city role, costs40, produces no troops and attacks hostile city garrisons every1000/3ms (range150; mountains block). Both reset cooldown on build/capture, use the shared physical scheduler/forecast and render city coverage/icons. See [city conversion](../../docs/city-conversion/IMPLEMENTATION.md).
 - Defensive Network links currently owned shared-border neighbors from each faction's original home (paired bridge endpoints count as neighbors). Network sizes 4–6/7–12/13+ set capacity to 1/2/3 batch-blocking shields per connected city; one shield recharges every 10 seconds in simulation time. Capture Shield charges share this pool, and network recharge never removes charges already above capacity. Partial per-city recharge timers persist with active-round saves and are shared by live simulation and AI forecasts.
 
 ### Historical baseline before Industry
@@ -159,7 +159,7 @@ type TerritoryFeature =
 
 ### 6. Watchtower field setting (historical; superseded by buildable city role)
 
-- Historical setting (superseded): the former On the field toggle placed a seeded-random Watchtower feature. Current behavior is the exclusive buildable Watchtower city role; no Home toggle or generated free tower remains. See [city conversion](../city-conversion/IMPLEMENTATION.md).
+- Historical setting (superseded): the former On the field toggle placed a seeded-random Watchtower feature. Current behavior is the exclusive buildable Watchtower city role; no Home toggle or generated free tower remains. See [city conversion](../../docs/city-conversion/IMPLEMENTATION.md).
 - On a firing opportunity, target the nearest eligible hostile airborne dot within range. Stable transfer/slot IDs break equal-distance ties.
 - Remove one real dot per shot; do not damage friendly dots, queued troops or city garrisons. Range uses shared dot-position geometry in board space.
 - A shot requires a live eligible target at that event time. Empty firing opportunities do not accumulate a burst of stored shots.

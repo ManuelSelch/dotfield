@@ -4,7 +4,7 @@
 
 Give Dotfield a mid-game objective and a way to win without conquering every city. Make holding a central relay compete with expansion, Factory control and preserving the original home, rather than make bridge ownership itself the victory condition.
 
-Status: implemented with automated verification; human balance/duration and actual-iPhone acceptance remain pending. The user approved mockup revision1 and implementation, requesting no explanation in the victory popup. Relay is an On the field option across layouts, activates after120 active seconds and requires180 cumulative holding seconds to win. The relay remains an ordinary convertible city. Existing conquest evaluation precedes simultaneous relay completion, as the simplest delegated policy. See [implemented behavior and limitations](IMPLEMENTATION.md).
+Status: implemented with automated verification; human balance/duration and actual-iPhone acceptance remain pending. The user approved mockup revision1 and implementation, requesting no explanation in the victory popup. Relay is an On the field option across layouts, activates after120 active seconds and requires180 cumulative holding seconds to win. The relay remains an ordinary convertible city. Existing conquest evaluation precedes simultaneous relay completion, as the simplest delegated policy. See [implemented behavior and limitations](../../docs/relay/IMPLEMENTATION.md).
 
 ## Scope
 

@@ -4,13 +4,13 @@
 
 Status: mobile/desktop board, simulation/AI, pause/replay, generated Home, Industry/Factory/Slow Zone/Capture shield, buildable exclusive city roles (Production/Defender/Airfield/Watchtower/Artillery), multi-faction combat, persistence and production PWA caching are implemented. Authored bridge/Factory/Siege scenarios remain regression fixtures. Real-iPhone Safari/installed-offline validation and balance/duration playtesting remain outstanding; progression and difficulty presets remain deferred.
 
-Implemented desktop layout and mouse-control requirements are tracked separately in [docs/desktop/REQUIREMENTS.md](docs/desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
+Implemented desktop layout and mouse-control requirements are tracked separately in [plans/desktop/REQUIREMENTS.md](../desktop/REQUIREMENTS.md). That focused plan supersedes the portrait-only layout restriction on desktop, preserves the mobile-first experience, and excludes hover feedback.
 
-The [Command Relay plan](docs/relay/REQUIREMENTS.md) is implemented: Relay is an optional On the field setting across all layouts, using the Courtyard city or a central neutral city elsewhere. Activation is after120 active seconds and victory requires180 cumulative holding seconds; capture pauses rather than resets progress. The city remains convertible and ordinary conquest remains valid. The approved compact HUD, AI priorities and save/replay integration are documented in [relay behavior and limitations](docs/relay/IMPLEMENTATION.md). Victory popups deliberately omit explanation text. Automated checks pass; human balance/device acceptance remains pending. The user's current rounds last around ten minutes, superseding the older 2–4-minute assumption for relay playtesting.
+The [Command Relay plan](../relay/REQUIREMENTS.md) is implemented: Relay is an optional On the field setting across all layouts, using the Courtyard city or a central neutral city elsewhere. Activation is after120 active seconds and victory requires180 cumulative holding seconds; capture pauses rather than resets progress. The city remains convertible and ordinary conquest remains valid. The approved compact HUD, AI priorities and save/replay integration are documented in [relay behavior and limitations](../../docs/relay/IMPLEMENTATION.md). Victory popups deliberately omit explanation text. Automated checks pass; human balance/device acceptance remains pending. The user's current rounds last around ten minutes, superseding the older 2–4-minute assumption for relay playtesting.
 
-The proposed [Defender Borders requirements](docs/defender-borders/REQUIREMENTS.md) extend the existing Defender with hostile ground-transit blocking through its territory region, retaining its shields and no-production trade-off. This replaces adding a separate Gatehouse role. It is specifications only: naming, neutral/queued/legacy-save policies and boundary visuals still need confirmation/approval. Current gameplay is unchanged.
+The proposed [Defender Borders requirements](../defender-borders/REQUIREMENTS.md) extend the existing Defender with hostile ground-transit blocking through its territory region, retaining its shields and no-production trade-off. This replaces adding a separate Gatehouse role. It is specifications only: naming, neutral/queued/legacy-save policies and boundary visuals still need confirmation/approval. Current gameplay is unchanged.
 
-The original browser assertion failures and lifecycle-save defect are repaired; [docs/test-repair/REQUIREMENTS.md](docs/test-repair/REQUIREMENTS.md) tracks the pending expanded persistence matrix. Merge checkpoint `d2d9702` passed 402 unit tests, 79 Chrome browser tests, build and whitespace checks; totals are checkpoint evidence, not a permanent suite size.
+The original browser assertion failures and lifecycle-save defect are repaired; [plans/test-repair/REQUIREMENTS.md](../test-repair/REQUIREMENTS.md) tracks the pending expanded persistence matrix. Merge checkpoint `d2d9702` passed 402 unit tests, 79 Chrome browser tests, build and whitespace checks; totals are checkpoint evidence, not a permanent suite size.
 
 ### Purpose
 
@@ -30,8 +30,8 @@ Success means enjoyable short rounds, readable controls and a credible opponent;
 - Attacking sends **all available source units except one**, replacing any existing unlaunched source groups while preserving airborne groups.
 - AI difficulty is adjustable to find a personal sweet spot.
 - AI should continue making meaningful attempts when clearly winning or losing.
-- Enable eligible upgrade effects before Play without progression. Player and each AI faction have independent upgrade selections and AI behavior. Generated-match preferences survive reload. Industry (+25% owned-city production), Factory, Capture shield and player-selectable randomly placed Slow Zone are implemented. Watchtower and Artillery are now buildable city roles. Details are in [docs/upgrades/EFFECTS.md](docs/upgrades/EFFECTS.md) and [docs/upgrades/REQUIREMENTS.md](docs/upgrades/REQUIREMENTS.md).
-- Seeded generated fields contain 6–24 cities and 1–4 enemies, with selectable Mountains (On by default), Industry (neutral Factories) and optional paired river crossings. The fresh-map default is 14 cities. Home shows an unnamed visual preview with reroll; Play generates a fresh field. Restart/replay retain the current field; New map creates another. Home preferences persist locally. The earlier seven authored maps remain regression fixtures. See [generated match implementation](docs/generated-maps.md).
+- Enable eligible upgrade effects before Play without progression. Player and each AI faction have independent upgrade selections and AI behavior. Generated-match preferences survive reload. Industry (+25% owned-city production), Factory, Capture shield and player-selectable randomly placed Slow Zone are implemented. Watchtower and Artillery are now buildable city roles. Details are in [docs/upgrades/EFFECTS.md](../../docs/upgrades/EFFECTS.md) and [plans/upgrades/REQUIREMENTS.md](../upgrades/REQUIREMENTS.md).
+- Seeded generated fields contain 6–24 cities and 1–4 enemies, with selectable Mountains (On by default), Industry (neutral Factories) and optional paired river crossings. The fresh-map default is 14 cities. Home shows an unnamed visual preview with reroll; Play generates a fresh field. Restart/replay retain the current field; New map creates another. Home preferences persist locally. The earlier seven authored maps remain regression fixtures. See [generated match implementation](../../docs/generated-maps.md).
 - Mouse-only click-to-click uses full regions and the existing order command; touch/pen remain drag-only. Source re-click/Escape and lifecycle/source invalidation clear selection.
 - Mobile-first, modern, understated visuals. Avoid desktop-like panels, childish themes, and dated-looking graphics.
 - One human player and a target map with two independent AI enemies. Each enemy's AI behavior and upgrade effects are selectable separately. All factions are hostile; no alliances/teams. Settings persist locally. Multiplayer/networking is out of scope.
@@ -43,7 +43,7 @@ Success means enjoyable short rounds, readable controls and a credible opponent;
 - React and TypeScript for interface; Canvas 2D for the game board.
 - Mobile-first proportional battlefield and responsive two-column desktop Home; no pan/zoom. Mouse click-to-click, pointer dragging and keyboard input coexist.
 - Typical round target: 2–4 minutes, subject to playtesting rather than a forced timer.
-- Generated map bounds, settings, lifecycle, and limits are documented in [generated matches](docs/generated-maps.md).
+- Generated map bounds, settings, lifecycle, and limits are documented in [generated matches](../../docs/generated-maps.md).
 - Production shell/assets are cached for offline launch after initial online loading. Active rounds and match preferences persist locally; progression is deferred. No backend.
 - Difficulty changes AI decision quality and timing, not hidden resource advantages.
 
@@ -67,13 +67,13 @@ Implemented items describe the current baseline; unresolved product targets are 
 - A small set of varied maps or constrained map generation.
 - Implemented Industry/Factory/Slow Zone/Capture shield and seeded generated maps; Watchtower/Artillery are exclusive buildable roles, not Home toggles or attached upgrades. Progression remains later work.
 - Implemented event-only round persistence, pause/resume and production PWA caching; expand persistence regression coverage and test real-device install/offline behavior.
-- Owned-city conversion into Production, Defender, Airfield, Watchtower and Artillery, reusable air transport and the approved five-icon picker are implemented on isolated `feat/buildable-weapons` (based on main 3859282). Verified: 714 unit tests, 114 Chromium tests, 2 PWA tests and production build pass. Weapon roles cost30/40, use 4/s / 3/s mechanics and do not produce troops. See [City Conversion and Air Transport](docs/city-conversion/REQUIREMENTS.md) and [behavior contract](docs/city-conversion/IMPLEMENTATION.md).
+- Owned-city conversion into Production, Defender, Airfield, Watchtower and Artillery, reusable air transport and the approved five-icon picker are implemented on isolated `feat/buildable-weapons` (based on main 3859282). Verified: 714 unit tests, 114 Chromium tests, 2 PWA tests and production build pass. Weapon roles cost30/40, use 4/s / 3/s mechanics and do not produce troops. See [City Conversion and Air Transport](../city-conversion/REQUIREMENTS.md) and [behavior contract](../../docs/city-conversion/IMPLEMENTATION.md).
 
 ### Out of Scope
 
 - Multiplayer, accounts, servers, cloud sync, leaderboards, and social features.
 - Ads, purchases, subscriptions, daily rewards, energy limits, and loot boxes.
-- Large campaigns, elaborate skill trees, skins or a game editor. Terrain/special cities are limited to their separately approved [focused plan](docs/special-cities/REQUIREMENTS.md).
+- Large campaigns, elaborate skill trees, skins or a game editor. Terrain/special cities are limited to their separately approved [focused plan](../special-cities/REQUIREMENTS.md).
 - Native iOS packaging or App Store release initially.
 
 ## Requirements
@@ -146,11 +146,11 @@ Implemented items describe the current baseline; unresolved product targets are 
 - Implemented baseline: pure modules separate config, known-order forecasting, candidate scoring/selection and simulation-time scheduling. Default first decision and interval: 1.8 seconds; minimum sent army: six units. No resource or growth bonuses.
 - Forecast current orders, per-dot collisions and defender growth through the relevant arrivals; avoid duplicate secured captures and abandoning a source under known threat. Concentrate reserves toward the frontline when individual armies are insufficient.
 - The current heuristic does not predict future player orders or guarantee optimal play. Difficulty presets and tactical refinements remain milestone 6.
-- The [enemy dashboard](docs/enemy-dashboard/IMPLEMENTATION.md) separates each AI worker's current lifecycle status from its last completed result, with freshness, evaluation identity and actual command application outcome. It shows viable alternatives, grouped candidate blockers and a no-action explanation in an optional responsive panel. A lifecycle heartbeat makes pending work and repeated no-action results visible without changing AI strategy. It reports only reasons emitted by actual AI evaluation gates; forecast internals and exhaustive search remain out of scope.
+- The [enemy dashboard](../../docs/enemy-dashboard/IMPLEMENTATION.md) separates each AI worker's current lifecycle status from its last completed result, with freshness, evaluation identity and actual command application outcome. It shows viable alternatives, grouped candidate blockers and a no-action explanation in an optional responsive panel. A lifecycle heartbeat makes pending work and repeated no-action results visible without changing AI strategy. It reports only reasons emitted by actual AI evaluation gates; forecast internals and exhaustive search remain out of scope.
 
-The opt-in [MDSL real-game prototype](docs/ai-mdsl/REQUIREMENTS.md) experiments with player-authored behavior trees without replacing the default utility AI.
+The opt-in [MDSL real-game prototype](../ai-mdsl/REQUIREMENTS.md) experiments with player-authored behavior trees without replacing the default utility AI.
 
-The planned [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) adds a Blockly-based authoring workflow, reusable tactics with parameters, versioned editor projects and generated Mistreevous JSON. Custom logic will be selectable per enemy in normal Home settings. These scope decisions are confirmed; the plan does not authorize implementation or replace the existing AI by default.
+The planned [visual enemy logic editor MVP](../bot-editor/REQUIREMENTS.md) adds a Blockly-based authoring workflow, reusable tactics with parameters, versioned editor projects and generated Mistreevous JSON. Custom logic will be selectable per enemy in normal Home settings. These scope decisions are confirmed; the plan does not authorize implementation or replace the existing AI by default.
 
 ### FR-06: Difficulty and tuning
 
@@ -166,8 +166,8 @@ The planned [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) add
 
 - Enable effects before Play without currency, prices, rewards or unlocks. Player upgrades and each AI faction's upgrade effects are configured independently; generated-match settings persist locally.
 - Industry increases production of every city owned by the faction that selected it by 25%; ownership at growth time determines the rate. Neutral growth remains unchanged.
-- Factory upgrades attach to the selecting faction's starting city; maps can author neutral Factories. Every Factory doubles its current non-neutral owner's local production, stacking with that owner's Industry (2.5 units/sec). Capture transfers the bonus, recapture transfers it back, and duplicate upgrades on authored Factories do not stack. See [special-city slice 4](docs/special-cities/SLICE-4.md).
-- Historical generated-Artillery Home toggle is superseded. Artillery is now a buildable exclusive city role (40 troops), range150, up to3 garrison shots/s, mountains block fire, cooldown resets on build/capture, no troop growth. Authored Siege remains a migration/regression fixture. See [city conversion](docs/city-conversion/IMPLEMENTATION.md).
+- Factory upgrades attach to the selecting faction's starting city; maps can author neutral Factories. Every Factory doubles its current non-neutral owner's local production, stacking with that owner's Industry (2.5 units/sec). Capture transfers the bonus, recapture transfers it back, and duplicate upgrades on authored Factories do not stack. See [special-city slice 4](../special-cities/SLICE-4.md).
+- Historical generated-Artillery Home toggle is superseded. Artillery is now a buildable exclusive city role (40 troops), range150, up to3 garrison shots/s, mountains block fire, cooldown resets on build/capture, no troop growth. Authored Siege remains a migration/regression fixture. See [city conversion](../../docs/city-conversion/IMPLEMENTATION.md).
 - Show a factory silhouette on its host (dimmed while inactive) and one upward chevron on Industry-boosted cities. Use both icons when stacked; reserve double chevrons for a later improved Industry level. Do not obscure counts or change touch/combat geometry.
 - Keep a typed catalog and pure compiler, independent faction-ID keyed rules, typed territory features and a fixed round setup shared by simulation and forecasts.
 - Restart/Play again retain compiled effects without stacking them. Home allows changing selections; reload on Home resets setup choices, while a saved active round restores its effects.
@@ -196,7 +196,7 @@ The planned [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) add
 
 ### FR-10: Generated map variety and home screen
 
-- Generate fresh seeded maps from selected city/enemy/feature settings. Mountains is an On/Off map feature, defaulting On; River & bridges remains an independent option. When Mountains is On, generate cities clear of the ridge and ensure they stay connected through legal direct orders and explicit paired crossings. Do not show map names. Reroll changes only the preview; Play generates and starts a new layout. Restart/replay retain the current layout; New map generates another using the active match preferences. No simulation or AI runs on Home. Full generation invariants and limitations are in [docs/generated-maps.md](docs/generated-maps.md).
+- Generate fresh seeded maps from selected city/enemy/feature settings. Mountains is an On/Off map feature, defaulting On; River & bridges remains an independent option. When Mountains is On, generate cities clear of the ridge and ensure they stay connected through legal direct orders and explicit paired crossings. Do not show map names. Reroll changes only the preview; Play generates and starts a new layout. Restart/replay retain the current layout; New map generates another using the active match preferences. No simulation or AI runs on Home. Full generation invariants and limitations are in [docs/generated-maps.md](../../docs/generated-maps.md).
 - Preserve the original 13-city field and the 9-, 11- and 21-city variants. Add a 23-city Crossfire field containing one player and two independent AI starts. Maps are selected visually, without names or descriptions.
 - Preserve authored opening counts per map: original symmetric player/enemy spawns use 36, Crossfire uses one 36-unit player and two 30-unit enemies, and river maps have explicit starting holdings/features. Check bounds, circle clearance and generous region hit areas; do not infer balance from symmetry.
 - Return Home from pause/results, abandon the current round and dispose its browser adapter. Keep the selected map in memory. A subsequent Play creates a fresh round; reload on Home defaults to map 1, but reload during a saved round restores that round.
@@ -210,7 +210,7 @@ The planned [visual enemy logic editor MVP](docs/bot-editor/REQUIREMENTS.md) add
 - Tap an owned city for quick conversion controls while preserving ordinary drag dispatch. Conversion/flight controls revision 1 is approved and implemented.
 - One reusable airplane per Airfield transports troops to any city across rivers and mountains, then returns empty to its original home. Capacity 100 is the confirmed initial tuning value.
 - Approved top-down delivery is Dock & pulse, option C revision 1: plane at city edge, five-troop combat batches with city pulses, no short ground-dot unloading path.
-- The full [focused requirements and 11-slice implementation plan](docs/city-conversion/REQUIREMENTS.md) record the approved initial rules and controls. This feature supersedes older touch-tap and all-owned-cities-grow requirements: taps open management, and only Production cities grow troops. See the [behavior contract](docs/city-conversion/IMPLEMENTATION.md) for costs, timers, shield coexistence, capture policies, AI and persistence.
+- The full [focused requirements and 11-slice implementation plan](../city-conversion/REQUIREMENTS.md) record the approved initial rules and controls. This feature supersedes older touch-tap and all-owned-cities-grow requirements: taps open management, and only Production cities grow troops. See the [behavior contract](../../docs/city-conversion/IMPLEMENTATION.md) for costs, timers, shield coexistence, capture policies, AI and persistence.
 
 ### Interface and quality requirements
 
@@ -302,7 +302,7 @@ Description: Validate cached offline launch, installed safe areas and update beh
 
 ### 12. City conversion and reusable air transport
 Status: implemented and automatically verified on isolated feature branch; manual balance/device acceptance pending.
-Description: Follow the separately numbered [11-slice city-conversion plan](docs/city-conversion/REQUIREMENTS.md) for Production/Defender/Airfield conversion, shield coexistence, one-plane lifecycle, combat delivery, save/accounting, mobile controls, rendering, AI and integrated playtests. User explicitly approved all eight initial defaults and both delivery/control mockups.
+Description: Follow the separately numbered [11-slice city-conversion plan](../city-conversion/REQUIREMENTS.md) for Production/Defender/Airfield conversion, shield coexistence, one-plane lifecycle, combat delivery, save/accounting, mobile controls, rendering, AI and integrated playtests. User explicitly approved all eight initial defaults and both delivery/control mockups.
 
 The former duplicated milestone 9 is normalized to consecutive steps; focused desktop, persistence, special-city and city-conversion slice numbers are unchanged. Human playtesting remains the acceptance gate for duration, fairness and real-device usability.
 

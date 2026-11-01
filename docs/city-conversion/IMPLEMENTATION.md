@@ -53,7 +53,7 @@ Capturing the home destroys its old plane and undelivered cargo immediately. Alr
 
 ## References and acceptance
 
-- [Full requirements](REQUIREMENTS.md).
+- [Full requirements](../../plans/city-conversion/REQUIREMENTS.md).
 - Approved delivery: [Dock & pulse option C](../../mockups/airplane-delivery/DESIGN.md).
 - Approved compact control card: [revision 4](../../mockups/city-conversion/DESIGN.md). Approved five-role icon picker: [revision 6](../../mockups/city-conversion/DESIGN.md).
 - Verified checkpoint: **714 unit tests in 81 files**, **114 standard Chromium browser tests** (`npx playwright test --workers=1`), **2 production PWA tests**, TypeScript/production build, and whitespace/link checks pass. Browser log: `/tmp/dotfield-weapons-browser-final3.log`; latest unit/build/PWA logs: `/tmp/dotfield-weapons-unit-final4.log`, `/tmp/dotfield-weapons-build-final4.log`, `/tmp/dotfield-weapons-pwa-final4.log`.

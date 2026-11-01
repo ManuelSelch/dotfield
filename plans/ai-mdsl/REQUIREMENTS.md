@@ -43,7 +43,7 @@ Description: Implemented: runtime, editable MDSL and typed blackboard with the f
 Description: Implemented: real session command boundary in development opt-in mode, without running legacy AI. Unit and real-browser tests verify captures, pause, restart, reload and unchanged default worker behavior.
 
 ### 3. Playable Handover
-Description: Implemented: [usage and behavior contract](IMPLEMENTATION.md), console events and explicit limitations, with a playable development preview. All 875 unit tests, 140 standard browser tests and the production build pass. Broader validation remains blocked by a pre-existing 320px header overlap in both production PWA tests, reproduced on unchanged HEAD; see the behavior contract. Human tactical evaluation remains manual.
+Description: Implemented: [usage and behavior contract](../../docs/ai-mdsl/IMPLEMENTATION.md), console events and explicit limitations, with a playable development preview. All 875 unit tests, 140 standard browser tests and the production build pass. Broader validation remains blocked by a pre-existing 320px header overlap in both production PWA tests, reproduced on unchanged HEAD; see the behavior contract. Human tactical evaluation remains manual.
 
 ### 4. Enemy Capture
 Description: Implemented: faction-relative enemy query, generic nonfriendly capture planning, correct attack command classification and a second MDSL branch. Verified by 882 unit tests and all five focused MDSL browser tests, including real neutral-then-enemy capture and conquest of the last player city. No staging, multi-source coordination, target-candidate iteration or new agent method.

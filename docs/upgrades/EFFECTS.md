@@ -4,10 +4,7 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 
 | Upgrade | Simple effect | What it changes | Status |
 |---|---|---|---|
-| Reinforcements | Start with 48 instead of 36 units. | Stronger opening; no lasting production advantage. | Proposed |
 | Industry | Owned cities produce 25% faster: 1.25 instead of 1 unit/sec. | Rewards expansion and holding territory. Applies to newly captured cities too; other factions and neutral production are unchanged. | Implemented |
-| Quick march | Troops move 20% faster. | Faster attacks and defensive reinforcement; still vulnerable to collisions. | Proposed |
-| Rapid deployment | Launch groups every 450 ms instead of 600 ms. | Commits armies sooner, but also empties the source sooner. | Proposed |
 | Watchtower / Artillery | In-game city role: Watchtower (30 troops) shoots hostile ground dots at 4/s within 150 units; Artillery (40 troops) shoots the nearest enemy garrison at 3/s within 150 units, mountain-blocked. | Stops troop growth; exclusive with all other roles. Capture transfers control and resets cooldown. | Implemented city roles; see [city conversion](../city-conversion/IMPLEMENTATION.md) |
 | Factory | Starting city produces twice as fast, rather than boosting every city. | Creates a valuable location to defend or capture. | Implemented; stacks with current owner's Industry, transfers to captors |
 | Slow Zone | On the field: a seeded random city projects a 90-field-unit circle where eligible airborne groups move at 50% speed. | Slows hostile groups while owned, switches sides on capture, and slows both factions while neutral. Overlaps use the strongest slowdown. | Implemented as a field setting |
@@ -77,6 +74,5 @@ Pre-game faction upgrades, without currency, purchases, levels or unlocks. Playe
 - Losing ownership removes the player's Industry chevron. Factory alone does not add one; combined Factory + Industry shows separate factory and single-chevron badges.
 - Defensive Network: one owner-coloured Tabler Shield silhouette with a centered 1/2/3 capacity numeral marks every connected city. Existing shield arcs show current stored charges; each charge blocks one hostile batch. Markers are presentation only and do not change counters, touch regions, launch boundaries or collision geometry.
 - Counters stay readable. Minimum-sized badges are presentation only: touch regions, launch boundaries and collision geometry are unchanged.
-- Two stacked chevrons are reserved for a future Industry level. The drawing helper supports that shape, but there is no level-2 selection or progression yet.
 
-See [architecture and implementation plan](REQUIREMENTS.md). Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network are implemented. Reinforcements, Quick march and Rapid deployment remain proposals, not implemented features.
+Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shield and Defensive Network are implemented. Unimplemented ideas live in [plans](../../plans/upgrades/PROPOSALS.md), not this current-system reference.

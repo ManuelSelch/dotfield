@@ -1,7 +1,7 @@
 # Blockly enemy editor — revision 2
 
 ## Review and scope
-- Status: **revision 2 approved for implementation**. This completes the isolated design handoff for [slice 1](../../docs/bot-editor/REQUIREMENTS.md), not production integration. Runtime responsiveness remains a separate release gate.
+- Status: **revision 2 approved for implementation**. This completes the isolated design handoff for [slice 1](../../plans/bot-editor/REQUIREMENTS.md), not production integration. Runtime responsiveness remains a separate release gate.
 - Supersedes the handwritten revision 1 as the current review candidate; that source remains untouched at [bot-editor](../bot-editor/DESIGN.md).
 - Real Blockly **13.4.0**, Zelos renderer, custom nested blocks, inline fields and a Dotfield-colored shell. Dependencies are installed only in the shared `mockups/` workspace. Blockly's Apache-2.0 license is retained in the installed dependency; see [license notes](LICENSES.md).
 - Review preview was served at <http://localhost:5176/bot-editor-blockly/>; now stopped. Approved sources are preserved here.
