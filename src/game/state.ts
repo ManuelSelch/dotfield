@@ -1,11 +1,11 @@
-import type { RulesInput, SimulationState, Territory } from './types';
-import { BASE_FACTION_RULES, createRules, getFactionRules } from './rules';
+import { createAircraft } from './aircraft';
 import { snapshotTerritories } from './features/snapshot';
+import { createRelay, type RelayDefinition } from './relay';
 import { createRiver, type River } from './river';
+import { BASE_FACTION_RULES, createRules, getFactionRules } from './rules';
 import { createTerrain } from './terrain/terrain';
 import type { Terrain } from './terrain/types';
-import { createAircraft } from './aircraft';
-import { createRelay, type RelayDefinition } from './relay';
+import type { RulesInput, SimulationState, Territory } from './types';
 
 export function createSimulation(
   territories: readonly Territory[],
@@ -14,17 +14,29 @@ export function createSimulation(
   terrain?: Terrain,
   relay?: RelayDefinition,
 ): SimulationState {
-  const factionIds = [...new Set(['player', ...territories.map(city => city.owner)
-    .filter((owner): owner is string => owner !== 'neutral')])];
-  const configured = rules && 'factions' in rules ? rules : { factions: Object.fromEntries(factionIds.map(id =>
-    [id, { ...BASE_FACTION_RULES, ...(rules ?? {}) }])) };
+  const factionIds = [
+    ...new Set([
+      'player',
+      ...territories
+        .map((city) => city.owner)
+        .filter((owner): owner is string => owner !== 'neutral'),
+    ]),
+  ];
+  const configured =
+    rules && 'factions' in rules
+      ? rules
+      : {
+          factions: Object.fromEntries(
+            factionIds.map((id) => [id, { ...BASE_FACTION_RULES, ...(rules ?? {}) }]),
+          ),
+        };
   const resolved = createRules(configured);
   const opening = snapshotTerritories(territories);
   for (const city of opening) {
     if (city.owner !== 'neutral') getFactionRules({ rules: resolved }, city.owner);
-    for (const feature of city.features ?? []) {
-      if (feature.kind === 'factory' && feature.beneficiaryId !== undefined) getFactionRules({ rules: resolved }, feature.beneficiaryId);
-    }
+    for (const feature of city.features ?? [])
+      if (feature.kind === 'factory' && feature.beneficiaryId !== undefined)
+        getFactionRules({ rules: resolved }, feature.beneficiaryId);
   }
 
   return {
@@ -38,19 +50,32 @@ export function createSimulation(
     transfers: [],
     arrivals: [],
     nextTransferId: 1,
-    aircraft: Object.fromEntries(opening.filter(c => c.cityType === 'airfield' && c.owner !== 'neutral').map(c => [c.id, createAircraft(c)])),
+    aircraft: Object.fromEntries(
+      opening
+        .filter((c) => c.cityType === 'airfield' && c.owner !== 'neutral')
+        .map((c) => [c.id, createAircraft(c)]),
+    ),
     nextAircraftTripId: 1,
     airDeliveries: [],
     captureShields: {},
     networkShieldTimers: {},
-    weaponTimers: Object.fromEntries(opening.filter(city => city.cityType === 'watchtower' || city.cityType === 'artillery').map(city => [city.id,
-      { owner: city.owner, elapsedMs: 0 }])),
+    weaponTimers: Object.fromEntries(
+      opening
+        .filter((city) => city.cityType === 'watchtower' || city.cityType === 'artillery')
+        .map((city) => [city.id, { owner: city.owner, elapsedMs: 0 }]),
+    ),
     artilleryShots: [],
     rules: resolved,
-    homeCityIds: Object.fromEntries(factionIds.flatMap(id => {
-      const home = opening.find(city => city.owner === id);
-      return home ? [[id, home.id]] : [];
+    homeCityIds: Object.fromEntries(
+      factionIds.flatMap((id) => {
+        const home = opening.find((city) => city.owner === id);
+        return home ? [[id, home.id]] : [];
+      }),
+    ),
+    territories: opening.map((node) => ({
+      ...node,
+      cityType: node.cityType ?? 'production',
+      growthRemainder: 0,
     })),
-    territories: opening.map((node) => ({ ...node, cityType: node.cityType ?? 'production', growthRemainder: 0 })),
   };
 }

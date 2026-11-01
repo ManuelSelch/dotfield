@@ -1,4 +1,5 @@
-import type { Point } from '../types';
+import type { Point } from '@/game/types';
+
 import { distance } from './geometry';
 
 export function pointAt(points: readonly Point[], offset: number): Point {
@@ -6,8 +7,10 @@ export function pointAt(points: readonly Point[], offset: number): Point {
     const length = distance(points[i - 1], points[i]);
     if (length > 0 && offset <= length) {
       const t = offset / length;
-      return { x: points[i - 1].x + (points[i].x - points[i - 1].x) * t,
-        y: points[i - 1].y + (points[i].y - points[i - 1].y) * t };
+      return {
+        x: points[i - 1].x + (points[i].x - points[i - 1].x) * t,
+        y: points[i - 1].y + (points[i].y - points[i - 1].y) * t,
+      };
     }
     offset -= length;
   }
@@ -29,8 +32,9 @@ export function borderOffset(points: readonly Point[], radius: number): number {
       const cy = a.y - center.y;
       const linear = 2 * (cx * dx + cy * dy);
       const constant = cx * cx + cy * cy - radius * radius;
-      const t = (-linear + Math.sqrt(Math.max(0, linear * linear - 4 * length * length * constant)))
-        / (2 * length * length);
+      const t =
+        (-linear + Math.sqrt(Math.max(0, linear * linear - 4 * length * length * constant))) /
+        (2 * length * length);
       return offset + t * length;
     }
     offset += length;

@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+playwright-report
+test-results
+package-lock.json
+mockups
+.vercel
+public/blockly-media
+public/licenses
+# Generated serialization snapshots must retain JSON.stringify's exact whitespace.
+src/bot-editor/fixtures/*.json

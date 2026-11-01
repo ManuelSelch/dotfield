@@ -1,60 +1,124 @@
 import { expect, test } from '@playwright/test';
-import { SAVED_GAME_KEY } from '../src/game/persistence';
-import { MATCH_PREFERENCES_KEY } from '../src/game/matchPreferences';
 
-for (const width of [320, 1280]) test(`Courtyard setup, preview and round persistence at ${width}px`, async ({ page }) => {
-  await page.setViewportSize({ width, height: width === 320 ? 640 : 900 });
-  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/');
-  const layouts = page.getByRole('group', { name: 'Map layout' });
-  await expect(layouts.getByRole('button', { name: 'Mountains', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  for (const label of ['Open field', 'River', 'Mountains', 'Courtyard']) {
-    const button = layouts.getByRole('button', { name: label, exact: true });
-    const box = (await button.boundingBox())!;
-    expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
-  }
-  await expect(page.getByRole('button', { name: 'River and bridges' })).toHaveCount(0);
-  await page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true }).click();
-  await layouts.getByRole('button', { name: 'Courtyard', exact: true }).click();
-  await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('20');
-  await expect(page.getByRole('button', { name: 'Fewer cities' })).toBeDisabled();
-  await expect(page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true })).toBeDisabled();
-  await expect(page.getByText('Courtyard requires 20–30 cities and one enemy. River and mountains included.')).toBeVisible();
-  await page.getByRole('button', { name: 'Factory', exact: true }).click();
-  await layouts.getByRole('button', { name: 'River', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Factory', exact: true })).toHaveAttribute('aria-pressed', 'false');
-  await page.getByRole('button', { name: 'Factory', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Generated map preview' }).locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(0);
-  await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('14');
-  await expect(page.getByRole('group', { name: 'Number of enemy factions' }).getByRole('button', { name: '4', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await layouts.getByRole('button', { name: 'Courtyard', exact: true }).click();
-  await page.getByRole('slider', { name: 'Total cities' }).fill('30');
-  const preview = page.getByRole('img', { name: 'Generated map preview' });
-  await expect(preview.locator('circle[cx]')).toHaveCount(30);
-  await expect(preview.locator('g[aria-label="Mountain blocks direct orders and shots"]')).toHaveCount(3);
-  await expect(preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]')).toHaveCount(2);
-  await page.reload();
-  await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('30');
-  await expect(layouts.getByRole('button', { name: 'Courtyard', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Reroll', exact: true }).click();
-  await expect(preview.locator('circle[cx]')).toHaveCount(30);
-  const openingPositions = await preview.locator('circle[cx]').evaluateAll(nodes => nodes.map(node => ({ x: Number(node.getAttribute('cx')), y: Number(node.getAttribute('cy')) })));
-  await page.getByRole('button', { name: 'Play', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  const game = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY);
-  expect(game.state.terrain.barriers).toHaveLength(3);
-  expect(game.territories.map((city: { x: number; y: number }) => ({ x: city.x, y: city.y }))).toEqual(openingPositions);
-  expect(game.generated.preferences.map).toMatchObject({ layout: 'courtyard', cities: 30, enemies: 1 });
-  expect(game.territories.find((c: {id: string}) => c.id === 'courtyard').owner).toBe('neutral');
-  await page.reload();
-  await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
-  const restored = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY);
-  expect(restored.state.terrain).toEqual(game.state.terrain);
-  await page.getByRole('button', { name: 'Restart', exact: true }).click();
-  await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  expect((await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY)).territories).toEqual(game.territories);
-  await page.getByRole('button', { name: 'Home', exact: true }).click();
-  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).map.layout, MATCH_PREFERENCES_KEY)).toBe('courtyard');
-  expect(errors).toEqual([]);
-});
+import { MATCH_PREFERENCES_KEY } from '../src/game/match-preferences';
+import { SAVED_GAME_KEY } from '../src/game/persistence';
+
+for (const width of [320, 1280])
+  test(`Courtyard setup, preview and round persistence at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: width === 320 ? 640 : 900 });
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto('/');
+    const layouts = page.getByRole('group', { name: 'Map layout' });
+    await expect(layouts.getByRole('button', { name: 'Mountains', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    for (const label of ['Open field', 'River', 'Mountains', 'Courtyard']) {
+      const button = layouts.getByRole('button', { name: label, exact: true });
+      const box = (await button.boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+    await expect(page.getByRole('button', { name: 'River and bridges' })).toHaveCount(0);
+    await page
+      .getByRole('group', { name: 'Number of enemy factions' })
+      .getByRole('button', { name: '4', exact: true })
+      .click();
+    await layouts.getByRole('button', { name: 'Courtyard', exact: true }).click();
+    await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('20');
+    await expect(page.getByRole('button', { name: 'Fewer cities' })).toBeDisabled();
+    await expect(
+      page
+        .getByRole('group', { name: 'Number of enemy factions' })
+        .getByRole('button', { name: '4', exact: true }),
+    ).toBeDisabled();
+    await expect(
+      page.getByText(
+        'Courtyard requires 20–30 cities and one enemy. River and mountains included.',
+      ),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Factory', exact: true }).click();
+    await layouts.getByRole('button', { name: 'River', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Factory', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    await page.getByRole('button', { name: 'Factory', exact: true }).click();
+    await expect(
+      page
+        .getByRole('img', { name: 'Generated map preview' })
+        .locator('g[aria-label="Mountain blocks direct orders and shots"]'),
+    ).toHaveCount(0);
+    await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('14');
+    await expect(
+      page
+        .getByRole('group', { name: 'Number of enemy factions' })
+        .getByRole('button', { name: '4', exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    await layouts.getByRole('button', { name: 'Courtyard', exact: true }).click();
+    await page.getByRole('slider', { name: 'Total cities' }).fill('30');
+    const preview = page.getByRole('img', { name: 'Generated map preview' });
+    await expect(preview.locator('circle[cx]')).toHaveCount(30);
+    await expect(
+      preview.locator('g[aria-label="Mountain blocks direct orders and shots"]'),
+    ).toHaveCount(3);
+    await expect(
+      preview.locator('g[aria-label="River with two paired bridge crossings"] rect[rx="3"]'),
+    ).toHaveCount(2);
+    await page.reload();
+    await expect(page.getByRole('slider', { name: 'Total cities' })).toHaveValue('30');
+    await expect(layouts.getByRole('button', { name: 'Courtyard', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    for (let i = 0; i < 4; i++)
+      await page.getByRole('button', { name: 'Reroll', exact: true }).click();
+    await expect(preview.locator('circle[cx]')).toHaveCount(30);
+    const openingPositions = await preview.locator('circle[cx]').evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        x: Number(node.getAttribute('cx')),
+        y: Number(node.getAttribute('cy')),
+      })),
+    );
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
+    await expect(page.getByRole('img', { name: 'Territory board' })).toBeVisible();
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    const game = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!),
+      SAVED_GAME_KEY,
+    );
+    expect(game.state.terrain.barriers).toHaveLength(3);
+    expect(
+      game.territories.map((city: { x: number; y: number }) => ({ x: city.x, y: city.y })),
+    ).toEqual(openingPositions);
+    expect(game.generated.preferences.map).toMatchObject({
+      layout: 'courtyard',
+      cities: 30,
+      enemies: 1,
+    });
+    expect(game.territories.find((c: { id: string }) => c.id === 'courtyard').owner).toBe(
+      'neutral',
+    );
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
+    const restored = await page.evaluate(
+      (key) => JSON.parse(localStorage.getItem(key)!),
+      SAVED_GAME_KEY,
+    );
+    expect(restored.state.terrain).toEqual(game.state.terrain);
+    await page.getByRole('button', { name: 'Restart', exact: true }).click();
+    await page.getByRole('button', { name: 'Pause', exact: true }).click();
+    expect(
+      (await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SAVED_GAME_KEY))
+        .territories,
+    ).toEqual(game.territories);
+    await page.getByRole('button', { name: 'Home', exact: true }).click();
+    expect(
+      await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key)!).map.layout,
+        MATCH_PREFERENCES_KEY,
+      ),
+    ).toBe('courtyard');
+    expect(errors).toEqual([]);
+  });

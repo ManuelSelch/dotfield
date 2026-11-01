@@ -72,18 +72,18 @@
                      P home 36
 ```
 
-| ID | Position (x,y) | Owner | Troops | Role / feature |
-|---|---|---|---|---|
-| EH | 180,60 | Enemy | 20 | Original enemy home; Factory ×2 |
-| ER | 300,115 | Enemy | 8 | Northern reinforcement source |
-| NW | 70,105 | Neutral | 8 | Northern expansion opportunity |
-| EW | 70,200 | Enemy | 28 | Strong western bridgehead |
-| NE | 290,200 | Neutral | 8 | Northern eastern endpoint |
-| PW | 70,280 | Player | 18 | Exposed western bridgehead |
-| SE | 290,280 | Neutral | 6 | Southern eastern endpoint |
-| PR | 75,400 | Player | 10 | Separate defensive reserve |
-| SN | 290,400 | Neutral | 8 | Optional southern expansion |
-| PH | 180,420 | Player | 36 | Original player home; mobile reserve |
+| ID  | Position (x,y) | Owner   | Troops | Role / feature                       |
+| --- | -------------- | ------- | ------ | ------------------------------------ |
+| EH  | 180,60         | Enemy   | 20     | Original enemy home; Factory ×2      |
+| ER  | 300,115        | Enemy   | 8      | Northern reinforcement source        |
+| NW  | 70,105         | Neutral | 8      | Northern expansion opportunity       |
+| EW  | 70,200         | Enemy   | 28     | Strong western bridgehead            |
+| NE  | 290,200        | Neutral | 8      | Northern eastern endpoint            |
+| PW  | 70,280         | Player  | 18     | Exposed western bridgehead           |
+| SE  | 290,280        | Neutral | 6      | Southern eastern endpoint            |
+| PR  | 75,400         | Player  | 10     | Separate defensive reserve           |
+| SN  | 290,400        | Neutral | 8      | Optional southern expansion          |
+| PH  | 180,420        | Player  | 36     | Original player home; mobile reserve |
 
 - River y=225–255; paired endpoints EW↔PW and NE↔SE, each bridge width 64.
 - Opening production before caps: enemy 4 troops/second, player 3. Opening troops: enemy 56, player 64. The player has a temporary army advantage, not a superior passive economy.
@@ -139,17 +139,17 @@
                     P home 36
 ```
 
-| ID | Position (x,y) | Owner | Troops | Role / feature |
-|---|---|---|---|---|
-| EH | 180,60 | Enemy | 30 | Original enemy home; economic contest source |
-| ER | 280,110 | Enemy | 10 | Eastern reserve / possible raid target |
-| NW | 80,100 | Neutral | 8 | Northern western expansion |
-| EG | 80,200 | Enemy | 18 | Western pressure source |
-| F | 280,245 | Neutral | 14 | Contested Factory ×2 |
-| W | 80,275 | Neutral | 8 | Western relay / buffer opportunity |
-| PG | 80,350 | Player | 12 | Exposed outpost |
-| E | 280,350 | Neutral | 8 | Eastern staging / fallback opportunity |
-| PH | 180,420 | Player | 36 | Original player home; main reserve |
+| ID  | Position (x,y) | Owner   | Troops | Role / feature                               |
+| --- | -------------- | ------- | ------ | -------------------------------------------- |
+| EH  | 180,60         | Enemy   | 30     | Original enemy home; economic contest source |
+| ER  | 280,110        | Enemy   | 10     | Eastern reserve / possible raid target       |
+| NW  | 80,100         | Neutral | 8      | Northern western expansion                   |
+| EG  | 80,200         | Enemy   | 18     | Western pressure source                      |
+| F   | 280,245        | Neutral | 14     | Contested Factory ×2                         |
+| W   | 80,275         | Neutral | 8      | Western relay / buffer opportunity           |
+| PG  | 80,350         | Player  | 12     | Exposed outpost                              |
+| E   | 280,350        | Neutral | 8      | Eastern staging / fallback opportunity       |
+| PH  | 180,420        | Player  | 36     | Original player home; main reserve           |
 
 - Mountain rectangle: x=140–220, y=170–310. No automatic detours.
 - Opening production before caps: enemy 3 troops/second, player 2. Opening troops: enemy 58, player 48.
@@ -208,18 +208,18 @@
                     P home 40
 ```
 
-| ID | Position (x,y) | Owner | Troops | Role / feature |
-|---|---|---|---|---|
-| EH | 180,70 | Enemy | 18 | Original enemy home; network root |
-| ER | 290,125 | Enemy | 8 | Northern reserve |
-| NB | 180,200 | Enemy | 12 | Northern bridge endpoint |
-| J | 180,280 | Enemy | 24 | Southern bridge endpoint; network junction |
-| FW | 70,335 | Enemy | 32 | Western forward defense |
-| FE | 290,335 | Enemy | 32 | Eastern forward defense |
-| N | 180,355 | Neutral | 10 | Optional buffer; not a mandatory movement waypoint |
-| PW | 60,420 | Player | 25 | Western source |
-| PE | 300,420 | Player | 25 | Eastern source |
-| PH | 180,435 | Player | 40 | Original player home; main strike source |
+| ID  | Position (x,y) | Owner   | Troops | Role / feature                                     |
+| --- | -------------- | ------- | ------ | -------------------------------------------------- |
+| EH  | 180,70         | Enemy   | 18     | Original enemy home; network root                  |
+| ER  | 290,125        | Enemy   | 8      | Northern reserve                                   |
+| NB  | 180,200        | Enemy   | 12     | Northern bridge endpoint                           |
+| J   | 180,280        | Enemy   | 24     | Southern bridge endpoint; network junction         |
+| FW  | 70,335         | Enemy   | 32     | Western forward defense                            |
+| FE  | 290,335        | Enemy   | 32     | Eastern forward defense                            |
+| N   | 180,355        | Neutral | 10     | Optional buffer; not a mandatory movement waypoint |
+| PW  | 60,420         | Player  | 25     | Western source                                     |
+| PE  | 300,420        | Player  | 25     | Eastern source                                     |
+| PH  | 180,435        | Player  | 40     | Original player home; main strike source           |
 
 - River y=225–255; NB↔J is the only bridge, width 64. No mountains, Factory or other field features.
 - Enable Defensive Network for the enemy only. This is a disclosed asymmetric scenario rule; player sources get no network bonus.

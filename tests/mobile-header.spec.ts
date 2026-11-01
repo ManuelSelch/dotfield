@@ -8,9 +8,9 @@ test('small-screen gameplay hides branding but Home and desktop retain it', asyn
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(logo).toBeHidden();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
-  for (const name of ['Home', 'Restart', 'Resume', 'Show enemy dashboard']) {
+  for (const name of ['Home', 'Restart', 'Resume', 'Show enemy dashboard'])
     await page.getByRole('button', { name, exact: true }).click({ trial: true });
-  }
+
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(logo).toBeVisible();
   await page.setViewportSize({ width: 320, height: 568 });

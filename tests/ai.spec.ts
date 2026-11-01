@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -14,9 +15,13 @@ test('the opponent dispatches real groups and captures a neutral region', async 
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(250);
   await expect(transfers).toContainText('5 units: north → north-west · travelling');
-  await expect(page.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText('north: Opponent, 32 units. Production city.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText(
+    'north: Opponent, 32 units. Production city.',
+  );
   await page.clock.runFor(6000);
-  await expect(page.getByRole('listitem').filter({ hasText: /^north-west:/ })).toHaveText(/north-west: Opponent, \d+ units\./);
+  await expect(page.getByRole('listitem').filter({ hasText: /^north-west:/ })).toHaveText(
+    /north-west: Opponent, \d+ units\./,
+  );
   await page.screenshot({ path: 'test-results/ai-expansion.png' });
 });
 
@@ -41,7 +46,7 @@ test('backgrounding pauses AI decisions, not just growth', async ({ page }) => {
 test('an idle player can lose a real round and replay restarts the opponent', async ({ page }) => {
   test.setTimeout(60000);
   const errors: string[] = [];
-  page.on('pageerror', error => errors.push(error.message));
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.clock.runFor(125000);
   await expect(page.getByRole('region', { name: 'Defeat' })).toBeVisible();
   const details = page.getByRole('list', { name: 'Territory details' });
@@ -52,8 +57,12 @@ test('an idle player can lose a real round and replay restarts the opponent', as
   await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Play again' }).click();
   await expect(page.getByRole('region', { name: 'Defeat' })).toHaveCount(0);
-  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText('north: Opponent, 36 units. Production city.');
-  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units. Production city.');
+  await expect(details.getByRole('listitem').filter({ hasText: /^north:/ })).toHaveText(
+    'north: Opponent, 36 units. Production city.',
+  );
+  await expect(details.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 36 units. Production city.',
+  );
   const transfers = page.getByRole('list', { name: 'Unit transfers' });
   await expect(transfers.getByRole('listitem')).toHaveCount(0);
   await page.clock.runFor(1700);

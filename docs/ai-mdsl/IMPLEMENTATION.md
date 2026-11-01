@@ -123,7 +123,7 @@ Possible later experiments: candidate-target fallback, authored synchronized-arr
 ## Verification
 
 - `src/game/ai/mdsl/runtime.test.ts`: pure exact-set planning, iteration/exhaustion, deduplication, set snapshots, authored source limits, staggered multi-wave execution, remaining-plan invalidation, early capture, actual capture, failures, source isolation, reload exclusion, shields, access rules, source safety, simulation-time waits and cleanup.
-- `src/board/startBoard.test.ts`: opt-in excludes workers, pause/resume/hidden handling, restart and disposal; existing default worker lifecycle remains covered.
+- `src/board/start-board.test.ts`: opt-in excludes workers, pause/resume/hidden handling, restart and disposal; existing default worker lifecycle remains covered.
 - `tests/mdsl-prototype.spec.ts`: real neutral-then-enemy captures, conquest of the last player city, a two-source capture neither source can win alone with verified 1800ms dispatch spacing, restart, pause/reload without duplicate orders, and unchanged default-worker operation.
 - Multi-source follow-up: **893 unit tests / 104 files**, **all 6 focused MDSL browser tests**, TypeScript/production build and whitespace checks pass. The earlier full-browser checkpoint below is historical, not a fresh run for this follow-up.
 - Enemy-capture follow-up: **882 unit tests / 104 files**, **all 5 focused MDSL browser tests** and TypeScript/production build pass. Unit coverage adds hostile faction identity, infeasible neutral fallback, neutral priority, enemy growth/shields and persistent attack execution. The full standard-browser suite was not rerun for this small follow-up; the 140-test result below is the preceding prototype checkpoint.

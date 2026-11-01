@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+
 import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.use({ viewport: { width: 390, height: 844 } });
@@ -26,15 +27,29 @@ test('whole-unit counts and Canvas grow together; neutrals remain unchanged', as
   const territories = page.getByRole('list', { name: 'Territory details' });
   const canvas = page.getByRole('img', { name: 'Territory board' });
   const initialImage = await canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL());
-  await expect(territories.getByText('north: Opponent, 36 units. Production city.', { exact: true })).toBeAttached();
+  await expect(
+    territories.getByText('north: Opponent, 36 units. Production city.', { exact: true }),
+  ).toBeAttached();
   await page.clock.runFor(1100);
-  await expect(territories.getByText('north: Opponent, 37 units. Production city.', { exact: true })).toBeAttached();
-  await expect(territories.getByText('south: You, 37 units. Production city.', { exact: true })).toBeAttached();
-  expect(await canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL())).not.toBe(initialImage);
+  await expect(
+    territories.getByText('north: Opponent, 37 units. Production city.', { exact: true }),
+  ).toBeAttached();
+  await expect(
+    territories.getByText('south: You, 37 units. Production city.', { exact: true }),
+  ).toBeAttached();
+  expect(await canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL())).not.toBe(
+    initialImage,
+  );
   await page.clock.runFor(2000);
-  await expect(territories.getByText('south: You, 39 units. Production city.', { exact: true })).toBeAttached();
-  await expect(territories.getByText('north-west: Neutral, 8 units. Production city.', { exact: true })).toBeAttached();
-  await expect(territories.getByText('centre: Neutral, 20 units. Production city.', { exact: true })).toBeAttached();
+  await expect(
+    territories.getByText('south: You, 39 units. Production city.', { exact: true }),
+  ).toBeAttached();
+  await expect(
+    territories.getByText('north-west: Neutral, 8 units. Production city.', { exact: true }),
+  ).toBeAttached();
+  await expect(
+    territories.getByText('centre: Neutral, 20 units. Production city.', { exact: true }),
+  ).toBeAttached();
   await expect(page.getByText('Drag between regions · leave one behind.')).toHaveCount(0);
   expect(errors).toEqual([]);
   await page.screenshot({ path: 'test-results/growth.png' });
@@ -73,12 +88,18 @@ test('city counters stop at 50 and production resumes after sending troops', asy
 
 test('Home abandons the saved round and Play starts fresh armies', async ({ page }) => {
   await page.clock.runFor(3100);
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 39 units. Production city.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 39 units. Production city.',
+  );
   expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).not.toBeNull();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await page.getByRole('button', { name: 'Home', exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem('dotfield.saved-game.v1'))).toBeNull();
   await page.getByRole('button', { name: 'Play', exact: true }).click();
-  const game = await page.evaluate(() => JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!));
-  expect(game.territories.find((city: { owner: string }) => city.owner === 'player').units).toBe(36);
+  const game = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('dotfield.saved-game.v1')!),
+  );
+  expect(game.territories.find((city: { owner: string }) => city.owner === 'player').units).toBe(
+    36,
+  );
 });

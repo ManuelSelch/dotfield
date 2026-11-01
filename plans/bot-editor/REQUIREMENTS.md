@@ -1,12 +1,15 @@
 # Visual Enemy Logic Editor MVP — Requirements
 
 ## Goal
+
 Let a player visually edit an enemy's strategy, save it locally, and play a new match against it. Replace handwritten block-editing mechanics with Blockly while preserving Dotfield's simple, Scratch-inspired interaction style and the existing persistent behavior-tree agent.
 
 Confirmed MVP scope includes reusable tactics with parameters and custom logic available in normal Home settings. This is an implementation plan, not authorization to implement. The [visual mockup](../../mockups/bot-editor/DESIGN.md) received positive UX feedback, but its illustrative functions and MDSL view are not implemented contracts. The approved [capture prototype](../../docs/ai-mdsl/IMPLEMENTATION.md) remains the gameplay baseline.
 
 ## Scope
+
 ### In Scope
+
 - An isolated Blockly feasibility/design check before production integration, using the Scratch-inspired Zelos renderer and Dotfield colors.
 - One Main entry plus editable, named reusable tactics with typed input parameters per enemy project. Seed Main with Capture(neutral) followed by Capture(enemy), sharing the current tree-authored multi-source capture tactic.
 - Nested flow blocks, inline arguments, add/move/delete, undo/redo, useful error messages and a mobile/keyboard-accessible editing flow.
@@ -17,6 +20,7 @@ Confirmed MVP scope includes reusable tactics with parameters and custom logic a
 - Shared-definition tabs, tactic creation/rename/deletion, parameter editing, call blocks and bounded compilation of reusable tactics into native behavior-tree definitions.
 
 ### Out of Scope
+
 - A public/shared tactic library, recursion, return values, arbitrary parameter expressions, mutable parameter references and passing city/list/set/plan memory slots between tactics. MVP parameters are typed scalar inputs, not a general-purpose function language.
 - Editable MDSL, arbitrary MDSL import, lossless block/text round-tripping or a custom general-purpose language. A text export is optional follow-up work, not an MVP dependency.
 - JavaScript execution, arbitrary method names, arbitrary user plugins, uploaded code or third-party/shared bot projects.
@@ -26,6 +30,7 @@ Confirmed MVP scope includes reusable tactics with parameters and custom logic a
 - Replacement of the existing utility AI or claims that custom bots are competitively balanced.
 
 ## Requirements
+
 - **Entry and activation:** provide Edit logic within each enemy's Home settings. Normal keeps the existing AI behavior selection and utility-AI path. Custom uses that enemy's valid saved project. Inactive enemy projects remain stored without executing. Existing behavior presets continue to supply scheduling where applicable; their utility-scoring preferences must not be presented as controlling a custom tree. Custom logic is available in normal production Home settings; development-only exposure is not the MVP delivery target.
 - **Design approval:** retain the existing light visual language, compact library and nested C-shaped blocks. Validate the actual Blockly interaction rather than promising pixel-identical reproduction of the handwritten mockup. Obtain explicit approval of the Blockly-backed revision and verify/stop its owned mockup server before production implementation. Do not treat the request for this plan as that approval.
 - **Small initial language:** support one Main entry, named tactic definitions/calls with typed input parameters, selector, sequence and bounded retry; SelectCity, SelectSources, NextCity, ClearSet, AddToSet, PlanCapture and ExecutePlan. Provide explicit sequence cleanup mapped to ReleasePlan on success/failure/abort, with cleanup visible in the UI. Do not expose arbitrary callback entry/step code or unrestricted Blockly programming blocks. Other nodes such as waits and custom guards are deferred.
@@ -47,6 +52,7 @@ Confirmed MVP scope includes reusable tactics with parameters and custom logic a
 - **Acceptance:** edit the shared Capture tactic's source limit or Main's neutral/enemy priority, save it, start a match with that custom enemy from normal Home settings, and observe the authored difference without a URL flag. Verify both Capture(kind) calls bind their own target kind and private slots, a shared-definition edit affects both on recompilation, nested parameter forwarding works, and malformed/recursive call graphs cannot activate. Also demonstrate a real capture requiring two sources, unchanged default AI for another faction, no duplicate orders, pause/reload/replay consistency, invalid-project rejection and recovery from storage/runtime errors. Verify narrow phone and desktop interaction, keyboard essentials and Blockly mount/disposal without leaked listeners/workspaces.
 
 ## Assumptions
+
 - Reusable tactics with typed input parameters and ordinary Home activation are confirmed requirements, not deferred scope. The bounded scalar-input/no-recursion model above keeps this MVP smaller than a general-purpose language.
 - Normal production release remains gated on validation, resource-bound, lifecycle and user-led design evidence; confirmation of Home availability does not waive these checks.
 - Projects are local and independent per enemy, not shared by reference between enemies. The default custom project reproduces the current neutral-first capture strategy and uses the same troop accounting and faction decision intervals.
@@ -55,26 +61,35 @@ Confirmed MVP scope includes reusable tactics with parameters and custom logic a
 - The existing production PWA suite has a separately reproduced 320px header-overlap blocker. Record that baseline separately; it does not authorize weakening tests or claiming new editor/offline tests pass without running them.
 
 ## Implementation Plan
+
 ### 1. Blockly Feasibility and Design
+
 Description: Build an isolated Blockly-backed revision under mockups using the shared mockup workspace, custom nested blocks, inline fields, Main/Capture tabs and parameterized calls. Demonstrate editing a shared definition and distinct neutral/enemy arguments; compare Zelos interaction with the current design and exercise touch/keyboard alternatives with the user. Measure representative worst-allowed project/forecast costs and propose enforceable limits; identify any runtime-isolation prerequisite before normal release. Verify serving and obtain explicit design approval; no production code changes in this slice. Preserve approved sources and verify/stop the owned server before slice 2.
 
 ### 2. Project Format and Blocks
+
 Description: After slice 1 approval, define the versioned project envelope, dependency/version boundary, typed fields and the bounded MVP block catalog, including visible cleanup, procedure models, definition/parameter identities and the default Main/Capture workspaces. Provide headless serialization fixtures and deterministic workspace/model load/save behavior; no game activation yet. Verify round-trip preservation of IDs, signatures, call arguments, fields/order, primitive slot kinds, default-project completeness, unsupported versions and malformed input.
 
 ### 3. Validation and JSON Compiler
+
 Description: Using slice 2's blocks, implement pure validation and compilation to Mistreevous JSON with block-linked diagnostics, measured resource admission limits and method allowlists. Extend the persistent runtime to accept native definitions and enforce execution budgets/fault handling without changing tactical policy. Verify direct-tree fixture equivalence to the existing capture behavior, expected failures versus faults, retry/cleanup/RUNNING semantics, invalid connections/slots/numbers, oversized programs and single/multi-source real simulations. No editor persistence or Home activation yet. This slice first verifies direct trees; reusable call expansion follows in slice 4.
 
 ### 4. Parameterized Tactics and Scoped Compilation
+
 Description: Using slices 2 and 3, validate the tactic call graph and compile calls through bounded expansion, typed literal/forwarded argument binding and deterministic per-call local memory. Seed Main with Capture(neutral) and Capture(enemy), preserving ordinary behavior-tree statuses and correctly bound cleanup. Verify two call sites cannot share target/source/plan slots, nested forwarding, RUNNING persistence, repeated invocation cleanup, shared-definition edits, rename/reference round trips, invalid signature changes, missing references, direct/indirect recursion and expanded-size/depth limits. Use real capture simulations, not only generated JSON snapshots; no game-settings activation yet.
 
 ### 5. Editor and Local Drafts
+
 Description: Build the approved responsive editing screen with the block library, Main/tactic tabs, create/rename/delete and parameter-signature controls, inline call arguments, essential keyboard/touch operations, undo/redo, errors, explicit Save, Reset and unsaved-change handling. Store one validated project per enemy with reported storage failures and protected last-valid data. Add the Home Edit logic entry and Normal/Custom choice, keeping activation feature-gated until slice 6 is complete rather than presenting a selection that silently runs a different bot. Verify edit/save/reopen fidelity, draft isolation, narrow/wide layout, invalid Save, reset/discard behavior, storage/version recovery and Blockly disposal. Lazy-load the editor and retain license notices.
 
 ### 6. Per-enemy Game Integration
+
 Description: Activate validated custom programs at new-match creation, freezing runtime JSON per faction into round setup and saved-game data. Keep normal AI running only for normal factions, preserve the development prototype's compatibility without double control, and restore/replay the same frozen program with fresh runtime memory. Verify changed branch priority/source limits in real gameplay, the two-source capture case, mixed normal/custom enemies, exactly-once dispatch, pause/hidden time, Home/restart, project edits after match creation, legacy saves, corrupted snapshots and explicit runtime-fault recovery. Normal release remains blocked if slice 1's safety/performance gate is not met.
 
 ### 7. Handover and Regression Checks
+
 Description: Add concise usage/contracts/recovery documentation and automated end-to-end coverage of edit → save → start → observe behavior. Run unit tests, focused editor/gameplay browser tests, TypeScript/production build and applicable standard/PWA regressions, including lazy editor assets offline. Distinguish pre-existing PWA failures from editor regressions and leave blocked checks explicit. Complete user-led phone/desktop/keyboard acceptance and record any real-device/performance limitations; do not claim human review from HTTP checks or unit tests.
 
 ## Open Questions
+
 None.

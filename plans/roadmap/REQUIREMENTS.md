@@ -257,50 +257,62 @@ Group code by feature: independent rules under `src/game/`, board/browser integr
 Each step must leave a small verifiable result. Do not build the full game in one pass.
 
 ### 1. Minimal project and static board
+
 Status: complete.
 Description: Fit the board to a phone viewport with readable counts/circles and a passing build.
 
 ### 2. Simulation and growth
+
 Status: complete.
 Description: Verify elapsed-time production across render frequencies, fractional carry and production caps with core tests.
 
 ### 3. All-but-one dispatch and travel
+
 Status: complete; mouse-only click orders are also implemented under the desktop plan.
 Description: Verify reservation-aware staggered launches, invalid-input cancellation, formation spreading/convergence and shared pointer/keyboard dispatch rules.
 
 ### 4. Combat and round completion
+
 Status: complete.
 Description: Verify reinforcement, capture, ties, collisions, ownership changes in transit, elimination and replay resets.
 
 ### 5. Basic active AI
+
 Status: complete.
 Description: Verify legal expansion, attack, defense and reinforcement from strong/weak positions, without hidden bonuses. River staging and Factory awareness follow the special-city plan.
 
 ### 6. Difficulty and tactical improvements
+
 Status: pending; Balanced/Aggressive/Defensive behaviors are implemented, not difficulty presets.
 Description: Define and verify difficulty/tuning separately from upgrades; targeted scenarios must cover vulnerability, incoming threats and winning/losing positions.
 
 ### 7. Mobile feel and pause
+
 Status: controls/lifecycle implemented; real-iPhone acceptance pending.
 Description: Check touch dragging, safe areas, interruptions, no catch-up and restart/pause usability on the target device.
 
 ### 8. Replayable map variety and responsive Home
+
 Status: seeded generated-match setup and responsive Home implemented; human playtesting pending.
 Description: Verify every supported city/enemy/river combination, region targets, preference retention and same/new-map lifecycle. Desktop and automated generation checks are complete; duration and tactical fairness remain manual.
 
 ### 9. Two-enemy Crossfire map
+
 Status: implemented; balance/real-device playtesting pending.
 Description: Verify one player and two independent hostile AIs on the 23-city map, including retained faction-specific behavior/effects through Play, restart, replay and Home.
 
 ### 10. Selectable upgrade effects
+
 Status: Industry/Factory/Slow Zone and exclusive buildable Watchtower/Artillery city roles implemented; progression deferred.
 Description: Verify typed features, current-owner Factory production, deterministic tower targeting, boundary-aware slowing, AI forecast parity and pause/reset/restore isolation. Independent AI effects exclude player-only Slow Zone selection. Further effects follow the focused upgrade/special-city plans.
 
 ### 11. Offline and Home Screen support
+
 Status: production PWA infrastructure implemented; target-device validation pending.
 Description: Validate cached offline launch, installed safe areas and update behavior after initial online loading. Event-only round persistence is implemented independently; its expanded regression matrix remains test-repair slice 3.
 
 ### 12. City conversion and reusable air transport
+
 Status: implemented and automatically verified on isolated feature branch; manual balance/device acceptance pending.
 Description: Follow the separately numbered [11-slice city-conversion plan](../city-conversion/REQUIREMENTS.md) for Production/Defender/Airfield conversion, shield coexistence, one-plane lifecycle, combat delivery, save/accounting, mobile controls, rendering, AI and integrated playtests. User explicitly approved all eight initial defaults and both delivery/control mockups.
 

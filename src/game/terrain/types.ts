@@ -1,4 +1,4 @@
-import type { Point } from '../types';
+import type { Point } from '@/game/types';
 
 // Authored logical-field geometry, independent of Canvas/Voronoi cells.
 export interface Bounds {

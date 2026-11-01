@@ -1,0 +1,250 @@
+import { describe, expect, it, vi } from 'vitest';
+
+import { createSimulation } from '@/game/state';
+import type { Territory } from '@/game/types';
+import { compileRoundSetup } from '@/game/upgrades/compile';
+
+import { drawCityFeatures } from './draw-city-features';
+import { drawChevronIcon, drawDefenseShieldIcon } from './upgrade-icons';
+
+const host: Territory = { id: 'host', owner: 'player', units: 36, x: 100, y: 100 };
+const enemy: Territory = { id: 'enemy', owner: 'enemy', units: 36, x: 250, y: 300 };
+const context = () => ({
+  save: vi.fn(),
+  restore: vi.fn(),
+  beginPath: vi.fn(),
+  arc: vi.fn(),
+  fill: vi.fn(),
+  stroke: vi.fn(),
+  fillText: vi.fn(),
+  moveTo: vi.fn(),
+  lineTo: vi.fn(),
+  closePath: vi.fn(),
+  roundRect: vi.fn(),
+  bezierCurveTo: vi.fn(),
+  translate: vi.fn(),
+  scale: vi.fn(),
+  setLineDash: vi.fn(),
+  globalAlpha: 1,
+});
+const seed = (
+  upgrades: ('factory' | 'industry' | 'defensive-network')[] = [],
+  fieldFeatures: NonNullable<Territory['features']> = [],
+) => {
+  const setup = compileRoundSetup([{ ...host, features: fieldFeatures }, enemy], {
+    player: upgrades,
+  });
+  return createSimulation(setup.territories, setup.rules);
+};
+const render = (state = seed(), width = 360, height = 480) => {
+  const ctx = context();
+  drawCityFeatures(ctx as unknown as CanvasRenderingContext2D, state, width, height);
+  return ctx;
+};
+
+describe('city upgrade indicators', () => {
+  it('draws a vector factory silhouette, not F text, above/right of the counter', () => {
+    const ctx = render(seed(['factory']));
+    expect(ctx.fillText).not.toHaveBeenCalled();
+    expect(ctx.closePath).toHaveBeenCalledOnce();
+    expect(ctx.lineTo.mock.calls.length).toBeGreaterThan(6);
+    expect(ctx.translate.mock.calls[0][0]).toBeGreaterThan(host.x);
+    expect(ctx.translate.mock.calls[0][1]).toBeLessThan(host.y);
+  });
+  it('draws one left-side chevron for Industry but none on ordinary enemy cities', () => {
+    const ctx = render(seed(['industry']));
+    expect(ctx.arc).toHaveBeenCalledOnce();
+    expect(ctx.moveTo).toHaveBeenCalledOnce();
+    expect(ctx.lineTo).toHaveBeenCalledTimes(2);
+    expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
+  });
+  it('draws two distinct badges when Factory and Industry stack, not a double chevron', () => {
+    const ctx = render(seed(['factory', 'industry']));
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    expect(ctx.closePath).toHaveBeenCalledOnce();
+    expect(ctx.moveTo).toHaveBeenCalledTimes(2);
+    expect(ctx.translate.mock.calls.map((call) => call[0] > host.x)).toEqual([true, false]);
+  });
+  it('keeps a captured factory active and removes the former owner’s Industry chevron', () => {
+    const state = seed(['factory', 'industry']);
+    const ctx = render({
+      ...state,
+      territories: state.territories.map((city) => ({ ...city, owner: 'enemy' })),
+    });
+    expect(ctx.arc).toHaveBeenCalledOnce();
+    expect(ctx.globalAlpha).toBe(1);
+    expect(ctx.closePath).toHaveBeenCalledOnce();
+    expect(ctx.restore).toHaveBeenCalledOnce();
+    const restored = render(state);
+    expect(restored.arc).toHaveBeenCalledTimes(2);
+  });
+  it('dims neutral factories until captured', () => {
+    const state = seed(['factory']);
+    const ctx = render({
+      ...state,
+      territories: state.territories.map((city) => ({ ...city, owner: 'neutral' })),
+    });
+    expect(ctx.globalAlpha).toBe(0.45);
+  });
+  it('shows the Industry chevron on newly captured cities, never on neutrals', () => {
+    const state = seed(['industry']);
+    const cities = [
+      state.territories[0],
+      { ...state.territories[1], owner: 'player' as const },
+      { ...state.territories[1], id: 'neutral', owner: 'neutral' as const },
+    ];
+    expect(render({ ...state, territories: cities }).arc).toHaveBeenCalledTimes(2);
+  });
+  it('keeps small-board icons readable and separated from counters', () => {
+    const ctx = render(seed(['factory', 'industry']), 288, 260);
+    for (const call of ctx.arc.mock.calls) expect(call[2]).toBe(5);
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
+  });
+  it('uses compact badges outside the counter on the logical-size board', () => {
+    const ctx = render(seed(['factory', 'industry']));
+    expect(ctx.arc.mock.calls.map((call) => call.slice(0, 3))).toEqual([
+      [114, 86, 5],
+      [86, 86, 5],
+    ]);
+  });
+  it('draws a compact cannon outside the counter, distinct from the Factory badge', () => {
+    const city = {
+      ...host,
+      features: [{ id: 'gun', kind: 'artillery' as const, range: 150, fireIntervalMs: 2000 }],
+    };
+    const ctx = render(createSimulation([city, enemy]));
+    expect(ctx.arc.mock.calls[0].slice(0, 3)).toEqual([114, 86, 5]);
+    expect(ctx.lineTo.mock.calls.length).toBeGreaterThan(3);
+    const stacked = render(
+      createSimulation([
+        {
+          ...city,
+          features: [...city.features, { id: 'plant', kind: 'factory', productionMultiplier: 2 }],
+        },
+        enemy,
+      ]),
+    );
+    expect(new Set(stacked.translate.mock.calls.map((call) => call.join(','))).size).toBe(2);
+  });
+  it('shows the tier shield markers on every city in an upgraded connected network', () => {
+    const territories: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 50, y: 100 },
+      { id: 'a', owner: 'player', units: 10, x: 130, y: 100 },
+      { id: 'b', owner: 'player', units: 10, x: 210, y: 100 },
+      { id: 'c', owner: 'player', units: 10, x: 290, y: 100 },
+      enemy,
+    ];
+    const setup = compileRoundSetup(territories, { player: ['defensive-network'] });
+    const ctx = render(createSimulation(setup.territories, setup.rules));
+    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['1', '1', '1', '1']);
+    expect(ctx.roundRect).not.toHaveBeenCalled();
+    expect(ctx.stroke).toHaveBeenCalledTimes(4); // One Tabler shield outline per connected city.
+  });
+
+  it('adds no indicators when no upgrades are active, even for a large connected group', () => {
+    const territories: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 50, y: 100 },
+      { id: 'a', owner: 'player', units: 10, x: 130, y: 100 },
+      { id: 'b', owner: 'player', units: 10, x: 210, y: 100 },
+      { id: 'c', owner: 'player', units: 10, x: 290, y: 100 },
+      enemy,
+    ];
+    expect(render(createSimulation(territories)).arc).not.toHaveBeenCalled();
+  });
+  it('draws the Watchtower coverage ring and tower silhouette at its host city', () => {
+    const state = seed([], [{ id: 'tower', kind: 'watchtower', range: 150, fireIntervalMs: 250 }]);
+    const ctx = render(state);
+    // One large coverage arc plus one small tower badge; the circle is a visual overlay only.
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    const radii = ctx.arc.mock.calls.map((call) => call[2]);
+    expect(radii.some((radius) => radius > 21)).toBe(true);
+    expect(ctx.translate).toHaveBeenCalledOnce();
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+  it('draws a distinct dashed 90-unit Slow Zone circle and lower-left marker', () => {
+    const ctx = render(
+      seed([], [{ id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 }]),
+    );
+    expect(ctx.arc.mock.calls.some((call) => call[2] === 150)).toBe(true);
+    expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
+    expect(ctx.translate.mock.calls[0][0]).toBeLessThan(host.x);
+    expect(ctx.translate.mock.calls[0][1]).toBeGreaterThan(host.y);
+  });
+  it('keeps four upgrade markers distinct when all effects share a city', () => {
+    const ctx = render(
+      seed(
+        ['factory', 'industry'],
+        [
+          { id: 'tower', kind: 'watchtower', range: 150, fireIntervalMs: 250 },
+          { id: 'zone', kind: 'slow-zone', radius: 150, speedMultiplier: 0.5 },
+        ],
+      ),
+    );
+    expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y > host.y])).toEqual([
+      [false, true],
+      [true, false],
+      [true, true],
+    ]);
+  });
+  it('renders a single numbered Tabler shield for each defense tier', () => {
+    const ctx = context();
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 1, '#123');
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 2, '#123');
+    drawDefenseShieldIcon(ctx as unknown as CanvasRenderingContext2D, 3, '#123');
+    expect(ctx.fillText.mock.calls.map(([tier]) => tier)).toEqual(['1', '2', '3']);
+    expect(ctx.stroke).toHaveBeenCalledTimes(3);
+  });
+  it('uses one Defender capacity badge even with a network, preserving stacked features', () => {
+    const initial = seed(
+      ['factory', 'industry', 'defensive-network'],
+      [{ id: 'gun', kind: 'artillery', range: 90, fireIntervalMs: 2000 }],
+    );
+    const state = {
+      ...initial,
+      territories: [
+        ...initial.territories,
+        ...[160, 220, 280].map((x, i) => ({
+          ...initial.territories[0],
+          id: `ally-${i}`,
+          x,
+          features: [],
+        })),
+      ],
+    };
+    const ctx = render({
+      ...state,
+      territories: state.territories.map((c) =>
+        c.id === host.id ? { ...c, cityType: 'defender' as const } : c,
+      ),
+    });
+    expect(ctx.fillText.mock.calls.map(([value]) => value)).toEqual(['3', '1', '1', '1']);
+    expect(ctx.translate.mock.calls.some(([x, y]) => x < host.x && y < host.y)).toBe(true); // Defender badge occupies the upper-left role slot.
+
+    expect(new Set(ctx.translate.mock.calls.map((call) => call.join(','))).size).toBe(
+      ctx.translate.mock.calls.length,
+    );
+    expect(ctx.arc).toHaveBeenCalledTimes(4); // Factory and three allies' Industry; weapon is the city role, not a stacked feature.
+  });
+  it('marks Airfields above/left without replacing garrison or attached features', () => {
+    const state = seed(['factory', 'industry']);
+    const ctx = render({
+      ...state,
+      territories: state.territories.map((c) =>
+        c.id === host.id ? { ...c, cityType: 'airfield' as const } : c,
+      ),
+    });
+    expect(ctx.arc).toHaveBeenCalledTimes(2);
+    expect(ctx.translate.mock.calls.map(([x, y]) => [x > host.x, y < host.y])).toEqual([
+      [true, true],
+      [false, true],
+    ]);
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+  it('supports two stacked chevrons for a future level without enabling that level', () => {
+    const ctx = context();
+    drawChevronIcon(ctx as unknown as CanvasRenderingContext2D, 2);
+    expect(ctx.moveTo).toHaveBeenCalledTimes(2);
+    expect(ctx.lineTo).toHaveBeenCalledTimes(4);
+  });
+});

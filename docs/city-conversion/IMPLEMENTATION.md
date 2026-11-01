@@ -11,13 +11,13 @@
 
 ## City roles
 
-| Type | Troop growth | Ability |
-|---|---|---|
-| Production | Normal, capped at 50 automatic production | Industry/Factory troop multipliers apply |
-| Defender | None | Recharges one batch-blocking shield every 10 seconds, capacity 3; blocks hostile ground transit through its region |
-| Airfield | None | Prepares and supports one reusable airplane |
-| Watchtower | None | Fires at hostile ground troops within range 150; 4 shots per second |
-| Artillery | None | Fires at enemy garrisons within range 150; 3 shots per second, mountains block |
+| Type       | Troop growth                              | Ability                                                                                                            |
+| ---------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Production | Normal, capped at 50 automatic production | Industry/Factory troop multipliers apply                                                                           |
+| Defender   | None                                      | Recharges one batch-blocking shield every 10 seconds, capacity 3; blocks hostile ground transit through its region |
+| Airfield   | None                                      | Prepares and supports one reusable airplane                                                                        |
+| Watchtower | None                                      | Fires at hostile ground troops within range 150; 4 shots per second                                                |
+| Artillery  | None                                      | Fires at enemy garrisons within range 150; 3 shots per second, mountains block                                     |
 
 All types can hold reinforcements above 50 and dispatch ground troops. Roles are mutually exclusive and never stack weapons. Factory and Slow Zone remain independent attached features; Artillery/Watchtower are city roles, not features. Attached Factory troop growth is suspended on nonproduction roles. Original-home identity and Defensive Network adjacency do not change with conversion.
 

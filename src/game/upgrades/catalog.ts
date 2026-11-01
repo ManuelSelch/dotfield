@@ -1,5 +1,5 @@
-import type { FactionRules } from '../types';
-import type { FactoryFeature } from '../features/types';
+import type { FactoryFeature } from '@/game/features/types';
+import type { FactionRules } from '@/game/types';
 
 export interface StatModifier {
   readonly kind: 'multiply-stat';
@@ -17,7 +17,8 @@ export interface CaptureShieldEffect {
 export interface ConnectedDefenseEffect {
   readonly kind: 'connected-defense';
 }
-export type UpgradeEffect = StatModifier | StartingFeatureEffect | CaptureShieldEffect | ConnectedDefenseEffect;
+export type UpgradeEffect =
+  StatModifier | StartingFeatureEffect | CaptureShieldEffect | ConnectedDefenseEffect;
 interface UpgradeDefinition {
   readonly id: string;
   readonly name: string;
@@ -27,19 +28,29 @@ interface UpgradeDefinition {
 
 export const UPGRADES = {
   industry: {
-    id: 'industry', name: 'Industry', description: '+25% production · You only',
+    id: 'industry',
+    name: 'Industry',
+    description: '+25% production · You only',
     effects: [{ kind: 'multiply-stat', stat: 'unitsPerSecond', multiplier: 1.25 }],
   },
   factory: {
-    id: 'factory', name: 'Factory', description: '2× starting-city production · Follows ownership',
-    effects: [{ kind: 'attach-starting-feature', feature: { kind: 'factory', productionMultiplier: 2 } }],
+    id: 'factory',
+    name: 'Factory',
+    description: '2× starting-city production · Follows ownership',
+    effects: [
+      { kind: 'attach-starting-feature', feature: { kind: 'factory', productionMultiplier: 2 } },
+    ],
   },
   'capture-shield': {
-    id: 'capture-shield', name: 'Capture shield', description: 'New captures block 3 hostile batches · Refreshes on recapture',
+    id: 'capture-shield',
+    name: 'Capture shield',
+    description: 'New captures block 3 hostile batches · Refreshes on recapture',
     effects: [{ kind: 'capture-shield', batches: 3 }],
   },
   'defensive-network': {
-    id: 'defensive-network', name: 'Defensive Network', description: 'Connected cities recharge 1 shield every 10s · Tier sets capacity (1–3)',
+    id: 'defensive-network',
+    name: 'Defensive Network',
+    description: 'Connected cities recharge 1 shield every 10s · Tier sets capacity (1–3)',
     effects: [{ kind: 'connected-defense' }],
   },
 } as const satisfies Record<string, UpgradeDefinition>;

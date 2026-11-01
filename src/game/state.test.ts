@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { TERRITORIES } from '../board/map';
+
+import { TERRITORIES } from '@/board/map';
+
 import { createSimulation } from './state';
 
 describe('simulation state', () => {
@@ -7,7 +9,9 @@ describe('simulation state', () => {
     const first = createSimulation(TERRITORIES);
     const second = createSimulation(TERRITORIES);
     expect(first.elapsedMs).toBe(0);
-    expect(first.territories.map((node) => node.units)).toEqual(TERRITORIES.map((node) => node.units));
+    expect(first.territories.map((node) => node.units)).toEqual(
+      TERRITORIES.map((node) => node.units),
+    );
     expect(first.territories[0]).not.toBe(TERRITORIES[0]);
     expect(first.territories[0]).not.toBe(second.territories[0]);
     expect(first.territories.every((node) => node.growthRemainder === 0)).toBe(true);

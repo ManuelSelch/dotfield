@@ -8,7 +8,7 @@ Following the approved bridge-city mockup (revision 3), this slice adds a select
 
 ### Map and terrain
 
-- New `bridges` map at `src/board/riverMap.ts` with 10 cities in two banks separated by a river at y=225–255, plus two paired bridge crossings (west and east, 64 units wide).
+- New `bridges` map at `src/board/river-map.ts` with 10 cities in two banks separated by a river at y=225–255, plus two paired bridge crossings (west and east, 64 units wide).
 - `FieldMap.river` is optional; existing maps remain unchanged.
 - `River` type and `createRiver()` validator in `src/game/river.ts` enforce:
   - Horizontal river bounds, distinct aligned endpoint pairs, non-overlapping decks.
@@ -53,7 +53,7 @@ Following the approved bridge-city mockup (revision 3), this slice adds a select
 ### Tests
 
 - 6 unit tests in `src/game/river.test.ts`: validation, immutability, order legality, queue preservation, real dot clearance, save/restore, AI staging.
-- 5 unit tests in `src/board/riverGeometry.test.ts`: bank-clipped regions and whole-region input at four board sizes, cache invalidation.
-- 1 unit test in `src/board/riverMap.test.ts`: map selection, upgrade compilation, dispatch rules and restart fidelity.
+- 5 unit tests in `src/board/river-geometry.test.ts`: bank-clipped regions and whole-region input at four board sizes, cache invalidation.
+- 1 unit test in `src/board/river-map.test.ts`: map selection, upgrade compilation, dispatch rules and restart fidelity.
 - 4 Playwright browser tests in `tests/bridge.spec.ts`: staging workflow, invalid-order rejection, river-area non-selection, AI legal staging.
 - 362 total unit tests pass; production build and 4 new browser tests verified.

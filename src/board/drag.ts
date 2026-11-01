@@ -1,4 +1,4 @@
-import type { Point } from '../game/types';
+import type { Point } from '@/game/types';
 
 export interface DragSelection {
   readonly focusId?: string;

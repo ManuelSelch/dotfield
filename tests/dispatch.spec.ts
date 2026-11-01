@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { fieldPoints } from './helpers/fieldPoints';
+
 import { BATCH_INTERVAL_MS, TERRITORY_RADIUS, TRAVEL_SPEED } from '../src/game/settings';
 
-const firstArrivalMs = Math.ceil((200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED * 1000) + 100;
+import { fieldPoints } from './helpers/fieldPoints';
+
+const firstArrivalMs = Math.ceil(((200 - 2 * TERRITORY_RADIUS) / TRAVEL_SPEED) * 1000) + 100;
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.beforeEach(async ({ page }) => {
@@ -12,7 +14,9 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/tests/fixtures/round.html?passive');
 });
 
-test('drag sends all but one and reduces the target as each real batch arrives', async ({ page }) => {
+test('drag sends all but one and reduces the target as each real batch arrives', async ({
+  page,
+}) => {
   const { source, target } = await fieldPoints(page);
   const canvas = page.getByRole('img', { name: 'Territory board' });
   const image = () => canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL());
@@ -20,17 +24,21 @@ test('drag sends all but one and reduces the target as each real batch arrives',
   await page.mouse.move(source.x, source.y);
   await page.mouse.down();
   await page.mouse.move(target.x, target.y, { steps: 8 });
-  expect(await image() !== before).toBe(true);
+  expect((await image()) !== before).toBe(true);
   await page.screenshot({ path: 'test-results/drag-highlight.png' });
   await page.mouse.up();
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 31 units. Production city.',
+  );
   const transfers = page.getByRole('list', { name: 'Unit transfers' });
   await expect(transfers.getByRole('listitem')).toHaveCount(7);
   await expect(transfers).toContainText('5 units: south → centre · travelling');
   const launched = await image();
   await page.clock.runFor(550);
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
-  expect(await image() !== launched).toBe(true);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 31 units. Production city.',
+  );
+  expect((await image()) !== launched).toBe(true);
   await page.screenshot({ path: 'test-results/units-travelling.png' });
   const centre = page.getByRole('listitem').filter({ hasText: /^centre:/ });
   await expect(centre).toHaveText('centre: Neutral, 20 units. Production city.');
@@ -63,41 +71,60 @@ test('source units leave one group at a time while normal growth continues', asy
   await expect(south).toHaveText('south: You, 22 units. Production city.');
 });
 
-test('replacement drags redirect queued troops and leave old airborne groups travelling', async ({ page }) => {
+test('replacement drags redirect queued troops and leave old airborne groups travelling', async ({
+  page,
+}) => {
   const transfers = page.getByRole('list', { name: 'Unit transfers' });
   for (const destinationName of ['target', 'outside', 'source', 'enemy'] as const) {
     // A self-target tap opens management and shrinks the board for the next drag.
     const points = await fieldPoints(page);
-    const source = points.source, destination = points[destinationName];
+    const source = points.source,
+      destination = points[destinationName];
     await page.mouse.move(source.x, source.y);
     await page.mouse.down();
     await page.mouse.move(destination.x, destination.y);
     await page.mouse.up();
     if (destinationName !== 'enemy') {
       await expect(transfers.getByRole('listitem')).toHaveCount(7);
-      await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
+      await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+        'south: You, 31 units. Production city.',
+      );
     }
   }
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 26 units. Production city.');
-  await expect(transfers.getByRole('listitem').filter({ hasText: 'south → centre' })).toHaveCount(1);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 26 units. Production city.',
+  );
+  await expect(transfers.getByRole('listitem').filter({ hasText: 'south → centre' })).toHaveCount(
+    1,
+  );
   await expect(transfers.getByRole('listitem').filter({ hasText: 'south → north' })).toHaveCount(6);
   await page.clock.runFor(firstArrivalMs);
-  await expect(page.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText('centre: Neutral, 15 units. Production city.');
+  await expect(page.getByRole('listitem').filter({ hasText: /^centre:/ })).toHaveText(
+    'centre: Neutral, 15 units. Production city.',
+  );
 });
 
 test('off-board, self-target and non-player region drags spend nothing', async ({ page }) => {
   for (const [fromName, toName] of [
-    ['source', 'outside'], ['source', 'source'], ['enemy', 'target'], ['target', 'source'],
+    ['source', 'outside'],
+    ['source', 'source'],
+    ['enemy', 'target'],
+    ['target', 'source'],
   ] as const) {
     const points = await fieldPoints(page);
-    const from = points[fromName], to = points[toName];
+    const from = points[fromName],
+      to = points[toName];
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
     await page.mouse.move(to.x, to.y);
     await page.mouse.up();
   }
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 36 units. Production city.');
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(0);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 36 units. Production city.',
+  );
+  await expect(
+    page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem'),
+  ).toHaveCount(0);
 });
 
 test('touch drag dispatches once and never scrolls the page', async ({ page, context }) => {
@@ -106,7 +133,11 @@ test('touch drag dispatches once and never scrolls the page', async ({ page, con
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [source] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [target] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText('south: You, 31 units. Production city.');
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(7);
+  await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toHaveText(
+    'south: You, 31 units. Production city.',
+  );
+  await expect(
+    page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem'),
+  ).toHaveCount(7);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test.beforeEach(async ({ page }) => {
@@ -7,7 +8,9 @@ test.beforeEach(async ({ page }) => {
   await openAuthoredMatch(page);
 });
 
-test('shows real enemy decisions in a dismissible mobile overlay without resizing the map', async ({ page }) => {
+test('shows real enemy decisions in a dismissible mobile overlay without resizing the map', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const board = page.getByRole('img', { name: 'Territory board' });
   const boardBox = await board.boundingBox();
@@ -53,7 +56,9 @@ test('explains a real no-action decision with its actual blockers', async ({ pag
   await expect(page.locator('.enemy-dashboard-map-marker')).toHaveCount(1);
 });
 
-test('refreshes repeated no-action results and freezes their age while paused', async ({ page }) => {
+test('refreshes repeated no-action results and freezes their age while paused', async ({
+  page,
+}) => {
   await page.goto('/tests/fixtures/ai-dashboard.html');
   await page.getByRole('button', { name: 'Show enemy dashboard' }).click();
   const dashboard = page.getByRole('complementary', { name: 'Enemy dashboard' });
@@ -76,7 +81,9 @@ test('refreshes repeated no-action results and freezes their age while paused', 
   await expect(dashboard).toContainText('Evaluation #3');
 });
 
-test('shows a growing pending timer beside an old result, then reports a worker error', async ({ page }) => {
+test('shows a growing pending timer beside an old result, then reports a worker error', async ({
+  page,
+}) => {
   // Keep the first real worker evaluation; deliberately withhold subsequent requests.
   await page.addInitScript(() => {
     const NativeWorker = window.Worker;
@@ -85,7 +92,8 @@ test('shows a growing pending timer beside an old result, then reports a worker 
       postMessage(...args: Parameters<Worker['postMessage']>) {
         this.requests++;
         if (this.requests === 1) super.postMessage(...args);
-        else if (this.requests === 2) setTimeout(() => this.dispatchEvent(new Event('error')), 6000);
+        else if (this.requests === 2)
+          setTimeout(() => this.dispatchEvent(new Event('error')), 6000);
       }
     };
   });

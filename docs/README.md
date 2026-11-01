@@ -13,7 +13,6 @@
 - [Visual enemy editor](bot-editor/IMPLEMENTATION.md): authoring, storage and disabled custom activation.
 - [Development-only MDSL prototype](ai-mdsl/IMPLEMENTATION.md): experimental tree contracts and limitations.
 
-
 ## Documentation policy
 
 - Put temporary requirements, designs, proposed features and historical slice reports in [plans](../plans/README.md).

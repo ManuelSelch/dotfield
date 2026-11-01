@@ -1,29 +1,45 @@
 import { expect, test } from '@playwright/test';
+
 import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 test('terminal Play again retains Industry and clears the finished round', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto('/tests/fixtures/round.html?industry');
-  const south = page.getByRole('list', { name: 'Territory details' }).getByRole('listitem').filter({ hasText: /^south:/ });
-  await page.getByRole('button', { name: /^Select south region/ }).focus(); await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: /^Select centre region/ }).focus(); await page.keyboard.press('Enter');
+  const south = page
+    .getByRole('list', { name: 'Territory details' })
+    .getByRole('listitem')
+    .filter({ hasText: /^south:/ });
+  await page.getByRole('button', { name: /^Select south region/ }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: /^Select centre region/ }).focus();
+  await page.keyboard.press('Enter');
   await page.clock.runFor(12000);
   await expect(page.getByRole('heading', { name: 'Victory' })).toBeVisible();
   await page.getByRole('button', { name: 'Play again', exact: true }).click();
   await expect(south).toHaveText('south: You, 20 units. Production city.');
-  await expect(page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem')).toHaveCount(0);
+  await expect(
+    page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem'),
+  ).toHaveCount(0);
   await page.clock.runFor(850);
   await expect(south).toHaveText('south: You, 21 units. Production city.');
 });
 
-for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }]) {
-  test(`Industry is player-only and retains setup through pause/restart at ${viewport.width}px`, async ({ page }) => {
+for (const viewport of [
+  { width: 320, height: 480 },
+  { width: 430, height: 932 },
+])
+  test(`Industry is player-only and retains setup through pause/restart at ${viewport.width}px`, async ({
+    page,
+  }) => {
     await page.setViewportSize(viewport);
     await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
     await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
-    const city = (id: string) => page.getByRole('list', { name: 'Territory details' })
-      .getByRole('listitem').filter({ hasText: new RegExp(`^${id}:`) });
+    const city = (id: string) =>
+      page
+        .getByRole('list', { name: 'Territory details' })
+        .getByRole('listitem')
+        .filter({ hasText: new RegExp(`^${id}:`) });
     for (let mapIndex = 0; mapIndex < 4; mapIndex++) {
       await openAuthoredMatch(page, mapIndex, { player: ['industry'] });
       await expect(city('south')).toHaveText('south: You, 36 units. Production city.');
@@ -50,4 +66,3 @@ for (const viewport of [{ width: 320, height: 480 }, { width: 430, height: 932 }
     await page.reload();
     await expect(city('south')).toHaveText('south: You, 37 units. Production city.');
   });
-}

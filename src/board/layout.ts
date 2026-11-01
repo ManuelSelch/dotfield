@@ -1,11 +1,15 @@
-import type { Point, Territory } from '../game/types';
-import { TERRITORY_RADIUS } from '../game/settings';
+import { TERRITORY_RADIUS } from '@/game/settings';
+import type { Point, Territory } from '@/game/types';
 
 export const FIELD = { width: 360, height: 480, radius: TERRITORY_RADIUS } as const;
 
 export function fieldTransform(width: number, height: number) {
   const scale = Math.min(width / FIELD.width, height / FIELD.height);
-  return { scale, offsetX: (width - FIELD.width * scale) / 2, offsetY: (height - FIELD.height * scale) / 2 };
+  return {
+    scale,
+    offsetX: (width - FIELD.width * scale) / 2,
+    offsetY: (height - FIELD.height * scale) / 2,
+  };
 }
 
 export function screenPoint(point: Point, width: number, height: number) {

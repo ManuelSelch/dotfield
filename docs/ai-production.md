@@ -35,20 +35,20 @@ The enemy uses the same 50-troop production cap, all-but-one orders and physical
 
 `src/game/ai/production.test.ts` covers pre-cap relief, repeated decisions without ping-pong, consolidation above 100, premature evacuation, Factory timing and priority, a net-negative Factory sink, queue accounting, stronghold preservation, known threats, emergency defense, attacks from collected armies, disabled production, bridge/mountain legality, independent factions and immutability. `tests/ai-production.spec.ts` exercises the real worker and production round-save entry path at mobile and desktop widths.
 
-`src/game/ai/cappedStall.test.ts` reproduces the full-Airfield deadlock, checks all behaviors, partial room, reserved supplies, a non-default faction and Relay-off compatibility, then runs 130 seconds of repeated production/decisions through consolidation above 100 and a successful attack. `tests/ai-capped-stall.spec.ts` repeats the progression through the real asynchronous worker and saved-round entry; virtual stepping waits for worker replies rather than applying stale decisions after large clock jumps.
+`src/game/ai/capped-stall.test.ts` reproduces the full-Airfield deadlock, checks all behaviors, partial room, reserved supplies, a non-default faction and Relay-off compatibility, then runs 130 seconds of repeated production/decisions through consolidation above 100 and a successful attack. `tests/ai-capped-stall.spec.ts` repeats the progression through the real asynchronous worker and saved-round entry; virtual stepping waits for worker replies rather than applying stale decisions after large clock jumps.
 
 These checks establish rule behavior, not optimal play or human balance. The policy remains a deterministic heuristic with known-order forecasts; it has no long-term campaign planner, predicted enemy feints or persistent logistics-role state.
 
 ## Decision performance
 
-A decision runs inside the AI worker, so its cost is visible as *Waiting for worker response* in the enemy dashboard. Large Courtyard + Relay boards (30 cities, city roles, many in-flight armies) previously took 10–18 s per decision because `chooseOrder` ran a full battle forecast for every source/target pair and baselines were recomputed per candidate.
+A decision runs inside the AI worker, so its cost is visible as _Waiting for worker response_ in the enemy dashboard. Large Courtyard + Relay boards (30 cities, city roles, many in-flight armies) previously took 10–18 s per decision because `chooseOrder` ran a full battle forecast for every source/target pair and baselines were recomputed per candidate.
 
 Two kinds of work are now skipped **without changing which action is chosen**:
 
 - **Necessary-condition pruning.** A candidate that the feasibility rules would reject is dropped before its forecast. Friendly targets are skipped when they are neither front-line nor production relief nor a useful airlift sink, or when a full Airfield cannot take the order. Hostile/neutral targets are skipped when even the best possible case — every committed friendly troop plus every in-range artillery shot — cannot outnumber the current garrison. Since combat trades 1:1 and only artillery can lower a garrison without a matching attacker loss, this lower bound is exact for pruning.
 - **Shared baselines.** Ground, flight and conversion branches share one decision-scoped `BaselineForecasts` cache keyed by horizon; a relay recapture also stops before forecasting donor prefixes when no prefix can outnumber the holder.
 
-`src/game/ai/candidates.ts` holds the shared lower-bound helpers. `src/game/ai/forecast.ts` exposes `resetForecastCalls`/`forecastCallCount` for profiling. `src/game/ai/decisionLatency.test.ts` builds a 30-city Courtyard + Relay state and bounds both the forecast count and wall-clock time, so candidate enumeration cannot silently regress to forecasting every pair.
+`src/game/ai/candidates.ts` holds the shared lower-bound helpers. `src/game/ai/forecast.ts` exposes `resetForecastCalls`/`forecastCallCount` for profiling. `src/game/ai/decision-latency.test.ts` builds a 30-city Courtyard + Relay state and bounds both the forecast count and wall-clock time, so candidate enumeration cannot silently regress to forecasting every pair.
 
 ## Decision time budget
 
@@ -64,4 +64,4 @@ Two kinds of work are now skipped **without changing which action is chosen**:
 - A feasible direct attack/expansion and any emergency defence are never delayed; assembly only replaces a lower-value economic reinforcement.
 - Optional Artillery/Watchtower/Airfield builds are skipped while a feasible attack/expansion or a chosen assembly is available (`offense-available`), so the AI grows or attacks instead of buying weapons. A Defender for an exposed city is always considered.
 
-`src/game/ai/assembly.test.ts` covers staging, the multi-decision capture, the preserved direct-relay path and the no-donor case. `src/game/ai/decisionBudget.test.ts` covers budget equivalence, expiry and truncation trace. `tests/ai-capped-stall.spec.ts` still drives the real worker through resumed production and a real capture.
+`src/game/ai/assembly.test.ts` covers staging, the multi-decision capture, the preserved direct-relay path and the no-donor case. `src/game/ai/decision-budget.test.ts` covers budget equivalence, expiry and truncation trace. `tests/ai-capped-stall.spec.ts` still drives the real worker through resumed production and a real capture.
