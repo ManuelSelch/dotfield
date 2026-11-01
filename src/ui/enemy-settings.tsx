@@ -2,6 +2,7 @@ import type { FieldMap } from '@/board/maps';
 import { factionPalette } from '@/board/palette';
 import type { AiBehavior } from '@/game/ai/behaviors';
 import type { UpgradeId } from '@/game/upgrades/catalog';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 
 import { UpgradeOptions } from './upgrade-options';
 
@@ -26,7 +27,7 @@ export function EnemySettings({
         .map((city) => city.owner)
         .filter((owner) => owner !== 'neutral' && owner !== 'player'),
     ),
-  ].sort();
+  ].sort(compareCodeUnits);
   if (!enemies.length) return null;
   const total = enemies.reduce((sum, id) => sum + (upgrades[id]?.length ?? 0), 0);
   const custom = enemies.some((id) => aiBehaviors[id] && aiBehaviors[id] !== 'balanced');

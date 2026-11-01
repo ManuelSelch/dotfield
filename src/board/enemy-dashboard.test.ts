@@ -24,6 +24,43 @@ function view(action: AiAction | null, relayCityId?: string) {
 }
 
 describe('enemy dashboard lifecycle', () => {
+  it('defaults completion metadata independently for each decision and resets no-action streaks', () => {
+    const trace = new AiDecisionTraceCollector().finish(null);
+    const idle = recordDecision(state, 'enemy', null, trace);
+    const action: AiAction = {
+      type: 'ground',
+      kind: 'attack',
+      sourceId: 'west',
+      targetId: 'east',
+      score: 10,
+    };
+
+    const active = recordDecision(
+      { ...state, elapsedMs: 2200 },
+      'enemy',
+      action,
+      trace,
+      undefined,
+      idle,
+    );
+
+    expect(idle).toMatchObject({
+      completedAtMs: 1800,
+      evaluation: 0,
+      outcome: 'no-command',
+      noActionSinceMs: 1800,
+      noActionCount: 1,
+    });
+    expect(active).toMatchObject({
+      completedAtMs: 2200,
+      evaluation: 0,
+      outcome: 'inactive',
+      noActionSinceMs: undefined,
+      noActionCount: 0,
+    });
+    expect(idle.completedAtMs).toBe(1800);
+  });
+
   const activity = {
     elapsedMs: 10000,
     nowMs: 20000,

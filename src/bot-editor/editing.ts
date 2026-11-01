@@ -1,3 +1,5 @@
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
+
 import { CATALOG, SCALARS } from './catalog';
 import { createDefaultProject } from './default-project';
 import { cloneProject } from './format';
@@ -9,7 +11,7 @@ const key = (p: BotProject) =>
     value && typeof value === 'object' && !Array.isArray(value)
       ? Object.fromEntries(
           Object.keys(value)
-            .sort()
+            .sort(compareCodeUnits)
             .map((k) => [k, value[k]]),
         )
       : value,

@@ -7,6 +7,7 @@ import { pairedCityId, type River } from '@/game/river';
 import { createSession, type SessionPhase } from '@/game/session';
 import type { Terrain } from '@/game/terrain/types';
 import type { CityType, RulesInput, SimulationState, Territory } from '@/game/types';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 
 import { bindBoardInput } from './bind-board-input';
 import type { CityTargetMode } from './city-controls-model';
@@ -289,7 +290,7 @@ export function startBoard(
   function requestAiDecisions() {
     if (!session.active) return;
     if (mdslEnabled) {
-      for (const factionId of Object.keys(aiConfigs).sort()) {
+      for (const factionId of Object.keys(aiConfigs).sort(compareCodeUnits)) {
         if (!session.reserveAiDecision(factionId, aiConfigs[factionId])) continue;
         let bot = mdslBots.get(factionId);
         if (!bot) {
@@ -311,7 +312,7 @@ export function startBoard(
       return;
     }
     if (!aiWorker) return;
-    for (const factionId of Object.keys(aiConfigs).sort()) {
+    for (const factionId of Object.keys(aiConfigs).sort(compareCodeUnits)) {
       if ([...pendingAi.values()].some((pending) => pending.factionId === factionId)) continue;
       const config = aiConfigs[factionId];
       if (!config || !session.reserveAiDecision(factionId, config)) continue;

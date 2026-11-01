@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -18,6 +18,15 @@ async function rulesFor(code, filePath = 'src/quality-probe.ts') {
   const [result] = await snippetLint.lintText(code, { filePath });
   return result.messages.map((message) => message.ruleId);
 }
+
+test('hosted verification installs locked dependencies without lifecycle scripts', async () => {
+  const workflow = await readFile('.github/workflows/tests.yml', 'utf8');
+
+  assert.match(
+    workflow,
+    /- run: npm ci --ignore-scripts\s+- run: npm run build\s+- run: npm run test:coverage/,
+  );
+});
 
 test('native TypeScript 7 CLI coexists with the TypeScript 6 compiler API', () => {
   assert.match(require('typescript').version, /^6\.0\./);

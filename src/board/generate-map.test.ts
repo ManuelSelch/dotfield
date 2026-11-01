@@ -5,7 +5,7 @@ import { TERRITORY_RADIUS } from '@/game/settings';
 import { canDirectTerrainOrder } from '@/game/terrain/direct-order';
 import { compileRoundSetup } from '@/game/upgrades/compile';
 
-import { generateMap, DEFAULT_MAP_SETTINGS } from './generate-map';
+import { generateMap, DEFAULT_MAP_SETTINGS, seededRandom } from './generate-map';
 
 function everyCityReachable(map: ReturnType<typeof generateMap>) {
   const reachable = new Set([map.territories[0].id]);
@@ -20,6 +20,39 @@ function everyCityReachable(map: ReturnType<typeof generateMap>) {
             reachable.add(target.id);
   return reachable.size === map.territories.length;
 }
+
+describe('seeded randomness', () => {
+  it.each([
+    [
+      0,
+      [
+        0.26642920868471265, 0.0003297457005828619, 0.2232720274478197, 0.1462021479383111,
+        0.46732782293111086,
+      ],
+    ],
+    [
+      42,
+      [
+        0.6011037519201636, 0.44829055899754167, 0.8524657934904099, 0.6697340414393693,
+        0.17481389874592423,
+      ],
+    ],
+    [
+      4294967295,
+      [
+        0.8964226141106337, 0.189478256739676, 0.7156526781618595, 0.9440599093213677,
+        0.8452364315744489,
+      ],
+    ],
+  ] as const)(
+    'preserves the existing sequence across 32-bit overflow for seed %s',
+    (seed, expected) => {
+      const random = seededRandom(seed);
+
+      expect(Array.from({ length: expected.length }, random)).toEqual(expected);
+    },
+  );
+});
 
 describe('generated fields', () => {
   it('reproduces the larger fourteen-city default field from settings and seed', () => {

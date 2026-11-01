@@ -11,6 +11,7 @@ import type { SessionPhase } from '@/game/session';
 import { AIRCRAFT_CAPACITY, CITY_CONVERSION_COST } from '@/game/settings';
 import type { Terrain } from '@/game/terrain/types';
 import type { RulesInput, SimulationState, Territory } from '@/game/types';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 import { RelayScoreboard } from '@/ui/relay-scoreboard';
 import { RoundResult } from '@/ui/round-result';
 import { SessionControls, SessionNavigationControls } from '@/ui/session-controls';
@@ -73,7 +74,7 @@ export function FieldCanvas({
     ai ? ('decisionIntervalMs' in ai ? ['enemy'] : Object.keys(ai).filter((id) => ai[id])) : []
   )
     .filter((id) => id !== 'player' && id !== 'neutral' && !!state.rules.factions[id])
-    .sort();
+    .sort(compareCodeUnits);
   const numbers = useMemo(() => cityNumbers(territories), [territories]);
   useEffect(() => {
     if (state.roundStatus !== 'playing') setHighlightedCityIds(null);

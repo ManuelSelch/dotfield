@@ -6,6 +6,7 @@ import { BASE_FACTION_RULES, createRules } from '@/game/rules';
 import { createTerrain } from '@/game/terrain/terrain';
 import type { Terrain } from '@/game/terrain/types';
 import type { FactionId, FactionRules, SimulationRules, Territory } from '@/game/types';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 
 import { UPGRADES, type UpgradeId, type UpgradeEffect } from './catalog';
 
@@ -50,7 +51,7 @@ export function compileRoundSetup(
   const factions = Object.fromEntries(
     Object.entries(baseRules.factions).map(([id, base]) => {
       const rules: { -readonly [K in keyof FactionRules]: FactionRules[K] } = { ...base };
-      for (const upgradeId of [...new Set(selection[id] ?? [])].sort()) {
+      for (const upgradeId of [...new Set(selection[id] ?? [])].sort(compareCodeUnits)) {
         if (!Object.hasOwn(UPGRADES, upgradeId))
           throw new RangeError(`Unknown upgrade ${upgradeId}.`);
         const effects: readonly UpgradeEffect[] = UPGRADES[upgradeId].effects;

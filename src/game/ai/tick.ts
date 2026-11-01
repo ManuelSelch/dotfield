@@ -1,4 +1,5 @@
 import type { FactionId, SimulationState } from '@/game/types';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 
 import { applyAiAction, chooseAction } from './actions';
 import type { AiConfig } from './config';
@@ -14,7 +15,7 @@ export function advanceAi(
   if (state.roundStatus !== 'playing') return state;
   const configs: AiConfigurations = isConfig(input) ? { enemy: input } : input;
   let next = state;
-  for (const factionId of Object.keys(configs).sort()) {
+  for (const factionId of Object.keys(configs).sort(compareCodeUnits)) {
     const config = configs[factionId];
     if (!config || !next.rules.factions[factionId]) continue;
     if (

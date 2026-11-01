@@ -1,3 +1,5 @@
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
+
 import { groupContacts } from './contacts';
 import { transferPosition } from './movement';
 import { DOT_RADIUS, DOT_SPACING } from './settings';
@@ -92,7 +94,7 @@ export function resolveTravelCollisions(
   const groups = new Map<string, typeof state.transfers>();
   for (const transfer of state.transfers)
     groups.set(transfer.owner, [...(groups.get(transfer.owner) ?? []), transfer]);
-  const factionIds = [...groups.keys()].sort();
+  const factionIds = [...groups.keys()].sort(compareCodeUnits);
   const resolvedMotions = new Map(
     state.transfers.map((transfer) => [
       transfer.id,

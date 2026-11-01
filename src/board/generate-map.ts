@@ -71,7 +71,8 @@ export function isMapSettings(value: unknown): value is MapSettings {
 // Bounded, reproducible randomness; no simulation or browser dependency.
 export function seededRandom(seed: number): () => number {
   return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
+    // Wrap to 32 bits, not just truncate: the bit pattern defines the saved seed sequence.
+    seed = (seed + 0x6d2b79f5) >>> 0;
     let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -190,8 +191,8 @@ export function generateMap(settings: MapSettings, seed: number): GeneratedMap {
           const distance = (c: Territory) =>
             Math.min(...starts.map((other) => Math.hypot(c.x - other.x, c.y - other.y)));
           return distance(city) > distance(best) ? city : best;
-        })
-      : candidates.reduce((best, city) => (city.y > best.y ? city : best));
+        }, candidates[0])
+      : candidates.reduce((best, city) => (city.y > best.y ? city : best), candidates[0]);
     starts.push(chosen);
   }
   let territories = cities.map((city) => {

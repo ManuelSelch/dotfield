@@ -83,13 +83,14 @@ export function recordDecision(
   factionId: FactionId,
   action: AiAction | null,
   trace: AiDecisionTrace,
-  result = {
-    completedAtMs: state.elapsedMs,
-    evaluation: 0,
-    outcome: (action ? 'inactive' : 'no-command') as RecordedAiDecision['outcome'],
-  },
+  result?: Pick<RecordedAiDecision, 'completedAtMs' | 'evaluation' | 'outcome'>,
   previous?: RecordedAiDecision,
 ): RecordedAiDecision {
+  const completion = result ?? {
+    completedAtMs: state.elapsedMs,
+    evaluation: 0,
+    outcome: action ? ('inactive' as const) : ('no-command' as const),
+  };
   const actionIds = (candidate: AiAction): string[] =>
     candidate.type === 'convert' ? [candidate.cityId] : [candidate.sourceId, candidate.targetId];
   const cityIds = new Set<string>(action ? actionIds(action) : []);
@@ -113,13 +114,13 @@ export function recordDecision(
     action,
     trace,
     ownersAtDecision,
-    ...result,
+    ...completion,
     evaluatedAtMs: state.elapsedMs,
     noActionSinceMs: action
       ? undefined
       : previous && !previous.action
         ? previous.noActionSinceMs
-        : result.completedAtMs,
+        : completion.completedAtMs,
     noActionCount: action ? 0 : (previous && !previous.action ? previous.noActionCount : 0) + 1,
   };
 }

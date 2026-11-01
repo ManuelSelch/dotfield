@@ -37,7 +37,7 @@ Browser scenarios use an isolated development server on port 5180. Fixtures disa
 
 ## SonarQube Cloud and CI
 
-[Tests](../.github/workflows/tests.yml) runs the production build and unit tests with coverage on pushes to `main`, pull requests and manual dispatch. Node 24 and `npm ci` reproduce the locked dependencies. Browser and PWA scenarios remain separate, manually run checks; their coverage is not included.
+[Tests](../.github/workflows/tests.yml) runs the production build and unit tests with coverage on pushes to `main`, pull requests and manual dispatch. Node 24 and `npm ci --ignore-scripts` reproduce the locked dependencies without executing dependency lifecycle scripts. CI runs the build and coverage checks with dependency scripts disabled; dependencies must work without install-time lifecycle hooks. Browser and PWA scenarios remain separate, manually run checks; their coverage is not included.
 
 To enable Cloud analysis:
 
@@ -47,6 +47,10 @@ To enable Cloud analysis:
 4. Push/merge the workflow, then run it on `main` to establish the initial baseline. Confirm the coverage import and quality gate on Cloud. Subsequent pull requests can then use that baseline.
 
 The Sonar job waits for successful build/unit verification and downloads its LCOV artifact. It is skipped until both variables exist and always skipped on fork pull requests. Once enabled, a missing token fails explicitly. Scanning waits up to five minutes for the quality gate; a failed gate fails the job. Requiring that check for merges is a separate branch-protection/ruleset setting, not configured by this workflow.
+
+Identifier sorting uses the shared, locale-independent UTF-16 comparator to preserve simulation, serialization and map-edge ordering. Seeded map generation wraps its accumulator to an unsigned 32-bit value; fixed sequence tests protect overflow behavior. Do not replace that wrap with `Math.trunc` or use locale-sensitive ordering for these identifiers.
+
+Presentation unit tests exercise rendered editor controls, AI diagnostics and map-preview markup without a browser. They contribute to unit coverage but do not establish DOM event handling, focus, Canvas drawing or responsive layout; the browser scenarios remain responsible for those behaviors.
 
 [Scanner properties](../sonar-project.properties) use exclusion-based scope, with no explicit `sonar.sources` or `sonar.tests`. Tests, fixtures, mockups, generated output and vendored Blockly assets are excluded from analysis, not classified as test sources. Root tool configuration remains analyzed but excluded from coverage. Vitest measures all production TypeScript/TSX under `src`, including unexecuted files, excluding tests, declarations and fixtures, and writes `coverage/lcov.info`. Both coverage output and scanner work files are ignored by Git.
 

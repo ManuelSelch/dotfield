@@ -5,6 +5,7 @@ import { canRiverOrder, type River } from '@/game/river';
 import { canDirectTerrainOrder } from '@/game/terrain/direct-order';
 import type { Terrain } from '@/game/terrain/types';
 import type { Territory } from '@/game/types';
+import { compareCodeUnits } from '@/shared/domain/compare-code-units';
 
 import type { CityRegion } from './geometry';
 import { REGION_BORDER, REGION_FILLS, REGION_SOURCE, REGION_TARGET } from './styles';
@@ -21,7 +22,7 @@ function path(ctx: CanvasRenderingContext2D, region: CityRegion) {
 function edgeKey(a: { x: number; y: number }, b: { x: number; y: number }) {
   const pointKey = (point: { x: number; y: number }) =>
     `${Math.round(point.x * 100)},${Math.round(point.y * 100)}`;
-  return [pointKey(a), pointKey(b)].sort().join('|');
+  return [pointKey(a), pointKey(b)].sort(compareCodeUnits).join('|');
 }
 
 function drawConnectedPerimeter(
