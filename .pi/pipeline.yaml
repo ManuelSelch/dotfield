@@ -1,0 +1,25 @@
+prepare:
+  command: [npm, ci]
+  cwd: .
+  timeoutSeconds: 300
+suites:
+  build:
+    command: [npm, run, build]
+    cwd: .
+    timeoutSeconds: 120
+    auto: after-agent
+  unit:
+    command: [npm, test]
+    cwd: .
+    timeoutSeconds: 120
+    auto: after-agent
+  browser:
+    command: [npm, run, test:browser]
+    cwd: .
+    timeoutSeconds: 300
+    auto: manual
+  pwa:
+    command: [npm, run, test:pwa]
+    cwd: .
+    timeoutSeconds: 300
+    auto: manual
