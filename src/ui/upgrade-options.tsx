@@ -12,9 +12,7 @@ export function UpgradeOptions({
   onChange: (ids: readonly UpgradeId[]) => void;
 }) {
   const label = factionId === 'player' ? 'Your upgrades' : `${factionId} upgrades`;
-  const available = Object.values(UPGRADES).filter((upgrade) =>
-    factionId === 'player' ? upgrade.id !== 'factory' : upgrade.id !== 'factory',
-  );
+  const available = Object.values(UPGRADES).filter((upgrade) => upgrade.id !== 'factory');
   return (
     <div role="group" aria-label={label} className="home-upgrade-toggles">
       {available.map((upgrade) => (
