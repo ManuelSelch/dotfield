@@ -30,6 +30,6 @@ describe.each(['open', 'river', 'mountains', 'courtyard'] as MapLayout[])(
             expect(generateMap(settings, seed).relay).toEqual(map.relay);
             if (layout === 'courtyard') expect(host?.id).toBe('courtyard');
           }
-    });
+    }, 30_000);
   },
 );

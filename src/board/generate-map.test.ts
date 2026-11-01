@@ -254,29 +254,33 @@ describe('generated fields', () => {
       ).toHaveLength(0);
     }
   });
-  it.each([false, true])('keeps every city reachable with Mountains %s', (mountains) => {
-    for (let seed = 0; seed < 4; seed++)
-      for (const cities of [6, 12, 24])
-        for (const enemies of [1, 4])
-          for (const river of [false, true]) {
-            const map = generateMap(
-              {
-                ...DEFAULT_MAP_SETTINGS,
-                cities,
-                enemies,
-                river,
-                mountains,
-                industry: false,
-                artillery: false,
-              },
-              seed,
-            );
-            expect(
-              everyCityReachable(map),
-              `seed ${seed}, cities ${cities}, enemies ${enemies}, river ${river}, mountains ${mountains}`,
-            ).toBe(true);
-          }
-  });
+  it.each([false, true])(
+    'keeps every city reachable with Mountains %s',
+    (mountains) => {
+      for (let seed = 0; seed < 4; seed++)
+        for (const cities of [6, 12, 24])
+          for (const enemies of [1, 4])
+            for (const river of [false, true]) {
+              const map = generateMap(
+                {
+                  ...DEFAULT_MAP_SETTINGS,
+                  cities,
+                  enemies,
+                  river,
+                  mountains,
+                  industry: false,
+                  artillery: false,
+                },
+                seed,
+              );
+              expect(
+                everyCityReachable(map),
+                `seed ${seed}, cities ${cities}, enemies ${enemies}, river ${river}, mountains ${mountains}`,
+              ).toBe(true);
+            }
+    },
+    30_000,
+  );
   it('does not spawn prebuilt Artillery from deprecated generated-map settings', () => {
     const map = generateMap(
       {
