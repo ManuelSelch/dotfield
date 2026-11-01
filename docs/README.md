@@ -1,7 +1,5 @@
 # Current system documentation
 
-This folder describes implemented behavior and architecture, not future scope or historical delivery checkpoints.
-
 - [Gameplay](gameplay.md): setup, controls, combat, pause and saves.
 - [Development](development.md): local setup, builds, tests and offline installation.
 - [High-level architecture](architecture.md): state ownership, simulation, rendering, AI and persistence.
@@ -15,7 +13,6 @@ This folder describes implemented behavior and architecture, not future scope or
 - [Visual enemy editor](bot-editor/IMPLEMENTATION.md): authoring, storage and disabled custom activation.
 - [Development-only MDSL prototype](ai-mdsl/IMPLEMENTATION.md): experimental tree contracts and limitations.
 
-The [project README](../README.md) is deliberately limited to a short introduction, quick start and documentation link. Keep detailed guidance here; do not maintain a source-file inventory. Executable scenarios remain in [tests](../tests/) and colocated unit tests; they are never moved into plans.
 
 ## Documentation policy
 
