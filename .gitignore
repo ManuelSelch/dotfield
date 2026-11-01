@@ -2,6 +2,8 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+coverage/
+.scannerwork/
 .DS_Store
 .vercel
 .env*
