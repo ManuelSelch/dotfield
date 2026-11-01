@@ -9,6 +9,7 @@ The user explicitly requested keeping the current Defender's regenerating shield
 ## Scope
 
 ### In Scope
+
 - Extend the existing `defender` city role on every layout, with Relay On or Off and independently hostile factions.
 - Ground transit blocking through the Defender's full logical territory region, normal direct attacks on the Defender and manually staged alternatives around it.
 - Borders formed by multiple player-built Defenders, including use alongside mountains, river crossings and the map boundary.
@@ -16,6 +17,7 @@ The user explicitly requested keeping the current Defender's regenerating shield
 - Preserve Defender cost, shields, nonproduction, role conversion and existing capture behavior.
 
 ### Out of Scope
+
 - A separate Gatehouse city type, fortification attachment, extra Home switch or new map generator.
 - Freely placed walls, manually drawn borders, moving cities or paid upgrades to whole territory regions.
 - Extra armour, shield capacity/recharge changes, free shield charges, production on Defenders or additional damage/interception weapons.
@@ -43,6 +45,7 @@ The user explicitly requested keeping the current Defender's regenerating shield
 ## Assumptions
 
 These are recommendations, not additional confirmed user decisions:
+
 - Retain the visible name **Defender**, its icon and serialized identity; describe its added function as blocking enemy ground transit. “Gate House” describes the behavior unless the user requests a UI rename.
 - Neutral Defenders remain inactive and do not block any faction, consistent with their inactive recharge. Non-neutral owned Defenders block every other faction, not only the human or a selected enemy. Confirm neutral behavior below because the older, separate Gatehouse proposal instead locked neutral crossings.
 - When a region becomes hostile/blocking, cancel now-illegal **unlaunched** batches and release their reservations; their troops remain at the source. Keep launched batches unchanged. Do not auto-resume a cancelled queue when the border later opens; a new order is needed. This follows the earlier Gatehouse queue recommendation but still needs explicit confirmation for the Defender extension.
@@ -53,24 +56,31 @@ These are recommendations, not additional confirmed user decisions:
 ## Implementation Plan
 
 ### 1. Confirm Policies and Approve Border Mockup
+
 Description: Resolve the open questions and record the chosen boundary/queue/save policy. Create an isolated mockup using the existing Defender control: one Defender protecting a Courtyard approach, several forming an open-field border, gaps, direct attacks, blocked destinations, captures and aircraft bypass. Show shields/relay/network markings together and the actual compact control strip at phone/desktop sizes. Obtain explicit visual approval before production UI changes; do not implement gameplay in this slice.
 
 ### 2. Logical Regions and Transit Queries
+
 Description: After slice1, provide deterministic logical-region and route-intersection queries shared by simulation and rendering rather than importing screen-dependent state into core physics. Identify the first blocker for a faction/route, implement target-Defender exemptions and the agreed boundary policy, and compose with existing river/mountain legality. Unit-test connected borders, open ends, multiple blockers, vertex/edge cases, neutral policy and invariance across viewport/DPR. Leave existing movement behavior unchanged until command integration.
 
 ### 3. Commands and Launch Queue Enforcement
+
 Description: After slice2, apply shared legality to public ground commands and the chosen unlaunched-batch policy at conversion/capture and launch boundaries. Preserve already-launched troops and unchanged Defender shields/costs/conversion rules. Test invalid-order queue preservation, role removal reopening access, faction ownership switching, partial launches, exact event timing and conservation. Keep attacks on reachable Defenders possible, never redirecting attacks automatically.
 
 ### 4. Forecast, AI and Worker Integration
+
 Description: After slice3, replay dynamic border changes and queue cancellation through real forecasts. Update ground/staging/threat queries and aircraft opportunity checks; revalidate stale worker actions through public commands. Add feasible breach/around/air strategies, useful multi-Defender construction and producer/home/relay safeguards without relaxing unrelated role limits. Verify deterministic live/forecast/synchronous/worker results and no resource advantages.
 
 ### 5. Save, Restore and Replay Compatibility
+
 Description: After the agreed policy and slice3, persist any required round policy and preserve exact opening/live Defender and queue state. Implement old-save handling without mistaking grandfathered flights for corrupt orders. Verify paused/hidden/terminal saves, existing Defenders, queues blocked after dispatch, no offline progress, exact restart and relay/aircraft/shield coexistence. Reject truly malformed data without silently losing resources or switching rules.
 
 ### 6. Approved Border and Order Feedback
+
 Description: After mockup approval and slices2–5, integrate the protected-region visual, blocker identity and valid-target/blocked-route feedback into Canvas and every input mode. Retain current role controls unless a name change is explicitly approved. Test readable combinations with shields/network/relay, keyboard/screen-reader feedback,44px controls and unchanged Canvas/strip geometry; no new path animation or automatic detours.
 
 ### 7. Integrated Verification and Tactical Playtests
+
 Description: After slice6, run the full unit, serial Chromium browser, typecheck/build and production PWA suites. Exercise live multi-Defender borders, conversion/capture breaches, queued-versus-airborne behavior, independent factions and saved-round upgrades. Human-playtest a defended Courtyard southern economy and an open-field border against ordinary and upgrade-advantaged opponents, including expansion/rush/air counterplay. Record balance, density/readability and actual-iPhone limitations separately; adjust tuning only with evidence and approval.
 
 ## Open Questions

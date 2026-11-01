@@ -157,50 +157,62 @@ None. Weapon-role rules/prices and control mockup revision6 are explicitly appro
 ## Implementation Plan
 
 ### 1. Rules and Control Mockup
+
 Status: complete; defaults and control mockup revision 1 explicitly approved.
 Description: Settle the numbered open questions below, centralize the accepted tuning table, and extend isolated mockups with the tap conversion bar and explicit flight targeting/cancel controls at mobile and desktop sizes. Include current type, prices, insufficient troops, busy plane, ownership loss, and keyboard behavior. Preserve approved option C. Verify by user review and record explicit approval for new UI; stop its owned preview before production UI work. No gameplay implementation in this slice.
 
 ### 2. City Types and Conversion Commands
+
 Status: implemented and unit-tested.
 Description: Add explicit city types with default Production normalization and an owner-validated conversion command. Implement cost conservation, minimum garrison, queue invalidation, type retention on capture, and growth-remainder reset according to slice 1 decisions. Gate troop growth to Production while preserving Factory/Industry behavior there. Verify pure tests for every source/target type, hostile/neutral/paused rejection, repeat commands, cap-overflow reinforcements, and immutable inputs. Do not expose the incomplete feature in normal UI yet.
 
 ### 3. Defender Shield Rules
+
 Status: implemented and unit/browser-tested.
 Description: After slices 1–2, implement Defender capacity/recharge with the selected stacking policy using the shared batch shield/combat path. Cover conversion, capture, network connection/tier changes, excess capture charges, no free conversion charges, friendly arrivals, and timing across pause/bulk stepping. Verify live/forecast physical-step parity and no changes to non-Defender network behavior. Keep recharge source/capacity available to rendering/accessibility.
 
 ### 4. Airfield Preparation and Plane State
+
 Status: implemented and unit-tested.
 Description: After slice 2, introduce the one-plane-per-airfield lifecycle, preparation/readiness/turnaround timers, frozen runtime ownership/home identity, and shared validated tuning. Capture/conversion resets must follow slice 1 policy. Verify no duplicate planes after large steps or repeated conversion, no troop production from an Airfield, no premature readiness, and phase validity. Rendering and dispatch UI remain deferred.
 
 ### 5. Flight Dispatch and Direct Travel
+
 Status: implemented and unit/browser-tested.
 Description: After slice 4, add the shared launch command, partial/full boarding up to capacity, reservation cancellation, cargo accounting, direct terrain-independent outbound travel, and empty-return travel. Implement agreed in-flight effect immunity and home-loss behavior. Verify river/mountain crossings without changing ground legality, busy/invalid/no-cargo rejection, all-but-one boarding, conservation, and faction/owner boundaries. Intermediate tests can exercise arrival/return states directly until slice 6 adds unloading.
 
 ### 6. Dock and Pulse Combat
+
 Status: implemented and unit/browser-tested; artillery event-order regressions repaired.
 Description: After slices 3 and 5, connect arrival to edge docking, five-troop pulses, final partial batches, cargo decrement, empty return, and turnaround. Reuse shared combat rather than duplicating shield/capture rules. Specify exact first-pulse timing and stable equal-time order with ground arrivals/home loss. Verify 100 troops against three shields, friendly deliveries, partial loads, mid-unload ownership changes, same-time captures, no orphaned cargo, and equivalent coarse/fine physical stepping. Rendering-independent end-to-end flight cycle must pass.
 
 ### 7. Save Replay and Round Accounting
+
 Status: implemented and unit/browser-tested.
 Description: After slice 6, integrate types/planes/cargo into snapshots, restore validation, worker serialization, troop composition, elimination, and round setup/restart/replay. Preserve event-only persistence. Verify legacy defaults, corrupt/mismatched references, duplicate-plane rejection, mid-preparation/outbound/unloading/return/turnaround reload, pause/background freeze, last-city loss, and exact opening reset. Complete this before exposing playable controls so active saves cannot silently lose new state.
 
 ### 8. Conversion Bar and Flight Controls
+
 Status: approved revision 6 implemented; five-role icon conversion, mobile/short desktop hit targets, mixed desktop input and fixed-map geometry tests pass.
 Description: After slices 1 and 7, implement only the approved compact conversion UI and air targeting flow using shared commands. Preserve mobile full-region dragging, existing desktop click-to-click and keyboard commands, safe areas, pause controls, and click-through prevention. Add accessible cost/readiness/cargo/state descriptions. Verify browser interactions on narrow mobile and desktop, insufficient/busy states, source capture, outside/Escape cancellation, and zero unintended conversions during ground dispatch. Keep incomplete renderer/AI integration out of normal releases until subsequent slices pass.
 
 ### 9. Aircraft and Defender Rendering
+
 Status: implemented and unit/browser-tested; actual-device readability remains manual.
 Description: After slices 3, 6 and 8, render clear city-type indicators, plane readiness/cargo, direct flights, approved option C edge docking/pulses, shield-block feedback, and empty return from simulation state. Keep counts readable with stacked map features, no new collision geometry, and no per-frame React publications. Respect reduced motion and pause. Verify board rendering tests and browser scenarios at compact phone/desktop sizes against the approved sources; actual iPhone readability is checked in slice 11.
 
 ### 10. Conversion and Air Transport AI
+
 Status: implemented and unit/real-worker browser-tested; includes conservative forecast-gated Watchtower/Artillery building and production safeguards. Human tactical balance remains manual.
 Description: After slices 6–7, extend forecast/worker decisions and production-aware logistics for nonproducing city types and complete flights. Add conservative conversion spending/production-base safeguards, Defender placement, Airfield supply, partial/full flights, barrier attacks, and original-home defense without switching loops. Use the exact player commands and physics. Verify deterministic pure/worker/browser scenarios across multiple factions, useful cross-barrier attacks, home-loss risk, strong/weak positions, and unchanged legal ground staging.
 
 ### 11. Buildable Weapon Roles and Legacy Migration
+
 Status: implemented, unit/browser-tested, and fully verified.
 Description: After role conversions and weapon physics, add Watchtower/Artillery costs, exclusive roles, the approved five-icon picker, current-owner/cooldown rules, save/timer migration, generated weapon-toggle removal, rendering/accessibility and forecast-gated AI construction. Verify legacy explicit-role conflicts and dual weapon precedence, per-city timer migration, captures/recaptures at exact event times, map generation, worker actions, and short-screen controls. Preserve other city features, battlefield geometry and legal ground orders.
 
 ### 12. Integrated Playtest and Documentation
+
 Status: automated verification complete (714 unit tests, 114 browser tests, 2 PWA tests, production/typecheck build and diff checks); real-iPhone and human balance/duration acceptance remain manual.
 Description: After slices 8–11, enable the complete feature, run full unit/browser/build/PWA checks, and document actual roles, controls, weapon tuning and saved-round migration. Playtest conversion/weapon-defense balance, producer safeguards, no-producer situations, battlefield clutter and short-round pacing. Check actual iPhone tap/drag, safe areas, interruption, installed/offline use and performance. Adjust only centralized tuning with explicit balance feedback; mark automated evidence separately from manual/human acceptance and commit verified slices without pushing automatically.
 

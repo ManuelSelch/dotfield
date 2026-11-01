@@ -1,135 +1,614 @@
-.app-shell.app-shell--home { max-width: 968px; }
-.home-screen { min-height: 0; flex: 1; position: relative; }
-.home-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; -ms-overflow-style: none; padding: 0 4px 20px; }
-.home-scroll::-webkit-scrollbar { display: none; }
-.home-intro { text-align: center; margin: 24px 0 34px; }
-.home-intro h2 { font-size: 30px; font-weight: 550; letter-spacing: -1px; margin: 0 0 8px; line-height: 1.2; }
-.home-intro p { font-size: 14px; color: #6b776e; margin: 0; }
-.home-body { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 360px); justify-content: center; align-items: start; gap: 72px; }
-.home-settings { min-width: 0; padding-top: 8px; }
-.home-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.7px; color: #6b776e; }
-.home-setting { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 16px; gap: 10px; }
-.home-label, .home-setting label { font-size: 16px; font-weight: 600; }
-.home-stepper { display: flex; align-items: center; gap: 4px; }
-.home-stepper button { border: 1px solid #dce2d8; color: #267c72; background: transparent; border-radius: 50%; width: 44px; height: 44px; font: inherit; font-size: 22px; cursor: pointer; }
-.home-stepper button:disabled { opacity: .35; cursor: default; }
-.home-stepper output { width: 38px; text-align: center; font-size: 22px; font-weight: 550; }
-.home-city-range { width: 100%; accent-color: #267c72; cursor: pointer; margin: 0; }
-.home-range-labels { display: flex; justify-content: space-between; margin-top: 7px; color: #6b776e; font-size: 10px; }
-.home-enemy-setting { margin: 25px 0 12px; }
-.home-segments { display: flex; padding: 3px; gap: 3px; border: 1px solid #dce2d8; border-radius: 12px; background: #edf0e9; }
-.home-segments button { flex: 1; min-height: 44px; padding: 4px 8px; border: 0; border-radius: 9px; font: inherit; font-size: 13px; background: transparent; color: #6b776e; cursor: pointer; }
-.home-segments button[aria-pressed="true"] { color: #267c72; background: #fff; box-shadow: 0 1px 4px #253c3310; font-weight: 650; }
-.home-features-label { border-top: 1px solid #dce2d8; padding-top: 23px; margin: 29px 0 21px; }
-.home-feature { margin-bottom: 22px; }
-.home-feature .home-segments { margin-top: 12px; }
-.home-advanced-settings { border-top: 1px solid #dce2d8; margin-top: 25px; }
-.home-settings-section { border-bottom: 1px solid #dce2d8; }
-.home-settings-section summary { display: flex; align-items: center; min-height: 54px; gap: 10px; padding: 12px 0; font-size: 14px; font-weight: 600; list-style: none; cursor: pointer; }
-.home-settings-section summary::-webkit-details-marker { display: none; }
-.home-settings-section summary::after { content: '+'; font-size: 18px; color: #267c72; margin-left: 2px; }
-.home-settings-section[open] summary::after { content: '−'; }
-.home-summary-count { margin-left: auto; font-size: 10px; font-weight: 400; color: #6b776e; text-align: right; }
-.home-upgrade-list { padding-bottom: 12px; }
-.home-upgrade-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
-.home-upgrade-list .mantine-Checkbox-label { font-size: 13px; }
-.home-upgrade-list .mantine-Checkbox-description { font-size: 11px; line-height: 1.5; }
-.home-enemy-option { border-top: 1px solid #dce2d8; padding-top: 16px; }
-.home-enemy-option h3 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin: 0 0 12px; }
-.home-faction-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-.home-behavior-option { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; }
-.home-behavior-option select { font: inherit; font-size: 16px; color: #267c72; border: 1px solid #dce2d8; border-radius: 9px; background: #fff; padding: 8px; max-width: 65%; }
-.home-play-slot { margin-top: 30px; }
-.home-play-arrow { margin-left: 14px; }
-.home-preview { min-width: 0; }
-.home-preview-heading { margin-bottom: 14px; min-height: 28px; display: flex; align-items: center; }
-.home-map-frame { width: 100%; border: 1px solid #c9d4c7; border-radius: 22px; overflow: hidden; background: #eef1e9; padding: 7px; }
-.home-map-frame svg { height: auto; aspect-ratio: 3 / 4; }
-.home-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
-.home-badges span { border: 1px solid #dce2d8; border-radius: 99px; padding: 5px 9px; font-size: 10px; color: #6b776e; }
-.home-screen button:focus-visible, .home-screen input:focus-visible, .home-screen select:focus-visible, .home-screen summary:focus-visible { outline: 3px solid #86bfb2; outline-offset: 3px; }
+.app-shell.app-shell--home {
+  max-width: 968px;
+}
+.home-screen {
+  min-height: 0;
+  flex: 1;
+  position: relative;
+}
+.home-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 4px 20px;
+}
+.home-scroll::-webkit-scrollbar {
+  display: none;
+}
+.home-intro {
+  text-align: center;
+  margin: 24px 0 34px;
+}
+.home-intro h2 {
+  font-size: 30px;
+  font-weight: 550;
+  letter-spacing: -1px;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+.home-intro p {
+  font-size: 14px;
+  color: #6b776e;
+  margin: 0;
+}
+.home-body {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) minmax(0, 360px);
+  justify-content: center;
+  align-items: start;
+  gap: 72px;
+}
+.home-settings {
+  min-width: 0;
+  padding-top: 8px;
+}
+.home-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.7px;
+  color: #6b776e;
+}
+.home-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 22px 0 16px;
+  gap: 10px;
+}
+.home-label,
+.home-setting label {
+  font-size: 16px;
+  font-weight: 600;
+}
+.home-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.home-stepper button {
+  border: 1px solid #dce2d8;
+  color: #267c72;
+  background: transparent;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font: inherit;
+  font-size: 22px;
+  cursor: pointer;
+}
+.home-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.home-stepper output {
+  width: 38px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 550;
+}
+.home-city-range {
+  width: 100%;
+  accent-color: #267c72;
+  cursor: pointer;
+  margin: 0;
+}
+.home-range-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  color: #6b776e;
+  font-size: 10px;
+}
+.home-enemy-setting {
+  margin: 25px 0 12px;
+}
+.home-segments {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid #dce2d8;
+  border-radius: 12px;
+  background: #edf0e9;
+}
+.home-segments button {
+  flex: 1;
+  min-height: 44px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 13px;
+  background: transparent;
+  color: #6b776e;
+  cursor: pointer;
+}
+.home-segments button[aria-pressed='true'] {
+  color: #267c72;
+  background: #fff;
+  box-shadow: 0 1px 4px #253c3310;
+  font-weight: 650;
+}
+.home-features-label {
+  border-top: 1px solid #dce2d8;
+  padding-top: 23px;
+  margin: 29px 0 21px;
+}
+.home-feature {
+  margin-bottom: 22px;
+}
+.home-feature .home-segments {
+  margin-top: 12px;
+}
+.home-advanced-settings {
+  border-top: 1px solid #dce2d8;
+  margin-top: 25px;
+}
+.home-settings-section {
+  border-bottom: 1px solid #dce2d8;
+}
+.home-settings-section summary {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  gap: 10px;
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.home-settings-section summary::-webkit-details-marker {
+  display: none;
+}
+.home-settings-section summary::after {
+  content: '+';
+  font-size: 18px;
+  color: #267c72;
+  margin-left: 2px;
+}
+.home-settings-section[open] summary::after {
+  content: '−';
+}
+.home-summary-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b776e;
+  text-align: right;
+}
+.home-upgrade-list {
+  padding-bottom: 12px;
+}
+.home-upgrade-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.home-upgrade-list .mantine-Checkbox-label {
+  font-size: 13px;
+}
+.home-upgrade-list .mantine-Checkbox-description {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.home-enemy-option {
+  border-top: 1px solid #dce2d8;
+  padding-top: 16px;
+}
+.home-enemy-option h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.home-faction-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.home-behavior-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.home-behavior-option select {
+  font: inherit;
+  font-size: 16px;
+  color: #267c72;
+  border: 1px solid #dce2d8;
+  border-radius: 9px;
+  background: #fff;
+  padding: 8px;
+  max-width: 65%;
+}
+.home-play-slot {
+  margin-top: 30px;
+}
+.home-play-arrow {
+  margin-left: 14px;
+}
+.home-preview {
+  min-width: 0;
+}
+.home-preview-heading {
+  margin-bottom: 14px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+}
+.home-map-frame {
+  width: 100%;
+  border: 1px solid #c9d4c7;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #eef1e9;
+  padding: 7px;
+}
+.home-map-frame svg {
+  height: auto;
+  aspect-ratio: 3 / 4;
+}
+.home-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.home-badges span {
+  border: 1px solid #dce2d8;
+  border-radius: 99px;
+  padding: 5px 9px;
+  font-size: 10px;
+  color: #6b776e;
+}
+.home-screen button:focus-visible,
+.home-screen input:focus-visible,
+.home-screen select:focus-visible,
+.home-screen summary:focus-visible {
+  outline: 3px solid #86bfb2;
+  outline-offset: 3px;
+}
 @media (max-width: 760px) {
-  .app-shell.app-shell--home { max-width: 436px; }
-  .home-scroll { padding-bottom: 110px; }
-  .home-intro { margin: 8px 0 24px; }
-  .home-intro h2 { font-size: 25px; }
-  .home-body { display: flex; flex-direction: column; gap: 30px; }
-  .home-settings, .home-preview { width: 100%; padding-top: 0; }
-  .home-setting { margin: 16px 0 12px; }
-  .home-enemy-setting { margin: 20px 0 10px; }
-  .home-features-label { margin: 20px 0 16px; padding-top: 18px; }
-  .home-feature { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-  .home-feature > div:first-child { min-width: 0; }
-  .home-feature .home-label { font-size: 14px; }
-  .home-feature .home-segments { margin: 0; min-width: 110px; flex: none; }
-  .home-feature .home-segments button { min-width: 48px; }
-  .home-advanced-settings { margin-top: 20px; }
-  .home-settings-section summary { min-height: 50px; font-size: 13px; }
-  .home-play-slot { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; margin: 0; border-top: 1px solid #dce2d8; background: #f6f7f3; padding: 12px max(20px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
-  .home-play { display: block; max-width: 436px; margin: auto; }
-  .home-preview { border-top: 1px solid #dce2d8; padding-top: 20px; }
-  .home-map-frame { max-width: 300px; margin: auto; }
-  .home-badges { max-width: 300px; margin-left: auto; margin-right: auto; }
+  .app-shell.app-shell--home {
+    max-width: 436px;
+  }
+  .home-scroll {
+    padding-bottom: 110px;
+  }
+  .home-intro {
+    margin: 8px 0 24px;
+  }
+  .home-intro h2 {
+    font-size: 25px;
+  }
+  .home-body {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  .home-settings,
+  .home-preview {
+    width: 100%;
+    padding-top: 0;
+  }
+  .home-setting {
+    margin: 16px 0 12px;
+  }
+  .home-enemy-setting {
+    margin: 20px 0 10px;
+  }
+  .home-features-label {
+    margin: 20px 0 16px;
+    padding-top: 18px;
+  }
+  .home-feature {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .home-feature > div:first-child {
+    min-width: 0;
+  }
+  .home-feature .home-label {
+    font-size: 14px;
+  }
+  .home-feature .home-segments {
+    margin: 0;
+    min-width: 110px;
+    flex: none;
+  }
+  .home-feature .home-segments button {
+    min-width: 48px;
+  }
+  .home-advanced-settings {
+    margin-top: 20px;
+  }
+  .home-settings-section summary {
+    min-height: 50px;
+    font-size: 13px;
+  }
+  .home-play-slot {
+    position: fixed;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    border-top: 1px solid #dce2d8;
+    background: #f6f7f3;
+    padding: 12px max(20px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+  }
+  .home-play {
+    display: block;
+    max-width: 436px;
+    margin: auto;
+  }
+  .home-preview {
+    border-top: 1px solid #dce2d8;
+    padding-top: 20px;
+  }
+  .home-map-frame {
+    max-width: 300px;
+    margin: auto;
+  }
+  .home-badges {
+    max-width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 /* Compact generated-match settings approved in mockup revision 7. */
-.home-intro { display: none; }
-.home-body { margin-top: 20px; }
-.home-label, .home-setting label { font-size: 14px; }
-.home-setting { margin: 13px 0 9px; }
-.home-stepper button { width: 32px; height: 32px; font-size: 18px; }
-.home-stepper output { width: 28px; font-size: 17px; }
-.home-range-labels { margin-top: 4px; }
-.home-enemy-setting { margin: 14px 0 8px; }
-.home-segments { padding: 2px; gap: 2px; border-radius: 9px; }
-.home-segments button { min-height: 32px; padding: 3px 6px; border-radius: 7px; font-size: 12px; }
-.home-features-label { margin: 18px 0 10px; padding-top: 14px; }
-.home-feature { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 9px; }
-.home-feature > div:first-child { min-width: 0; }
-.home-feature .home-label { font-size: 13px; }
-.home-feature .home-segments { margin: 0; min-width: 104px; flex: none; }
-.home-feature .home-segments button { min-width: 0; min-height: 29px; }
-.home-advanced-settings { margin-top: 14px; }
-.home-settings-section summary { min-height: 42px; padding: 8px 0; font-size: 13px; }
-.home-upgrade-list { padding-bottom: 8px; }
-.home-upgrade-list .mantine-Checkbox-label { font-size: 12px; }
-.home-upgrade-list .mantine-Checkbox-description { font-size: 10px; line-height: 1.35; }
-.home-enemy-option { padding-top: 10px; }
-.home-enemy-option h3 { font-size: 13px; margin-bottom: 8px; }
-.home-play-slot { display: flex; align-items: center; gap: 8px; margin-top: 17px; }
-.home-play-slot .home-reroll { flex: none; min-height: 44px; padding-inline: 12px; white-space: nowrap; }
-.home-play-slot .home-play { flex: 1; width: auto; max-width: none; min-height: 44px; margin: 0; }
-.home-play-arrow { margin-left: 8px; }
+.home-intro {
+  display: none;
+}
+.home-body {
+  margin-top: 20px;
+}
+.home-label,
+.home-setting label {
+  font-size: 14px;
+}
+.home-setting {
+  margin: 13px 0 9px;
+}
+.home-stepper button {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+}
+.home-stepper output {
+  width: 28px;
+  font-size: 17px;
+}
+.home-range-labels {
+  margin-top: 4px;
+}
+.home-enemy-setting {
+  margin: 14px 0 8px;
+}
+.home-segments {
+  padding: 2px;
+  gap: 2px;
+  border-radius: 9px;
+}
+.home-segments button {
+  min-height: 32px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.home-features-label {
+  margin: 18px 0 10px;
+  padding-top: 14px;
+}
+.home-feature {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 9px;
+}
+.home-feature > div:first-child {
+  min-width: 0;
+}
+.home-feature .home-label {
+  font-size: 13px;
+}
+.home-feature .home-segments {
+  margin: 0;
+  min-width: 104px;
+  flex: none;
+}
+.home-feature .home-segments button {
+  min-width: 0;
+  min-height: 29px;
+}
+.home-advanced-settings {
+  margin-top: 14px;
+}
+.home-settings-section summary {
+  min-height: 42px;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.home-upgrade-list {
+  padding-bottom: 8px;
+}
+.home-upgrade-list .mantine-Checkbox-label {
+  font-size: 12px;
+}
+.home-upgrade-list .mantine-Checkbox-description {
+  font-size: 10px;
+  line-height: 1.35;
+}
+.home-enemy-option {
+  padding-top: 10px;
+}
+.home-enemy-option h3 {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.home-play-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 17px;
+}
+.home-play-slot .home-reroll {
+  flex: none;
+  min-height: 44px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
+.home-play-slot .home-play {
+  flex: 1;
+  width: auto;
+  max-width: none;
+  min-height: 44px;
+  margin: 0;
+}
+.home-play-arrow {
+  margin-left: 8px;
+}
 
 /* Approved four-recipe layout picker. */
-.home-layouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.home-layouts button { min-height: 44px; }
-.home-segments button:disabled { opacity: .35; cursor: default; }
-.home-layout-note { color: #6b776e; font-size: 11px; line-height: 1.5; margin: 8px 0 0; }
+.home-layouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.home-layouts button {
+  min-height: 44px;
+}
+.home-segments button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.home-layout-note {
+  color: #6b776e;
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
 
 /* Compact, directly toggleable field-feature pills. */
-.home-feature-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.home-feature-toggle { min-height: 44px; padding: 7px 13px; border: 1px solid #d4ddd7; border-radius: 99px; background: #fff; color: #526158; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer; }
-.home-feature-toggle[aria-pressed="true"] { border-color: #267c72; background: #e1efeb; color: #1e6a61; }
-.home-feature-toggle:focus-visible { outline: 3px solid #86bfb2; outline-offset: 3px; }
-@media (max-width: 760px) {
-  .home-feature-toggles { gap: 7px; }
-  .home-feature-toggle { min-height: 44px; padding: 7px 11px; }
+.home-feature-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.home-feature-toggle {
+  min-height: 44px;
+  padding: 7px 13px;
+  border: 1px solid #d4ddd7;
+  border-radius: 99px;
+  background: #fff;
+  color: #526158;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.home-feature-toggle[aria-pressed='true'] {
+  border-color: #267c72;
+  background: #e1efeb;
+  color: #1e6a61;
+}
+.home-feature-toggle:focus-visible {
+  outline: 3px solid #86bfb2;
+  outline-offset: 3px;
 }
 @media (max-width: 760px) {
-  .home-body { margin-top: 8px; gap: 18px; }
-  .home-setting { margin: 10px 0 8px; }
-  .home-enemy-setting { margin: 13px 0 7px; }
-  .home-features-label { margin: 14px 0 8px; padding-top: 12px; }
-  .home-feature { margin-bottom: 7px; }
-  .home-feature .home-segments { min-width: 96px; }
-  .home-feature .home-segments button { min-width: 0; min-height: 28px; }
-  .home-advanced-settings { margin-top: 12px; }
-  .home-settings-section summary { min-height: 39px; padding: 6px 0; font-size: 12px; }
-  .home-play-slot { flex-direction: row; gap: 8px; }
-  .home-play-slot .home-reroll { flex: 0 0 auto; min-height: 44px; }
-  .home-play-slot .home-play { flex: 1; min-width: 0; max-width: none; margin: 0; }
-  .home-preview { margin-top: 0; }
+  .home-feature-toggles {
+    gap: 7px;
+  }
+  .home-feature-toggle {
+    min-height: 44px;
+    padding: 7px 11px;
+  }
+}
+@media (max-width: 760px) {
+  .home-body {
+    margin-top: 8px;
+    gap: 18px;
+  }
+  .home-setting {
+    margin: 10px 0 8px;
+  }
+  .home-enemy-setting {
+    margin: 13px 0 7px;
+  }
+  .home-features-label {
+    margin: 14px 0 8px;
+    padding-top: 12px;
+  }
+  .home-feature {
+    margin-bottom: 7px;
+  }
+  .home-feature .home-segments {
+    min-width: 96px;
+  }
+  .home-feature .home-segments button {
+    min-width: 0;
+    min-height: 28px;
+  }
+  .home-advanced-settings {
+    margin-top: 12px;
+  }
+  .home-settings-section summary {
+    min-height: 39px;
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  .home-play-slot {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .home-play-slot .home-reroll {
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+  .home-play-slot .home-play {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+  }
+  .home-preview {
+    margin-top: 0;
+  }
 }
 
-.home-edit-logic{min-height:44px;padding:8px 14px;border:1px solid #b6c9bd;border-radius:10px;background:#fff;color:#267c72;font:inherit;cursor:pointer}.home-edit-logic:focus-visible{outline:3px solid #267c72;outline-offset:2px}.home-logic-note{font-size:12px;line-height:1.4;color:#647365}
+.home-edit-logic {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #b6c9bd;
+  border-radius: 10px;
+  background: #fff;
+  color: #267c72;
+  font: inherit;
+  cursor: pointer;
+}
+.home-edit-logic:focus-visible {
+  outline: 3px solid #267c72;
+  outline-offset: 2px;
+}
+.home-logic-note {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #647365;
+}

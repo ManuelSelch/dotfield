@@ -1,0 +1,223 @@
+import { describe, expect, it } from 'vitest';
+
+import { resolveCombat } from '@/game/combat';
+import { readSavedGame, writeSavedGame } from '@/game/persistence';
+import { createSimulation } from '@/game/state';
+import type { SimulationState, Territory, Transfer } from '@/game/types';
+import { compileRoundSetup } from '@/game/upgrades/compile';
+import { advanceWorldStep } from '@/game/world-step';
+
+function territories(size: number): Territory[] {
+  return [
+    ...Array.from({ length: size }, (_, index) => ({
+      id: index === 0 ? 'home' : `city-${index}`,
+      owner: 'player',
+      units: 10,
+      x: 40 + (index % 5) * 60,
+      y: 80 + Math.floor(index / 5) * 70,
+    })),
+    { id: 'enemy', owner: 'enemy', units: 10, x: 40, y: 350 },
+  ];
+}
+function network(size: number): SimulationState {
+  const map = territories(size);
+  const setup = compileRoundSetup(map, { player: ['defensive-network'] });
+  return createSimulation(setup.territories, setup.rules, setup.river, setup.terrain);
+}
+function attack(state: SimulationState, targetId: string, units = 5): SimulationState {
+  const city = state.territories.find((node) => node.id === targetId)!;
+  const arrival: Transfer = {
+    id: 1,
+    sourceId: 'enemy',
+    targetId,
+    owner: 'enemy',
+    units,
+    formationSize: units,
+    dotSlots: Array.from({ length: units }, (_, index) => index),
+    from: { x: 40, y: 350 },
+    to: { x: city.x, y: city.y },
+    durationMs: 1,
+    elapsedMs: 1,
+  };
+  return resolveCombat({ ...state, arrivals: [arrival] });
+}
+
+describe('Defensive Network shields', () => {
+  it('regenerates one shield per connected city after exactly 10 seconds', () => {
+    const before = advanceWorldStep(network(4), 9_999);
+    expect(before.captureShields).toEqual({});
+    const charged = advanceWorldStep(before, 1);
+    expect(charged.captureShields).toMatchObject({
+      home: { remaining: 1 },
+      'city-1': { remaining: 1 },
+    });
+  });
+
+  it.each([1, 2, 3])('does not recharge a network of %i cities', (size) => {
+    const charged = advanceWorldStep(network(size), 30_000);
+    expect(charged.captureShields).toEqual({});
+    expect(charged.networkShieldTimers).toEqual({});
+  });
+
+  it.each([
+    { size: 4, capacity: 1 },
+    { size: 6, capacity: 1 },
+    { size: 7, capacity: 2 },
+    { size: 12, capacity: 2 },
+    { size: 13, capacity: 3 },
+  ])('caps a $size-city network at $capacity shields per city', ({ size, capacity }) => {
+    const first = advanceWorldStep(network(size), 10_000);
+    expect(first.captureShields['city-1'].remaining).toBe(1);
+    const full = advanceWorldStep(first, 30_000);
+    expect(full.captureShields['city-1'].remaining).toBe(capacity);
+    expect(advanceWorldStep(full, 10_000).captureShields['city-1'].remaining).toBe(capacity);
+  });
+
+  it('preserves existing charges above a lower network capacity', () => {
+    const state = network(4);
+    const overCapacity = { ...state, captureShields: { home: { remaining: 2 } } };
+    const charged = advanceWorldStep(overCapacity, 10_000);
+    expect(charged.captureShields.home.remaining).toBe(2);
+    expect(charged.captureShields['city-1'].remaining).toBe(1);
+  });
+
+  it('stops recharge below four cities without removing stored shields', () => {
+    const charged = advanceWorldStep(network(4), 10_000);
+    const smaller = {
+      ...charged,
+      territories: charged.territories.map((city) =>
+        city.id === 'city-3' ? { ...city, owner: 'neutral' } : city,
+      ),
+    };
+    const consumed = attack(smaller, 'home');
+    const waited = advanceWorldStep(consumed, 30_000);
+    expect(waited.captureShields.home.remaining).toBe(0);
+    expect(waited.captureShields['city-1'].remaining).toBe(1);
+    expect(waited.networkShieldTimers).toEqual({});
+  });
+
+  it('regenerates for every upgraded faction, including AI factions', () => {
+    const map: Territory[] = [
+      { id: 'player-home', owner: 'player', units: 10, x: 50, y: 100 },
+      { id: 'player-city', owner: 'player', units: 10, x: 130, y: 100 },
+      { id: 'player-city-2', owner: 'player', units: 10, x: 210, y: 100 },
+      { id: 'player-city-3', owner: 'player', units: 10, x: 290, y: 100 },
+      { id: 'enemy-home', owner: 'enemy', units: 10, x: 50, y: 350 },
+      { id: 'enemy-city', owner: 'enemy', units: 10, x: 130, y: 350 },
+      { id: 'enemy-city-2', owner: 'enemy', units: 10, x: 210, y: 350 },
+      { id: 'enemy-city-3', owner: 'enemy', units: 10, x: 290, y: 350 },
+    ];
+    const setup = compileRoundSetup(map, {
+      player: ['defensive-network'],
+      enemy: ['defensive-network'],
+    });
+    const charged = advanceWorldStep(createSimulation(setup.territories, setup.rules), 10_000);
+    expect(charged.captureShields).toMatchObject({
+      'player-home': { remaining: 1 },
+      'player-city': { remaining: 1 },
+      'enemy-home': { remaining: 1 },
+      'enemy-city': { remaining: 1 },
+    });
+  });
+
+  it('regenerates only for cities connected by owned shared borders', () => {
+    const map: Territory[] = [
+      { id: 'home', owner: 'player', units: 10, x: 30, y: 100 },
+      { id: 'neighbor', owner: 'player', units: 10, x: 70, y: 100 },
+      { id: 'rear-left', owner: 'player', units: 10, x: 110, y: 100 },
+      { id: 'rear-right', owner: 'player', units: 10, x: 150, y: 100 },
+      { id: 'blocker', owner: 'enemy', units: 10, x: 230, y: 100 },
+      { id: 'isolated', owner: 'player', units: 10, x: 310, y: 100 },
+      { id: 'enemy-home', owner: 'enemy', units: 10, x: 40, y: 350 },
+    ];
+    const setup = compileRoundSetup(map, { player: ['defensive-network'] });
+    const charged = advanceWorldStep(createSimulation(setup.territories, setup.rules), 10_000);
+    expect(charged.captureShields.home.remaining).toBe(1);
+    expect(charged.captureShields.neighbor.remaining).toBe(1);
+    expect(charged.captureShields.isolated).toBeUndefined();
+  });
+
+  it('resets partial recharge when a city disconnects and later rejoins', () => {
+    const partial = advanceWorldStep(network(4), 5_000);
+    const split = {
+      ...partial,
+      territories: partial.territories.map((city) =>
+        city.id === 'home' ? { ...city, owner: 'enemy' } : city,
+      ),
+    };
+    const disconnected = advanceWorldStep(split, 5_000);
+    expect(disconnected.networkShieldTimers?.home).toBeUndefined();
+    const recaptured = {
+      ...disconnected,
+      territories: disconnected.territories.map((city) =>
+        city.id === 'home' ? { ...city, owner: 'player' } : city,
+      ),
+    };
+    expect(advanceWorldStep(recaptured, 5_000).captureShields.home).toBeUndefined();
+  });
+
+  it('blocks one whole hostile arrival batch per shield, without changing garrison size', () => {
+    const charged = advanceWorldStep(network(4), 10_000);
+    const beforeUnits = charged.territories.find((city) => city.id === 'city-1')!.units;
+    const defended = attack(charged, 'city-1', 8);
+    expect(defended.territories.find((city) => city.id === 'city-1')).toMatchObject({
+      owner: 'player',
+      units: beforeUnits,
+    });
+    expect(defended.captureShields['city-1']).toMatchObject({ remaining: 0 });
+  });
+
+  it('starts a fresh 10-second cooldown after a shield is consumed', () => {
+    const charged = advanceWorldStep(network(4), 10_000);
+    const consumed = attack(charged, 'city-1');
+    expect(advanceWorldStep(consumed, 9_999).captureShields['city-1'].remaining).toBe(0);
+    const recharged = advanceWorldStep(consumed, 10_000);
+    expect(recharged.captureShields['city-1']).toEqual({ remaining: 1 });
+  });
+
+  it('persists partial recharge timers and migrates older saves without granting shields', () => {
+    const state = advanceWorldStep(network(4), 5_000);
+    let raw = '';
+    writeSavedGame(
+      { state, territories: territories(4), ai: null, phase: 'paused' },
+      {
+        setItem: (_key, value) => {
+          raw = value;
+        },
+      },
+    );
+    const restored = readSavedGame({ getItem: () => raw })!.state;
+    expect(restored.networkShieldTimers).toEqual(state.networkShieldTimers);
+    expect(advanceWorldStep(restored, 5_000).captureShields.home.remaining).toBe(1);
+
+    const extraCharges = { ...network(4), captureShields: { home: { remaining: 2 } } };
+    let chargedRaw = '';
+    writeSavedGame(
+      { state: extraCharges, territories: territories(4), ai: null, phase: 'paused' },
+      {
+        setItem: (_key, value) => {
+          chargedRaw = value;
+        },
+      },
+    );
+    expect(readSavedGame({ getItem: () => chargedRaw })!.state.captureShields.home.remaining).toBe(
+      2,
+    );
+
+    const { networkShieldTimers: _timers, ...legacy } = network(4);
+    const oldRaw = JSON.stringify({
+      state: legacy,
+      territories: territories(4),
+      ai: null,
+      phase: 'paused',
+    });
+    expect(readSavedGame({ getItem: () => oldRaw })!.state.networkShieldTimers).toEqual({});
+    const corrupt = JSON.stringify({
+      state: { ...state, networkShieldTimers: { home: { owner: 'player', elapsedMs: 10_000 } } },
+      territories: territories(4),
+      ai: null,
+      phase: 'paused',
+    });
+    expect(readSavedGame({ getItem: () => corrupt })).toBeNull();
+  });
+});

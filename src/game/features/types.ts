@@ -1,4 +1,4 @@
-import type { FactionId } from '../types';
+import type { FactionId } from '@/game/types';
 
 export interface FactoryFeature {
   readonly id: string;
@@ -30,4 +30,5 @@ export interface ArtilleryFeature {
   readonly fireIntervalMs: number;
 }
 
-export type TerritoryFeature = FactoryFeature | WatchtowerFeature | SlowZoneFeature | ArtilleryFeature;
+export type TerritoryFeature =
+  FactoryFeature | WatchtowerFeature | SlowZoneFeature | ArtilleryFeature;

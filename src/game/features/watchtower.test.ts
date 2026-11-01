@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { advanceWorldStep } from '../worldStep';
-import { createSimulation } from '../state';
-import { forecastBattle } from '../ai/forecast';
-import { resolveArrivalBatch } from '../combat';
-import type { SimulationState, Transfer } from '../types';
+
+import { forecastBattle } from '@/game/ai/forecast';
+import { resolveArrivalBatch } from '@/game/combat';
+import { createSimulation } from '@/game/state';
+import type { SimulationState, Transfer } from '@/game/types';
+import { advanceWorldStep } from '@/game/world-step';
 
 const tower = { id: 'tower', kind: 'watchtower' as const, range: 150, fireIntervalMs: 250 };
 function armed(owner: 'player' | 'enemy' = 'player') {
@@ -12,19 +13,41 @@ function armed(owner: 'player' | 'enemy' = 'player') {
     { id: 'home', owner, x: 100, y: 100, units: 10, features: [tower] },
     { id: 'away', owner: attacker, x: 160, y: 100, units: 10 },
   ]);
-  const transfer: Transfer = { id: 1, sourceId: 'away', targetId: 'home', owner: attacker,
-    units: 3, formationSize: 3, dotSlots: [0, 1, 2], from: { x: 160, y: 100 }, to: { x: 100, y: 100 },
-    durationMs: 3000, elapsedMs: 0 };
+  const transfer: Transfer = {
+    id: 1,
+    sourceId: 'away',
+    targetId: 'home',
+    owner: attacker,
+    units: 3,
+    formationSize: 3,
+    dotSlots: [0, 1, 2],
+    from: { x: 160, y: 100 },
+    to: { x: 100, y: 100 },
+    durationMs: 3000,
+    elapsedMs: 0,
+  };
   return { ...state, transfers: [transfer] };
 }
 
 describe('Watchtower', () => {
-  it.each([[0, 1000], [110, 0], [Infinity, 1000]])('rejects invalid tower range/cadence %s %s', (range, fireIntervalMs) => {
-    expect(() => createSimulation([
-      { id: 'home', owner: 'player', x: 100, y: 100, units: 10,
-        features: [{ ...tower, range, fireIntervalMs }] },
-      { id: 'away', owner: 'enemy', x: 200, y: 100, units: 10 },
-    ])).toThrow();
+  it.each([
+    [0, 1000],
+    [110, 0],
+    [Infinity, 1000],
+  ])('rejects invalid tower range/cadence %s %s', (range, fireIntervalMs) => {
+    expect(() =>
+      createSimulation([
+        {
+          id: 'home',
+          owner: 'player',
+          x: 100,
+          y: 100,
+          units: 10,
+          features: [{ ...tower, range, fireIntervalMs }],
+        },
+        { id: 'away', owner: 'enemy', x: 200, y: 100, units: 10 },
+      ]),
+    ).toThrow();
   });
   it('migrates authored Watchtowers into an exclusive role with per-city cooldown', () => {
     const state = createSimulation([
@@ -48,9 +71,18 @@ describe('Watchtower', () => {
       { id: 'home', owner: 'neutral', cityType: 'watchtower', x: 100, y: 100, units: 1 },
       { id: 'away', owner: 'enemy', x: 160, y: 100, units: 10 },
     ]);
-    const captured = resolveArrivalBatch(initial, { targetId: 'home', owner: 'player', units: 2 }).state;
+    const captured = resolveArrivalBatch(initial, {
+      targetId: 'home',
+      owner: 'player',
+      units: 2,
+    }).state;
     expect(captured.weaponTimers?.home).toEqual({ owner: 'player', elapsedMs: 0 });
-    const transfer: Transfer = { ...armed().transfers[0], owner: 'enemy', units: 3, dotSlots: [0, 1, 2] };
+    const transfer: Transfer = {
+      ...armed().transfers[0],
+      owner: 'enemy',
+      units: 3,
+      dotSlots: [0, 1, 2],
+    };
     const state = { ...captured, transfers: [transfer] };
     expect(advanceWorldStep(state, 249).transfers[0].units).toBe(3);
     expect(advanceWorldStep(state, 250).transfers[0].units).toBe(2);
@@ -61,7 +93,9 @@ describe('Watchtower', () => {
     const friendlyState = advanceWorldStep({ ...state, transfers: [friendly] }, 2000);
     expect(friendlyState.transfers[0].dotSlots).toHaveLength(3);
     const distant = { ...state.transfers[0], from: { x: 500, y: 500 }, to: { x: 500, y: 600 } };
-    expect(advanceWorldStep({ ...state, transfers: [distant] }, 2000).transfers[0].dotSlots).toHaveLength(3);
+    expect(
+      advanceWorldStep({ ...state, transfers: [distant] }, 2000).transfers[0].dotSlots,
+    ).toHaveLength(3);
   });
   it('switches allegiance with city ownership and shoots the original owner after capture', () => {
     const state = armed('enemy');

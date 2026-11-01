@@ -6,7 +6,7 @@ Implemented as a **headless authoring foundation**, after [revision 2 approval a
 
 ### Module boundary
 
-- [src/botEditor](../../src/botEditor) has no React or game imports. Gameplay does not import it, so Blockly is not initialized or bundled on the current gameplay path.
+- [src/bot-editor](../../src/bot-editor) has no React or game imports. Gameplay does not import it, so Blockly is not initialized or bundled on the current gameplay path.
 - `createDefaultProject()` returns fresh deterministic Main/Capture source.
 - `parseProject(text)` checks UTF-8 bytes and structural format before Blockly sees input. `loadProject(value)` validates/clones a source object and owns the resulting headless workspaces/models.
 - A loaded session exposes `workspaces` by stable tab identity and `models` by stable tactic identity, `setActiveTab(id)`, `save()` and idempotent `dispose()`. Dispose releases workspace registry entries and model/workspace associations.
@@ -15,6 +15,7 @@ Implemented as a **headless authoring foundation**, after [revision 2 approval a
 ### Format v1
 
 The envelope is native Blockly editable source with:
+
 - `format: "dotfield-bot"`, `version: 1`, and exact `blocklyVersion` / `proceduresVersion` strings (`13.4.0`). Both npm dependencies are pinned to those tested versions.
 - `procedures`: Blockly-compatible backing-model states (`id`, `name`, null `returnTypes`, ordered typed parameters). Models are saved **once**, not duplicated in each workspace.
 - `tabs`: `main` plus one tab per tactic ID, each containing typed local slot declarations and Blockly block state (`blocks.languageVersion: 0`). Block IDs, field values, connections, literal shadows, order, positions, collapsed/inline flags and extra state are retained.
@@ -22,7 +23,7 @@ The envelope is native Blockly editable source with:
 
 Unsupported project/dependency/workspace versions fail explicitly. There is no migration, overwrite, fallback to default or clamping during decode. Names and IDs are separate; renaming a tactic, parameter or slot never changes its references. Input/output slots refer to declarations by ID, not by display text. Tactic IDs cannot be `main`.
 
-Golden serialized fixtures: [default project](../../src/botEditor/fixtures/default-project.json) and [nested forwarding project](../../src/botEditor/fixtures/forwarding-project.json). These are Blockly states, **not a third execution AST**. There is no generated MDSL or runtime JSON in this format.
+Golden serialized fixtures: [default project](../../src/bot-editor/fixtures/default-project.json) and [nested forwarding project](../../src/bot-editor/fixtures/forwarding-project.json). These are Blockly states, **not a third execution AST**. There is no generated MDSL or runtime JSON in this format.
 
 ### Blockly backing models
 
@@ -39,20 +40,20 @@ The plugin's legacy procedure blocks/model semantics are deliberately not instal
 
 ### Bounded block catalog
 
-| Block | Authored inputs / slots |
-| --- | --- |
-| Main / tactic definition | One BODY; stable definition identity |
-| Selector | Ordered BODY steps |
-| Sequence | Ordered BODY; explicit none/release-plan-on-exit cleanup and capture-plan slot |
-| Retry | Typed attempt count; BODY |
-| SelectCity | Query, ranking, output city slot |
-| SelectSources | Target city, minimum army, output source-list slot |
-| NextCity | Source-list, output city slot |
-| ClearSet | Chosen-set slot |
-| AddToSet | Chosen-set and city slots |
-| PlanCapture | Target city, chosen-set, horizon and capture-plan slot |
-| ExecutePlan | Capture-plan slot |
-| Tactic call / scalar literal / parameter reference | Typed, identity-based values described above |
+| Block                                              | Authored inputs / slots                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Main / tactic definition                           | One BODY; stable definition identity                                           |
+| Selector                                           | Ordered BODY steps                                                             |
+| Sequence                                           | Ordered BODY; explicit none/release-plan-on-exit cleanup and capture-plan slot |
+| Retry                                              | Typed attempt count; BODY                                                      |
+| SelectCity                                         | Query, ranking, output city slot                                               |
+| SelectSources                                      | Target city, minimum army, output source-list slot                             |
+| NextCity                                           | Source-list, output city slot                                                  |
+| ClearSet                                           | Chosen-set slot                                                                |
+| AddToSet                                           | Chosen-set and city slots                                                      |
+| PlanCapture                                        | Target city, chosen-set, horizon and capture-plan slot                         |
+| ExecutePlan                                        | Capture-plan slot                                                              |
+| Tactic call / scalar literal / parameter reference | Typed, identity-based values described above                                   |
 
 Connections distinguish executable statements from each scalar type. Native dropdowns show only declarations of the required city/source-list/chosen-set/capture-plan kind. The decoder rejects unknown types, extra properties, invalid fields/enums/numbers, wrong slot kinds and incompatible serialized connections **before** Blockly could silently clamp fields or drop connections. No disabled/executable-code/custom-variable/generator state is accepted.
 
@@ -99,7 +100,7 @@ Structural source guards: 256 KiB UTF-8, 128 authored blocks (including roots/sc
 - Inputs are bound by stable parameter identity; calls accept typed literals or forward enclosing parameters. Query/ranking enums and distinct army/attempts/horizon types retain their domains at supplying calls and primitive uses. Numeric constraints are checked even for declared inputs the callee does not currently use. Per-call values remain constants across RUNNING ticks.
 - Memoized/saturating DAG summaries count expanded native nodes (including implicit sequence/root wrappers), expanded depth and call depth **before materialization**. Runtime ceilings are128 nodes, depth12 and4 call hops. Repeated acyclic calls cannot evade limits through exponential expansion. A4-level/fanout6 fixture rejects oversize expansion without falsely labelling it recursive; a4-level/fanout4 fixture admits86 native nodes/64 actions.
 - Each call site gets deterministic private city/source-list/chosen-set/plan names based on its entire stable call-block path and local slot ID. Main uses a disjoint namespace. Length-framed identities prevent delimiter collisions even for IDs containing punctuation; display renames do not change bindings. Cleanup receives the exact same bound plan as PlanCapture/ExecutePlan. Only declared slot operands are rewritten, never scalar enums/numbers.
-- Generated node origins retain definition tab/block IDs and the full call path. The [expanded default fixture](../../src/botEditor/fixtures/tactic-program.json) shows both literal bindings/private namespaces. The direct fixture's slot labels now use the same disjoint Main framing.
+- Generated node origins retain definition tab/block IDs and the full call path. The [expanded default fixture](../../src/bot-editor/fixtures/tactic-program.json) shows both literal bindings/private namespaces. The direct fixture's slot labels now use the same disjoint Main framing.
 - Uncalled definitions are also checked for definite writes using valid type-domain representatives; scalar values do not alter this language's control topology. Those validation-only values are **never exported or used as missing executable arguments**. Main expansion always receives actual authored bindings.
 - Re-entry reuses the bounded static namespace and ordinary fresh-attempt BT lifecycle; no growing invocation IDs. The default tactic explicitly rewrites its target/list, clears chosen sources and releases its plan. The compiler does not secretly clear authored memory, select extra donors or change tactical policy.
 - Real simulation tests cover direct/shared/nested-forwarded equivalence for neutral and enemy targets, a two-source capture at host cadence, forwarded retry counts across RUNNING ticks, sequential neutral/enemy private plans, success/failure/abort cleanup, stable namespace/fresh chosen-set re-entry, and a shared source-limit edit which affects new compilations but never an older running snapshot. Tests preserve Mistreevous's ordinary retry-exhaustion terminal tick rather than changing runtime semantics to make a call appear synchronous.
@@ -112,6 +113,7 @@ The slice-4 checkpoint included no editor screen, localStorage Save, Home activa
 ## Slice 5: editor and local drafts
 
 ### Entry and editing
+
 - Normal Home has **Edit logic** for every configured enemy, independent of development flags. Normal/Custom is visible, but **Custom is explicitly disabled** with an explanation until slice6 integration. Saving an editor project does not change the existing utility controller, presets, match preferences or any running/restored match.
 - The approved revision-2 shell is implemented with real Blockly/Zelos: compact desktop library beside a dotted scrollable/zoomable canvas; horizontal phone library above it; Main/tactic tabs and native tap/keyboard controls below. Essential actions do not require dragging: select a step, add after it/inside a group, reorder siblings, move into a chosen group, delete, edit literals/typed slot fields and change literal/input bindings. Structural-cycle commands reject without modifying the draft.
 - Tactics and inputs provides creation, stable-ID rename, guarded deletion, typed parameter addition/removal/reordering, call literals and enclosing-parameter forwarding. New tactics get the same small local typed-slot set. Referenced tactic deletion is blocked until calls are removed. Signature changes preserve old incompatible/removed arguments and references; missing inputs remain empty. Binding/replacing/removing obsolete arguments is explicit and undoable.
@@ -120,18 +122,21 @@ The slice-4 checkpoint included no editor screen, localStorage Save, Home activa
 - Reset replaces only the working draft and is undoable. Back with changes offers **Discard changes / Keep editing**. Browser unload checks flush pending canvas edits and request the browser's normal unsaved-change prompt. Save, Reset and Back never secretly change the other enemies' projects.
 
 ### Save and recovery
-- `readEnemyProject` / `saveEnemyProject` in `src/botEditor/storage.ts` store only the editable source under `dotfield.bot-project.v1.<encoded faction ID>`. Both persisted source and its generated native definition are validated on read/Save; compiled JSON and runtime memory are not editor storage. Only a successful one-key write updates the saved baseline.
+
+- `readEnemyProject` / `saveEnemyProject` in `src/bot-editor/storage.ts` store only the editable source under `dotfield.bot-project.v1.<encoded faction ID>`. Both persisted source and its generated native definition are validated on read/Save; compiled JSON and runtime memory are not editor storage. Only a successful one-key write updates the saved baseline.
 - Invalid/recursive/out-of-admission drafts do not overwrite the last valid project. Storage read/write/quota failures remain readable errors while the working draft stays open. A stale read token detects newer saves from another tab; this is an optimistic check, not transactional multi-tab merging.
 - Unsupported/corrupt stored projects are preserved. The editor explains the failure and offers a default working draft; replacement requires **Replace unreadable save → Confirm replacement → Save**. Reset alone does not authorize replacement. No migration, automatic overwrite or arbitrary source import/export UI is added.
 - Lazy-load errors explain reconnect/retry and allow returning Home without modifying saved data. PWA update actions are unavailable while editing, just as while playing; return Home through the draft guard before applying an update.
 
 ### Lazy loading, offline assets and disposal
+
 - `BotEditorEntry` lazy-loads the editor. Normal Home/gameplay imports neither Blockly nor project models; no workspaces initialize before entering the editor. The lazy editor chunk is approximately837kB raw/231kB gzip, separate from the approximately494kB main JS. Vite's existing500kB chunk warning remains visible; it is not a build failure or a performance approval.
 - Blockly media is local under `public/blockly-media/`, not fetched from a demo CDN. Full upstream licenses are served under `public/licenses/` and linked in the editor. VitePWA explicitly precaches media/licenses and includes lazy JS/CSS (26 entries, approximately1.63MiB total).
 - Production tests actually open the editor **for the first time offline**, change/Save/reload/reopen source, and fetch media/licenses offline. No prior editor visit is used to make caching appear successful. This does not establish real-iPhone installed behavior.
 - All workspaces, model attachments, resize observers, change listeners, pending callbacks and owned DOM are disposed on source-session replacement/unmount. Partial mounting failures also clean up and disable Save. Tests exercise repeated mount/disposal and injected observer failures; no general heap-leak/security guarantee is claimed.
 
 ### Verification and outstanding gates
+
 - **1029 unit tests / 116 files pass**, including93 focused editor tests. TypeScript/production build passes. **156 standard browser tests pass**, including13 editor cases for save/reopen/isolation, native and real SVG edits, whole-project undo, parameter bindings/rename/type invalidation, reset/discard, storage/version and lazy-load recovery, partial mount/disposal and320×480 /430×932 /1280×900 layouts.
 - **Both new production-PWA editor tests pass**: first-use offline editing/assets and update safety for unsaved drafts.
 - **Full PWA suite is NOT green:** both existing `tests/pwa/updates.spec.ts` cases time out on the Home action at320px. Reproduced with unchanged slice-4 `048407d` sources in an isolated archive using the same installed dependencies. The dashboard/list icon subtree intercepts the Home button; current trace stops at `updates.spec.ts:61`, baseline at`:100`. No existing assertions were removed/relaxed and this unrelated header-layout repair was not smuggled into slice5. Local baseline trace retained at `mockups/.runtime/slice5-baseline-update-trace.zip`; temporary source archive/server cleaned up.

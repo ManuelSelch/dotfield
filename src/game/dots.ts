@@ -9,7 +9,10 @@ export interface FormationGeometry {
 }
 
 /** Calculates the shared geometry once per formation, rather than once per dot. */
-export function formationGeometry(batch: Transfer, traveledMs = traveledTime(batch)): FormationGeometry {
+export function formationGeometry(
+  batch: Transfer,
+  traveledMs = traveledTime(batch),
+): FormationGeometry {
   const center = transferPosition(batch, traveledMs);
   const dx = batch.to.x - batch.from.x;
   const dy = batch.to.y - batch.from.y;
@@ -17,8 +20,8 @@ export function formationGeometry(batch: Transfer, traveledMs = traveledTime(bat
   const progress = traveledMs / batch.durationMs;
   const opening = Math.max(0, Math.min(1, progress / 0.3));
   const gathering = Math.max(0, Math.min(1, (progress - 0.8) / 0.2));
-  const spread = opening * opening * (3 - 2 * opening)
-    * (1 - gathering * gathering * (3 - 2 * gathering));
+  const spread =
+    opening * opening * (3 - 2 * opening) * (1 - gathering * gathering * (3 - 2 * gathering));
   return {
     center,
     perpendicular: { x: -dy / length, y: dx / length },

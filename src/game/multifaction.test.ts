@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+
+import { DEFAULT_AI } from './ai/config';
 import { advanceRound, evaluateRound } from './round';
 import { createSimulation } from './state';
-import { DEFAULT_AI } from './ai/config';
 import type { Territory } from './types';
 
 const territories: Territory[] = [
@@ -19,20 +20,33 @@ describe('multiple independent AI factions', () => {
   });
 
   it('runs each configured AI on its own schedule and issues only its own orders', () => {
-    const state = advanceRound(createSimulation(territories), 50, { enemy: config, 'enemy-2': config });
-    expect([...new Set(state.transfers.map(transfer => transfer.owner))].sort()).toEqual(['enemy', 'enemy-2']);
+    const state = advanceRound(createSimulation(territories), 50, {
+      enemy: config,
+      'enemy-2': config,
+    });
+    expect([...new Set(state.transfers.map((transfer) => transfer.owner))].sort()).toEqual([
+      'enemy',
+      'enemy-2',
+    ]);
     expect(state.aiDecisionDeadlines).toEqual({ enemy: 10050, 'enemy-2': 10050 });
   });
 
   it('keeps the player alive while two enemies remain and declares defeat after player elimination', () => {
     expect(evaluateRound(createSimulation(territories)).roundStatus).toBe('playing');
-    const defeated = createSimulation(territories.map(city => city.id === 'player' ? { ...city, owner: 'neutral' as const } : city));
+    const defeated = createSimulation(
+      territories.map((city) =>
+        city.id === 'player' ? { ...city, owner: 'neutral' as const } : city,
+      ),
+    );
     expect(evaluateRound(defeated).roundStatus).toBe('defeat');
   });
 
   it('declares victory only after the player is the sole surviving faction', () => {
-    const won = createSimulation(territories.map(city => city.owner === 'player'
-      ? city : { ...city, owner: 'neutral' as const }));
+    const won = createSimulation(
+      territories.map((city) =>
+        city.owner === 'player' ? city : { ...city, owner: 'neutral' as const },
+      ),
+    );
     expect(evaluateRound(won).roundStatus).toBe('victory');
   });
 });

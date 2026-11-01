@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openAuthoredMatch } from './helpers/openAuthoredMatch';
 
 for (const viewport of [
@@ -6,7 +7,7 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 430, height: 932 },
   { width: 1440, height: 900 },
-]) {
+])
   test(`live field fits ${viewport.width} × ${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const errors: string[] = [];
@@ -22,13 +23,17 @@ for (const viewport of [
     await expect(composition).toBeVisible();
     const pauseButton = page.getByRole('button', { name: 'Pause' });
     await expect(pauseButton).toBeVisible();
-    await expect.poll(() => pauseButton.evaluate(button => getComputedStyle(button).backgroundColor)).toBe('rgb(38, 124, 114)');
+    await expect
+      .poll(() => pauseButton.evaluate((button) => getComputedStyle(button).backgroundColor))
+      .toBe('rgb(38, 124, 114)');
     await expect(page.getByText('Room to grow.')).toHaveCount(0);
     await expect(page.getByText('Meadow', { exact: true })).toHaveCount(0);
     await expect(page.getByText('Drag between regions · leave one behind.')).toHaveCount(0);
     const canvas = page.getByRole('img', { name: 'Territory board' });
     await expect(canvas).toBeVisible();
-    await expect(page.getByRole('list', { name: 'Territory details' }).getByRole('listitem')).toHaveCount(13);
+    await expect(
+      page.getByRole('list', { name: 'Territory details' }).getByRole('listitem'),
+    ).toHaveCount(13);
     await expect(page.getByRole('list', { name: 'Factions' })).toHaveCount(0);
     const box = await canvas.boundingBox();
     const pauseBox = await page.getByRole('button', { name: 'Pause' }).boundingBox();
@@ -49,37 +54,62 @@ for (const viewport of [
     // The permanent strip consumes part of the former Canvas space on short phones.
     expect(box!.height + stripBox.height).toBeGreaterThanOrEqual(300);
     expect(stripBox.y - (box!.y + box!.height)).toBeCloseTo(12, 1);
-    const bottomInset = await page.locator('.app-safe-area').evaluate(el => parseFloat(getComputedStyle(el).paddingBottom));
-    expect(box!.height).toBeCloseTo(viewport.height - box!.y - stripBox.height - 12 - bottomInset, 0);
+    const bottomInset = await page
+      .locator('.app-safe-area')
+      .evaluate((el) => parseFloat(getComputedStyle(el).paddingBottom));
+    expect(box!.height).toBeCloseTo(
+      viewport.height - box!.y - stripBox.height - 12 - bottomInset,
+      0,
+    );
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
-    expect(await page.evaluate(() => ({
-      width: document.documentElement.scrollWidth,
-      height: document.documentElement.scrollHeight,
-    }))).toEqual(viewport);
-    await expect.poll(() => canvas.evaluate((element) => {
-      const ctx = (element as HTMLCanvasElement).getContext('2d')!;
-      return Array.from(ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data)
-        .filter((_, index) => index % 4 === 3).some((alpha) => alpha > 0);
-    })).toBe(true);
+    expect(
+      await page.evaluate(() => ({
+        width: document.documentElement.scrollWidth,
+        height: document.documentElement.scrollHeight,
+      })),
+    ).toEqual(viewport);
+    await expect
+      .poll(() =>
+        canvas.evaluate((element) => {
+          const ctx = (element as HTMLCanvasElement).getContext('2d')!;
+          return Array.from(ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data)
+            .filter((_, index) => index % 4 === 3)
+            .some((alpha) => alpha > 0);
+        }),
+      )
+      .toBe(true);
     expect(errors).toEqual([]);
     await page.screenshot({ path: `test-results/field-${viewport.width}.png` });
   });
-}
 
-test('resizes the backing canvas for high-density displays and viewport changes', async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 });
+test('resizes the backing canvas for high-density displays and viewport changes', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+  });
   const page = await context.newPage();
   await openAuthoredMatch(page);
   const canvas = page.getByRole('img', { name: 'Territory board' });
-  for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }]) {
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 320, height: 568 },
+  ]) {
     await page.setViewportSize(viewport);
-    await expect.poll(() => canvas.evaluate((element) => {
-      const canvas = element as HTMLCanvasElement;
-      const bounds = canvas.getBoundingClientRect();
-      return canvas.width === Math.round(bounds.width * devicePixelRatio)
-        && canvas.height === Math.round(bounds.height * devicePixelRatio);
-    })).toBe(true);
+    await expect
+      .poll(() =>
+        canvas.evaluate((element) => {
+          const canvas = element as HTMLCanvasElement;
+          const bounds = canvas.getBoundingClientRect();
+          return (
+            canvas.width === Math.round(bounds.width * devicePixelRatio) &&
+            canvas.height === Math.round(bounds.height * devicePixelRatio)
+          );
+        }),
+      )
+      .toBe(true);
   }
   await context.close();
 });

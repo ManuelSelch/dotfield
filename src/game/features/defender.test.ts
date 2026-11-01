@@ -1,14 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation } from '../state';
-import { advanceWorldStep } from '../worldStep';
-import { convertCity } from '../cityConversion';
-import { advanceNetworkShields, shieldRechargeSource } from './networkShields';
-import { resolveArrivalBatch } from '../combat';
+
+import { convertCity } from '@/game/city-conversion';
+import { resolveArrivalBatch } from '@/game/combat';
+import { createSimulation } from '@/game/state';
+import { advanceWorldStep } from '@/game/world-step';
+
+import { advanceNetworkShields, shieldRechargeSource } from './network-shields';
 
 function defender(network = false) {
-  return createSimulation(Array.from({ length: 4 }, (_, i) => ({ id: `c${i}`, owner: 'player', units: 40,
-    x: 40 + i * 60, y: 100, cityType: i === 0 ? 'defender' as const : 'production' as const })),
-  { factions: { player: { unitsPerSecond: 0, travelSpeed: 35, batchIntervalMs: 600, connectedDefense: network } } });
+  return createSimulation(
+    Array.from({ length: 4 }, (_, i) => ({
+      id: `c${i}`,
+      owner: 'player',
+      units: 40,
+      x: 40 + i * 60,
+      y: 100,
+      cityType: i === 0 ? ('defender' as const) : ('production' as const),
+    })),
+    {
+      factions: {
+        player: {
+          unitsPerSecond: 0,
+          travelSpeed: 35,
+          batchIntervalMs: 600,
+          connectedDefense: network,
+        },
+      },
+    },
+  );
 }
 describe('Defender shields', () => {
   it('starts empty, recharges independently and caps at three', () => {
@@ -28,11 +47,26 @@ describe('Defender shields', () => {
   });
   it('resets old progress when a network changes capacity between physical updates', () => {
     const initial = defender(true);
-    const seven = { ...initial, territories: [...initial.territories.map(c => ({ ...c, cityType: 'production' as const })),
-      ...Array.from({ length: 3 }, (_, i) => ({ id: `extra${i}`, owner: 'neutral', units: 40, growthRemainder: 0,
-        x: 40 + i * 60, y: 160, cityType: 'production' as const }))] };
+    const seven = {
+      ...initial,
+      territories: [
+        ...initial.territories.map((c) => ({ ...c, cityType: 'production' as const })),
+        ...Array.from({ length: 3 }, (_, i) => ({
+          id: `extra${i}`,
+          owner: 'neutral',
+          units: 40,
+          growthRemainder: 0,
+          x: 40 + i * 60,
+          y: 160,
+          cityType: 'production' as const,
+        })),
+      ],
+    };
     const partial = advanceWorldStep(seven, 5000);
-    const expanded = { ...partial, territories: partial.territories.map(c => ({ ...c, owner: 'player' })) };
+    const expanded = {
+      ...partial,
+      territories: partial.territories.map((c) => ({ ...c, owner: 'player' })),
+    };
     expect(advanceWorldStep(expanded, 5000).captureShields.c0).toBeUndefined();
     expect(advanceWorldStep(expanded, 10000).captureShields.c0.remaining).toBe(1);
   });
@@ -40,8 +74,15 @@ describe('Defender shields', () => {
     const before = advanceWorldStep(defender(), 5000);
     const now = { ...before, elapsedMs: 5200 };
     // Faction rules are required for both capturing owners.
-    const configured = { ...now, rules: { factions: { ...now.rules.factions, enemy: now.rules.factions.player } } };
-    const lost = resolveArrivalBatch(configured, { targetId: 'c0', owner: 'enemy', units: 41 }).state;
+    const configured = {
+      ...now,
+      rules: { factions: { ...now.rules.factions, enemy: now.rules.factions.player } },
+    };
+    const lost = resolveArrivalBatch(configured, {
+      targetId: 'c0',
+      owner: 'enemy',
+      units: 41,
+    }).state;
     const back = resolveArrivalBatch(lost, { targetId: 'c0', owner: 'player', units: 2 }).state;
     expect(advanceNetworkShields(back, 200, before).networkShieldTimers?.c0.elapsedMs).toBe(0);
   });

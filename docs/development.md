@@ -14,8 +14,12 @@ Open the URL printed by Vite. The development server listens on the network so a
 ## Build and verify
 
 ```sh
-npm test                 # unit tests
-npm run test:coverage    # unit tests with LCOV coverage for Sonar
+npm run lint            # ESLint; warnings fail the gate
+npm run typecheck       # native TypeScript 7 check (src, including unit tests)
+npm run format:check    # verify Prettier formatting without rewriting files
+npm run test:tooling    # verify compiler aliases and lint-rule enforcement
+npm test                # unit tests
+npm run test:coverage   # unit tests with LCOV coverage for Sonar
 npm run build           # TypeScript check and production PWA build
 npm run preview         # serve the production build locally
 npx playwright install chromium
@@ -45,6 +49,16 @@ To enable Cloud analysis:
 The Sonar job waits for successful build/unit verification and downloads its LCOV artifact. It is skipped until both variables exist and always skipped on fork pull requests. Once enabled, a missing token fails explicitly. Scanning waits up to five minutes for the quality gate; a failed gate fails the job. Requiring that check for merges is a separate branch-protection/ruleset setting, not configured by this workflow.
 
 [Scanner properties](../sonar-project.properties) use exclusion-based scope, with no explicit `sonar.sources` or `sonar.tests`. Tests, fixtures, mockups, generated output and vendored Blockly assets are excluded from analysis, not classified as test sources. Root tool configuration remains analyzed but excluded from coverage. Vitest measures all production TypeScript/TSX under `src`, including unexecuted files, excluding tests, declarations and fixtures, and writes `coverage/lcov.info`. Both coverage output and scanner work files are ignored by Git.
+
+## Quality conventions
+
+ESLint uses framework-independent React, Hooks, accessibility and TypeScript rules, plus import ordering and cycle detection. Source files and folders use kebab-case; component names remain PascalCase. Import another source folder through `@/` (configured in TypeScript, Vite and Vitest), and use `./` for siblings. Barrel/index files are prohibited. Single-statement control-flow bodies have no braces. These checks do not yet enforce feature-layer boundaries; the architecture migration is separate.
+
+Prettier owns formatting: single quotes, trailing commas, two-space indentation and a 100-character print width. Run `npm run format` to apply it, and `npm run lint:fix` for automatic lint fixes. Generated output, disposable mockups, third-party Blockly media/licenses, generated JSON serialization snapshots and test artifacts are excluded. Narrow, explained lint exceptions preserve intentional focus management, event-bubbling boundaries and invalid-JSON test fixtures.
+
+TypeScript runs [side by side](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0): `@typescript/native` aliases TypeScript 7 and provides `tsc` for builds/typechecking; `typescript` aliases `@typescript/typescript6` and provides the TypeScript 6 compiler API needed by ESLint, plus `tsc6`. Do not replace the aliases with a direct TypeScript 7 dependency until API-dependent tools support it. No peer-dependency bypass is required. Browser tests and tooling configurations are linted, but are not yet included in the standalone TypeScript check.
+
+The local [Pi pipeline](../.pi/pipeline.yaml) prepares a fresh worktree with `npm ci`, then exposes lint, typecheck, format and tooling gates alongside the existing build/unit/browser/PWA suites. Quality, build and unit suites run automatically after agent changes; browser and PWA suites remain manual. These quality gates run locally; the hosted workflow above currently runs only build, unit coverage and Sonar analysis.
 
 ## Presentation conventions
 

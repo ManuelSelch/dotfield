@@ -20,7 +20,7 @@ Home offers a seeded preview with Reroll beside Play. Play starts the displayed 
 
 ## Generation
 
-`src/board/generateMap.ts` remains pure and uint32-seeded. Open/River/Mountains use the existing stratified slot sampling and faction placement, with terrain flags derived from the selected recipe. Every faction starts with36 troops.
+`src/board/generate-map.ts` remains pure and uint32-seeded. Open/River/Mountains use the existing stratified slot sampling and faction placement, with terrain flags derived from the selected recipe. Every faction starts with36 troops.
 
 `src/board/courtyard.ts` uses a bounded recipe rather than scattering arbitrary mountains:
 
@@ -37,7 +37,7 @@ Home offers a seeded preview with Reroll beside Play. Play starts the displayed 
 
 - Preferences remain under `dotfield.match-preferences.v1`. `map.layout` is optional only for compatibility with old records. New Home settings include an explicit layout and canonical terrain booleans; layout is authoritative during new generation.
 - Reading legacy Home settings maps mountains-on (including old combined river+mountain fields) to Mountains, river-only to River, and neither to Open field. It never silently changes an old combined field into Courtyard. Upgrades, city/enemy counts and AI choices remain retained. Old weapon flags are stripped.
-- Exact active saved fields, terrain, simulation state, opening, restart and generated metadata remain unchanged when restored. Old generation records without layout remain accepted and preserve their old generation behavior. Only the *next Home setup preferences* are normalized to the new selector, including after returning from a legacy saved round.
+- Exact active saved fields, terrain, simulation state, opening, restart and generated metadata remain unchanged when restored. Old generation records without layout remain accepted and preserve their old generation behavior. Only the _next Home setup preferences_ are normalized to the new selector, including after returning from a legacy saved round.
 - Invalid layout strings and unsupported Courtyard counts/opponents invalidate preferences/metadata through the existing safe validation boundary; missing/corrupt storage falls back safely.
 - Reroll changes only the preview. Play compiles that preview with current active faction settings.
 - Restart and Play again repeat the exact opening without rerolling or stacking upgrades. Pause freezes the simulation; reload restores the same field and pause state without closed-time growth.

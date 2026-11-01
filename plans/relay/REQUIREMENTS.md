@@ -9,6 +9,7 @@ Status: implemented with automated verification; human balance/duration and actu
 ## Scope
 
 ### In Scope
+
 - One optional relay objective on every generated layout, selected under On the field alongside the independent Factory and Slow Zone controls. Preserve existing layout-specific city/enemy limits: Courtyard 20–30 cities/one enemy; other layouts 6–30 cities/one to four enemies.
 - Delayed activation, cumulative ownership-based progress and an alternative victory condition.
 - Compact scoreboard, objective marker, countdown and saved result metadata; no explanatory text in the result popup.
@@ -17,6 +18,7 @@ Status: implemented with automated verification; human balance/duration and actu
 - A focused controls/HUD mockup and explicit visual approval before production UI implementation.
 
 ### Out of Scope
+
 - New map layouts, moving mountains/bridges or another generator redesign.
 - Multiple relays, randomized objective placement or a guarantee of competitive balance across every seed/faction count. Multi-enemy functionality is included, but balance still needs playtesting.
 - Bonus production, free troops, special relay shields, terrain changes or a new city role.
@@ -47,30 +49,37 @@ Status: implemented with automated verification; human balance/duration and actu
 ## Implementation Plan
 
 ### 1. Approve Integration Mockup
+
 Status: complete; explicit user approval recorded and owned preview stopped.
 Description: Adapt the existing compact scoreboard to the real Home/playing shell in an isolated mockup using the confirmed 120/180 timings. Show the Relay On the field control on all layouts, central placement, inactive/holding/urgent/paused/result states, two-to-five-faction scores, objective marker and five-role controls at 320px, 430px and desktop widths. Obtain explicit visual approval. Do not change production code in this slice.
 
 ### 2. Objective State and Holding Clock
+
 Status: implemented and unit-tested.
 Description: After slice 1, add an explicit optional relay definition and runtime scores with pure simulation tests. Resolve the existing Courtyard city or a deterministic central neutral city on other layouts only when Relay is enabled. Test all supported city/enemy/layout combinations for stable objective identity and a neutral, legally reachable opening host. Implement activation, fractional cumulative holding, neutral handling and capture-boundary accounting in the shared physical timeline. Verify small-step/bulk equivalence and no scoring in legacy conquest states; leave production mode entry disabled until the playable integration is ready.
 
 ### 3. Victory and Forecast Boundaries
+
 Status: implemented and unit-tested, including fractional event boundaries.
 Description: Build on slice 2 to resolve relay completion alongside conquest, preserve a terminal reason and freeze exactly at the winning event. Cover simultaneous capture/elimination/threshold cases and cargo survival. Update forecast fast paths and worker-visible state so live and forecast objective outcomes agree without running recursive AI decisions. Verify terminal forecasts cannot value post-defeat moves.
 
 ### 4. Save, Restore and Replay
+
 Status: implemented; core and browser lifecycle regressions pass.
 Description: After slices 2–3, thread the exact objective definition through opening/session construction and restart, and validate objective runtime/results in round saves. Preserve fractional scores and remaining activation time without offline catch-up. Legacy saves stay conquest. Cover paused, hidden, active and terminal restoration, corrupted objective data, Home abandonment and replay resets using existing event-only save semantics.
 
 ### 5. Relay-Aware AI
+
 Status: implemented; deterministic and real-worker regressions pass. Human tactical quality remains a playtest question.
 Description: After slices 2–4, add bounded objective priorities to existing order/action scoring and strategic staging. Test preparation expansion, routes through paired crossings and entrances where present, feasible capture/recapture, reinforcement and urgent denial across all three behaviors and independently hostile factions. Use the real command/forecast paths for ground and air actions; retain threat-aware home safety, production safeguards and independent faction rules. Verify deterministic synchronous/worker parity and continued non-relay behavior.
 
 ### 6. Playable Mode and Compact HUD
+
 Status: implemented; mobile/desktop browser regressions pass. Existing Home pressed-state pills are reused instead of separate prototype Off/On buttons.
 Description: After the approved mockup and slices 2–5, wire the mode into Home preferences, the exact preview-to-Play setup and replay, then implement the relay marker, compact scoreboard/countdown, accessible descriptions and the existing title-only result popup. Test Relay across all four layouts, layout switching, independent Factory/Slow Zone controls and legacy preference handling. Verify stable Canvas/action-strip geometry, no overflowing counters/controls, keyboard/screen-reader operation and normal drag/Fly interaction across all match states.
 
 ### 7. Integrated Verification and Playtesting
+
 Status: automated suites verified; human multi-seed balance/duration/readability and actual-iPhone acceptance remain pending.
 Description: After slice 6, run the complete unit, serial browser, production build and PWA suites. Add real-worker browser scenarios for independent faction scores, two-to-five-faction HUDs, relay victory without elimination, capture/recapture, upgrades including Defensive Network, pause/reload/restart and unchanged conquest rounds. Playtest every layout and several Courtyard seeds at 20/24/30 cities to assess competing approaches, economy choices, urgency and duration; separately record actual-iPhone checks and remaining limitations. Tune only from observed evidence and document the delivered behavior.
 

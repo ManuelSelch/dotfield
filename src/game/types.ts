@@ -1,13 +1,14 @@
+import type { TerritoryFeature } from './features/types';
 import type { River } from './river';
 import type { Terrain } from './terrain/types';
-import type { TerritoryFeature } from './features/types';
 
 export type FactionId = string;
 export type Owner = FactionId | 'neutral';
 export type Faction = FactionId;
 
 export type CityType = 'production' | 'defender' | 'airfield' | 'watchtower' | 'artillery';
-export type AircraftPhase = 'preparing' | 'ready' | 'outbound' | 'unloading' | 'returning' | 'turnaround';
+export type AircraftPhase =
+  'preparing' | 'ready' | 'outbound' | 'unloading' | 'returning' | 'turnaround';
 export interface Aircraft {
   readonly homeId: string;
   readonly owner: FactionId;
@@ -64,7 +65,10 @@ export interface SimulationRules {
 }
 export type RulesInput = GrowthRules | SimulationRules;
 
-export interface Point { readonly x: number; readonly y: number }
+export interface Point {
+  readonly x: number;
+  readonly y: number;
+}
 
 export interface Transfer {
   readonly id: number;

@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { TERRITORIES } from '../board/map';
-import { createSimulation } from './state';
+
+import { TERRITORIES } from '@/board/map';
+
 import { dispatchUnits } from './dispatch';
+import { createSimulation } from './state';
 import { advanceTravel, transferPosition } from './travel';
 
-function launched() { return dispatchUnits(createSimulation(TERRITORIES), 'south', 'centre'); }
+function launched() {
+  return dispatchUnits(createSimulation(TERRITORIES), 'south', 'centre');
+}
 
 describe('elapsed-time travel', () => {
   it('interpolates positions without depending on viewport or frame count', () => {
@@ -19,8 +23,10 @@ describe('elapsed-time travel', () => {
     let state = launched();
     for (let i = 0; i < fps; i++) state = advanceTravel(state, 1000 / fps);
     expect(state.transfers[0].elapsedMs).toBeCloseTo(1000, 6);
-    expect(transferPosition(state.transfers[0]).y)
-      .toBeCloseTo(transferPosition(advanceTravel(launched(), 1000).transfers[0]).y, 6);
+    expect(transferPosition(state.transfers[0]).y).toBeCloseTo(
+      transferPosition(advanceTravel(launched(), 1000).transfers[0]).y,
+      6,
+    );
   });
 
   it('retains arrivals without applying combat or losing accounted units', () => {
@@ -30,8 +36,10 @@ describe('elapsed-time travel', () => {
     expect(next.arrivals.reduce((sum, batch) => sum + batch.units, 0)).toBe(35);
     expect(transferPosition(next.arrivals[0])).toEqual(next.arrivals[0].to);
     expect(next.territories.at(-1)!.units).toBe(1);
-    expect(next.territories.find(node => node.id === 'centre')!.units).toBe(20);
-    const units = next.territories.reduce((sum, node) => sum + node.units, 0) + next.arrivals.reduce((sum, batch) => sum + batch.units, 0);
+    expect(next.territories.find((node) => node.id === 'centre')!.units).toBe(20);
+    const units =
+      next.territories.reduce((sum, node) => sum + node.units, 0) +
+      next.arrivals.reduce((sum, batch) => sum + batch.units, 0);
     expect(units).toBe(TERRITORIES.reduce((sum, node) => sum + node.units, 0));
     expect(advanceTravel(next, 10000).arrivals).toHaveLength(7);
   });

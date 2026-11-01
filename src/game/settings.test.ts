@@ -1,6 +1,8 @@
 import { expect, it } from 'vitest';
+
+import { projectBoard } from '@/board/layout';
+
 import { BATCH_SIZE, DOT_RADIUS, DOT_SPACING, TERRITORY_RADIUS } from './settings';
-import { projectBoard } from '../board/layout';
 
 it('uses the approved smaller shared geometry without reducing batch size', () => {
   expect(TERRITORY_RADIUS).toBe(14);

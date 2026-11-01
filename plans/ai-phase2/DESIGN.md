@@ -28,7 +28,7 @@ Everything here is a proposal until the user approves the scenario outcomes.
   blocker `decision-budget` to the trace so the dashboard reports it instead of
   implying a full evaluation.
 
-### Scenarios — `src/game/ai/decisionBudget.test.ts`
+### Scenarios — `src/game/ai/decision-budget.test.ts`
 
 1. **Preserved** — with no options, `chooseActionWithTrace(state, cfg, 'enemy')`
    selects the same action as today on the 30-city Courtyard+Relay fixture.

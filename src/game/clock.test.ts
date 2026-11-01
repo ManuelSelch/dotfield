@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { createClock } from './clock';
 
 describe('fixed-step clock', () => {

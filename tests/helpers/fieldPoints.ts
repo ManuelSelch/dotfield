@@ -7,7 +7,12 @@ export async function fieldPoints(page: Page) {
     x: box.x + (box.width - 360 * scale) / 2 + x * scale,
     y: box.y + (box.height - 480 * scale) / 2 + y * scale,
   });
-  return { source: point(180, 440), target: point(180, 240), enemy: point(180, 40),
-    regionSource: point(100, 470), regionTarget: point(177, 185),
-    outside: { x: box.x - 8, y: box.y + 4 } };
+  return {
+    source: point(180, 440),
+    target: point(180, 240),
+    enemy: point(180, 40),
+    regionSource: point(100, 470),
+    regionTarget: point(177, 185),
+    outside: { x: box.x - 8, y: box.y + 4 },
+  };
 }

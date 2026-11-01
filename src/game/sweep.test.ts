@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+
 import { sweptContact } from './sweep';
 
 const point = (x: number, y = 0) => ({ x, y });

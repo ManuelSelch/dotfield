@@ -1,1 +1,1 @@
-export { clipToCity } from '../../game/regionClip';
+export { clipToCity } from '@/game/region-clip';

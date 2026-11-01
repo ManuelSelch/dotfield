@@ -2,15 +2,15 @@
 
 ## State and lifetime
 
-[App](../src/App.tsx) owns Home preferences and the selected round. Home generates previews without running simulation or AI. Compiled setup fixes initial territories, faction rules, features, terrain and optional Relay for a round; Restart/replay reuse that opening.
+[App](../src/app.tsx) owns Home preferences and the selected round. Home generates previews without running simulation or AI. Compiled setup fixes initial territories, faction rules, features, terrain and optional Relay for a round; Restart/replay reuse that opening.
 
-[useBoardSession](../src/board/useBoardSession.ts) binds React to one [startBoard](../src/board/startBoard.ts) controller. The controller owns the session, animation callback, input bindings, resize/visibility listeners, AI worker and optional development bots. Disposal cancels animation and releases these browser resources. React receives semantic snapshots rather than every animation frame; Canvas reads the live simulation state.
+[useBoardSession](../src/board/use-board-session.ts) binds React to one [startBoard](../src/board/start-board.ts) controller. The controller owns the session, animation callback, input bindings, resize/visibility listeners, AI worker and optional development bots. Disposal cancels animation and releases these browser resources. React receives semantic snapshots rather than every animation frame; Canvas reads the live simulation state.
 
 ## Simulation and presentation
 
-[session](../src/game/session.ts) owns commands, phase and active-time stepping. The [clock](../src/game/clock.ts) accumulates fixed steps, carries fractional active time and rebaselines on suspension. Hidden/paused time grants no catch-up or offline growth. [worldStep](../src/game/worldStep.ts) shares physical rules between live rounds and AI forecasts, including event boundaries for arrivals, weapons and aircraft. Stable IDs order collision/weapon ties.
+[session](../src/game/session.ts) owns commands, phase and active-time stepping. The [clock](../src/game/clock.ts) accumulates fixed steps, carries fractional active time and rebaselines on suspension. Hidden/paused time grants no catch-up or offline growth. [worldStep](../src/game/world-step.ts) shares physical rules between live rounds and AI forecasts, including event boundaries for arrivals, weapons and aircraft. Stable IDs order collision/weapon ties.
 
-Simulation modules under `src/game/` are independent of React and Canvas. Shared board-space geometry determines movement, individual troop contacts and impact boundaries; changing rendering must not change those outcomes. [drawBoard](../src/board/drawBoard.ts) projects the logical field to Canvas, while accessible React controls/descriptions expose input and game state. Resize changes projection, not simulation distances.
+Simulation modules under `src/game/` are independent of React and Canvas. Shared board-space geometry determines movement, individual troop contacts and impact boundaries; changing rendering must not change those outcomes. [drawBoard](../src/board/draw-board.ts) projects the logical field to Canvas, while accessible React controls/descriptions expose input and game state. Resize changes projection, not simulation distances.
 
 ## AI
 
@@ -22,7 +22,7 @@ The development MDSL prototype is opt-in. The [Blockly editor](bot-editor/IMPLEM
 
 [Round persistence](../src/game/persistence.ts) validates serialized setup/runtime and restores paused/active phase without offline simulation. Browser/session event snapshots write already-applied state; there is no periodic autosave timer. Applied AI commands also request snapshots in the current board adapter. Storage failure must not prevent gameplay; lifecycle writes are best-effort, so crashes can lose progress since the last write. Home abandons the saved round. Preferences, round runtime and editor projects have separate lifetimes.
 
-The [PWA update controller](../src/pwa/appUpdates.ts) caches application assets locally, not server-synced progress. Updates install in the background; explicit Home-only **Update now** reloads the app. No unsolicited reload should interrupt a round or editor draft. Browser Online is a connectivity signal, not proof of server reachability.
+The [PWA update controller](../src/pwa/app-updates.ts) caches application assets locally, not server-synced progress. Updates install in the background; explicit Home-only **Update now** reloads the app. No unsolicited reload should interrupt a round or editor draft. Browser Online is a connectivity signal, not proof of server reachability.
 
 ## Verification boundary
 

@@ -11,26 +11,33 @@ async function getTransfer(page: ReturnType<typeof expect>['page']) {
   return page.getByRole('list', { name: 'Unit transfers' });
 }
 
-test('mouse clicks respect water hit-testing and bridge order rules after input merge', async ({ page }) => {
+test('mouse clicks respect water hit-testing and bridge order rules after input merge', async ({
+  page,
+}) => {
   const click = async (x: number, y: number) => {
     // Opening/closing city management changes the canvas height between clicks.
     const box = (await page.getByRole('img', { name: 'Territory board' }).boundingBox())!;
     const scale = Math.min(box.width / 360, box.height / 480);
     await page.mouse.click(
       box.x + (box.width - 360 * scale) / 2 + x * scale,
-      box.y + (box.height - 480 * scale) / 2 + y * scale);
+      box.y + (box.height - 480 * scale) / 2 + y * scale,
+    );
   };
   const items = page.getByRole('list', { name: 'Unit transfers' }).getByRole('listitem');
-  await click(180, 430); await click(180, 240); // Water is not a city target.
+  await click(180, 430);
+  await click(180, 240); // Water is not a city target.
   await expect(items).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await click(180, 430); await click(80, 290); // Legal same-bank staging.
+  await click(180, 430);
+  await click(80, 290); // Legal same-bank staging.
   await expect(items.filter({ hasText: 'south → west-south' })).toHaveCount(7);
-  await click(180, 430); await click(180, 50); // Illegal cross-bank order must retain the queue.
+  await click(180, 430);
+  await click(180, 50); // Illegal cross-bank order must retain the queue.
   await expect(items.filter({ hasText: 'south → west-south' })).toHaveCount(7);
   await expect(items.filter({ hasText: 'south → north' })).toHaveCount(0);
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toContainText('31 units');
-  await click(80, 290); await click(80, 190); // Paired bridge endpoints may cross.
+  await click(80, 290);
+  await click(80, 190); // Paired bridge endpoints may cross.
   await expect(items.filter({ hasText: 'west-south → west-north' })).toHaveCount(4);
 });
 
@@ -45,7 +52,9 @@ test('stages to a bridge city then crosses to the paired endpoint', async ({ pag
   await page.keyboard.press('Enter');
   await bridge.focus();
   await page.keyboard.press('Enter');
-  await expect(transfers.getByRole('listitem').filter({ hasText: 'south → west-south' })).not.toHaveCount(0);
+  await expect(
+    transfers.getByRole('listitem').filter({ hasText: 'south → west-south' }),
+  ).not.toHaveCount(0);
   await expect(page.getByRole('listitem').filter({ hasText: /^south:/ })).toContainText('31 units');
 
   // Resolve arrival so west-south has troops to cross.
@@ -57,7 +66,9 @@ test('stages to a bridge city then crosses to the paired endpoint', async ({ pag
   await page.keyboard.press('Enter');
   await farBank.focus();
   await page.keyboard.press('Enter');
-  await expect(transfers.getByRole('listitem').filter({ hasText: 'west-south → west-north' })).not.toHaveCount(0);
+  await expect(
+    transfers.getByRole('listitem').filter({ hasText: 'west-south → west-north' }),
+  ).not.toHaveCount(0);
 });
 
 test('rejects invalid cross-bank orders and preserves existing queues', async ({ page }) => {
@@ -66,15 +77,19 @@ test('rejects invalid cross-bank orders and preserves existing queues', async ({
   // Start a valid same-bank order via keyboard.
   const south = page.getByRole('button', { name: /Select south region:/ });
   const bridge = page.getByRole('button', { name: /Select west-south region/ });
-  await south.focus(); await page.keyboard.press('Enter');
-  await bridge.focus(); await page.keyboard.press('Enter');
+  await south.focus();
+  await page.keyboard.press('Enter');
+  await bridge.focus();
+  await page.keyboard.press('Enter');
   const initialCount = await transfers.getByRole('listitem').count();
   expect(initialCount).toBeGreaterThan(0);
 
   // Try an illegal cross-bank order to an unpaired northern city.
   const north = page.getByRole('button', { name: /Select north region:/ });
-  await south.focus(); await page.keyboard.press('Enter');
-  await north.focus(); await page.keyboard.press('Enter');
+  await south.focus();
+  await page.keyboard.press('Enter');
+  await north.focus();
+  await page.keyboard.press('Enter');
   await expect(transfers.getByRole('listitem')).toHaveCount(initialCount);
 });
 
@@ -99,7 +114,9 @@ test('AI stages reinforcements at bridge cities before crossing', async ({ page 
   const transfers = await getTransfer(page);
   await page.clock.runFor(3000);
   // The AI should not attempt illegal cross-bank skips; it stages or sends within its bank.
-  const aiTransfers = transfers.getByRole('listitem').filter({ hasText: /north|north-east|north-west/ });
+  const aiTransfers = transfers
+    .getByRole('listitem')
+    .filter({ hasText: /north|north-east|north-west/ });
   const count = await aiTransfers.count();
   for (let i = 0; i < count; i++) {
     const text = await aiTransfers.nth(i).textContent();

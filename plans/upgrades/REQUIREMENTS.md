@@ -30,7 +30,7 @@ Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shie
 ### Current implementation checkpoint
 
 - `src/game/rules.ts` resolves, validates and freezes independent faction-ID keyed growth/speed/cadence rules. Ownership, hostile collisions, capture, elimination, and AI decision schedules now support arbitrary faction IDs; player remains the sole human faction.
-- `src/game/upgrades/catalog.ts` defines faction-selectable effects; `compile.ts` snapshots the map and resolves each faction's selected IDs. `src/board/generateMap.ts` resolves Slow Zone into territory features; legacy Watchtower/Artillery map toggles are ignored. Home exposes player and per-enemy upgrades plus independent AI behaviors.
+- `src/game/upgrades/catalog.ts` defines faction-selectable effects; `compile.ts` snapshots the map and resolves each faction's selected IDs. `src/board/generate-map.ts` resolves Slow Zone into territory features; legacy Watchtower/Artillery map toggles are ignored. Home exposes player and per-enemy upgrades plus independent AI behaviors.
 - Play compiles a setup once. The board/hook/session forward its rules, and restart/replay keep it. Legacy `{ unitsPerSecond }` overrides remain supported and normalize to both current factions.
 - Dispatch routes and AI order horizons read the issuing faction's resolved speed/cadence. Growth reads the current owner. `worldStep.ts` shares physical updates between live rounds and forecasts without changing their existing orchestration/terminal semantics.
 - Factory is now a typed territory feature with a stable ID and production multiplier (legacy beneficiary IDs remain readable). Nested definitions are validated/snapshotted for compiler/session/state; no cooldown/runtime object is needed for this passive feature.
@@ -42,15 +42,15 @@ Industry, Factory, buildable Watchtower/Artillery roles, Slow Zone, Capture Shie
 
 The shared-rate/fixed-duration limitations below describe the original inspection, not the current per-faction/Slow Zone implementation. Geometry values are synchronized with current `settings.ts` (17 / 3.8 / 10).
 
-| Setting | Source | Historical consumer / limitation |
-|---|---|---|
-| Growth: 1 unit/s | `src/game/settings.ts`: `GROWTH_RULES` | Copied to `state.rules` by `createSimulation`; `advanceGrowth` reads it. One rate shared by both factions. |
-| Travel speed: 35 board units/s | `settings.ts`: `TRAVEL_SPEED` | `route.ts` computes a fixed `durationMs` when dispatching. Not read again during flight. |
-| Launch interval: 600 ms; group size: 5 | `settings.ts`: `BATCH_INTERVAL_MS`, `BATCH_SIZE` | `dispatch.ts` builds queued batches; `route.ts` uses these in AI order-duration estimates. |
-| Starting units: 36 per faction | `src/board/map.ts`, `src/board/maps.ts` | Map data copied at simulation/session creation. No separate starting-unit rule. |
-| Territory radius: 14; dot radius: 3; spacing: 8 | `settings.ts` | Shared rendering, route and collision geometry; not merely cosmetic. |
-| Fixed simulation step: 50 ms | `settings.ts`: `SIMULATION_STEP_MS` | Clock, round stepping, travel collision sweeps and AI forecasts. |
-| AI cadence/scoring | `src/game/ai/config.ts`: `DEFAULT_AI` | Passed through FieldCanvas/startBoard/session; separate from physical rules. |
+| Setting                                         | Source                                           | Historical consumer / limitation                                                                           |
+| ----------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Growth: 1 unit/s                                | `src/game/settings.ts`: `GROWTH_RULES`           | Copied to `state.rules` by `createSimulation`; `advanceGrowth` reads it. One rate shared by both factions. |
+| Travel speed: 35 board units/s                  | `settings.ts`: `TRAVEL_SPEED`                    | `route.ts` computes a fixed `durationMs` when dispatching. Not read again during flight.                   |
+| Launch interval: 600 ms; group size: 5          | `settings.ts`: `BATCH_INTERVAL_MS`, `BATCH_SIZE` | `dispatch.ts` builds queued batches; `route.ts` uses these in AI order-duration estimates.                 |
+| Starting units: 36 per faction                  | `src/board/map.ts`, `src/board/maps.ts`          | Map data copied at simulation/session creation. No separate starting-unit rule.                            |
+| Territory radius: 14; dot radius: 3; spacing: 8 | `settings.ts`                                    | Shared rendering, route and collision geometry; not merely cosmetic.                                       |
+| Fixed simulation step: 50 ms                    | `settings.ts`: `SIMULATION_STEP_MS`              | Clock, round stepping, travel collision sweeps and AI forecasts.                                           |
+| AI cadence/scoring                              | `src/game/ai/config.ts`: `DEFAULT_AI`            | Passed through FieldCanvas/startBoard/session; separate from physical rules.                               |
 
 Before Industry, global prototype tuning could be changed in `settings.ts` and map starting counts in map data. Editing the module changes all new uses, not a supported per-round settings API. Already-created transfers retain their stored duration/launch timing.
 
@@ -125,10 +125,18 @@ A tower belongs to a city, not to a Canvas polygon or React component. Extend th
 
 ```ts
 type TerritoryFeature =
-  | { readonly id: string; readonly kind: 'tower';
-      readonly range: number; readonly shotIntervalMs: number }
-  | { readonly id: string; readonly kind: 'slow-zone';
-      readonly radius: number; readonly speedMultiplier: number };
+  | {
+      readonly id: string;
+      readonly kind: 'tower';
+      readonly range: number;
+      readonly shotIntervalMs: number;
+    }
+  | {
+      readonly id: string;
+      readonly kind: 'slow-zone';
+      readonly radius: number;
+      readonly speedMultiplier: number;
+    };
 ```
 
 - Keep immutable feature definitions attached to the territory. Use a separate typed `state.featureRuntime` for tower shot deadlines and future charges/statuses. Slow zones may need no runtime state.

@@ -1,4 +1,4 @@
-import type { Territory } from '../game/types';
+import type { Territory } from '@/game/types';
 
 export const TERRITORIES: readonly Territory[] = [
   { id: 'north', owner: 'enemy', units: 36, x: 180, y: 40 },

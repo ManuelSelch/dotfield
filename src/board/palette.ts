@@ -1,5 +1,3 @@
-import type { Owner } from '../game/types';
-
 export const PALETTE: Record<string, { fill: string; stroke: string; ink: string }> = {
   player: { fill: '#267c72', stroke: '#267c72', ink: '#ffffff' },
   enemy: { fill: '#bd624e', stroke: '#bd624e', ink: '#ffffff' },

@@ -9,6 +9,7 @@ Latest evidence: the full run reported 57 passed and 30 failed at six workers. F
 ## Scope
 
 ### In Scope
+
 - Reproduce the five city-count mismatches and the 25 browser-server connection failures.
 - Record which app/worktree owns the Playwright server, its lifecycle, and the actual rendered city elements/preferences during failures.
 - Make server startup/reuse safe across concurrent tests and multiple worktrees.
@@ -16,11 +17,13 @@ Latest evidence: the full run reported 57 passed and 30 failed at six workers. F
 - Run the unfiltered browser suite and relevant unit/build checks after repair.
 
 ### Out of Scope
+
 - Changing gameplay, generated-map defaults, or the already-committed troop render order to hide test failures.
 - Weakening assertions, skipping tests, arbitrary sleeps, or accepting connection-refused failures.
 - Changing round persistence or its event-only save contract to hide failures. Retain the separate pending persistence matrix: running/paused reloads, transfers and rules/features, background flush, no offline catch-up, Home abandonment/no resurrection, and source-state freshness. Do not reintroduce periodic saves.
 
 ## Requirements
+
 - **R1 — Reproducible diagnosis:** Re-run the affected tests individually and under serial and normal worker counts. Capture the actual city data, relevant SVG/list contents, persisted preferences, base URL, and Playwright server process/worktree for any mismatch.
 - **R2 — City-count correctness:** The default generated setup is 14 cities. Reconcile this checkout's stale 12-city default and related tests. Assertions count semantic city nodes/details, not decorative circles, bridge geometry, or feature indicators.
 - **R3 — Server ownership:** Playwright must not unknowingly reuse a Vite server from another checkout or depend on a server that disappears during the run. The test server must use the intended checkout and configured port; startup conflicts must fail clearly rather than produce later page-level connection refusals.
@@ -39,15 +42,19 @@ Latest evidence: the full run reported 57 passed and 30 failed at six workers. F
 ## Implementation Plan
 
 ### 1. Reproduce and instrument the failures
+
 Description: Run the five count-mismatch cases and representative connection-refused cases individually, with one worker, and at normal worker count. Record city IDs/counts, preview DOM, local preferences, base URL, server PID/cwd, and when the server exits. Completion requires a reproducible root cause or evidence that the original failures were transient, plus captured serial/parallel outcomes.
 
 ### 2. Isolate Playwright server lifecycle
+
 Description: Based on slice 1 evidence, ensure the suite starts or reuses only the Vite server for this checkout. If local reuse remains supported, verify ownership; otherwise use an isolated/configurable port and fail fast on conflicts. Verify the server remains reachable through the run and is cleaned up afterward.
 
 ### 3. Make generated-city assertions semantic and deterministic
+
 Description: Bring this checkout and its generated-map tests into agreement with the confirmed 14-city default. Use stable semantic city selectors and isolated preference state; retain generated setup and post-Play count assertions across phone and desktop viewports.
 
 ### 4. Verify full-suite stability
+
 Description: Run unit tests, production build, whitespace checks, and the unfiltered Playwright suite first serially and then at the supported parallel worker count. Repeat affected tests to demonstrate determinism; commit only the verified repair and record accurate results.
 
 ## Open Questions

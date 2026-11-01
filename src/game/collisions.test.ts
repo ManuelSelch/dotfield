@@ -1,11 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation } from './state';
+
 import { mayContact, resolveTravelCollisions, spatialCandidates } from './collisions';
+import { createSimulation } from './state';
 import type { Faction, Point, Transfer } from './types';
 
-function batch(id: number, owner: Faction, from: Point, to: Point, units = 1, elapsedMs = 400): Transfer {
-  return { id, owner, sourceId: `${id}-source`, targetId: `${id}-target`, from, to,
-    units, formationSize: units, dotSlots: Array.from({ length: units }, (_, i) => i), durationMs: 1000, elapsedMs };
+function batch(
+  id: number,
+  owner: Faction,
+  from: Point,
+  to: Point,
+  units = 1,
+  elapsedMs = 400,
+): Transfer {
+  return {
+    id,
+    owner,
+    sourceId: `${id}-source`,
+    targetId: `${id}-target`,
+    from,
+    to,
+    units,
+    formationSize: units,
+    dotSlots: Array.from({ length: units }, (_, i) => i),
+    durationMs: 1000,
+    elapsedMs,
+  };
 }
 const forward = (units = 5) => batch(1, 'player', { x: 0, y: 100 }, { x: 100, y: 100 }, units);
 const backward = (units = 5) => batch(2, 'enemy', { x: 100, y: 100 }, { x: 0, y: 100 }, units);
@@ -13,26 +32,38 @@ const game = (...transfers: Transfer[]) => ({ ...createSimulation([]), transfers
 
 describe('individual opposing dot collisions', () => {
   it('indexes only nearby opposing paths as collision candidates', () => {
-    const first = [forward(), { ...forward(), id: 3, from: { x: 1000, y: 1000 }, to: { x: 1100, y: 1000 } }];
-    const second = [backward(), { ...backward(), id: 4, from: { x: 1000, y: 1100 }, to: { x: 1100, y: 1100 } }];
+    const first = [
+      forward(),
+      { ...forward(), id: 3, from: { x: 1000, y: 1000 }, to: { x: 1100, y: 1000 } },
+    ];
+    const second = [
+      backward(),
+      { ...backward(), id: 4, from: { x: 1000, y: 1100 }, to: { x: 1100, y: 1100 } },
+    ];
     const bounds = new Map([
       [1, { minX: -20, minY: 80, maxX: 120, maxY: 120 }],
       [2, { minX: -20, minY: 80, maxX: 120, maxY: 120 }],
       [3, { minX: 980, minY: 980, maxX: 1120, maxY: 1020 }],
       [4, { minX: 980, minY: 1080, maxX: 1120, maxY: 1120 }],
     ]);
-    expect(spatialCandidates(first, second, bounds).map(([a, b]) => [a.id, b.id])).toEqual([[1, 2]]);
+    expect(spatialCandidates(first, second, bounds).map(([a, b]) => [a.id, b.id])).toEqual([
+      [1, 2],
+    ]);
   });
 
   it('rejects distant paths before dot-level collision checks', () => {
-    expect(mayContact(
-      { minX: 0, minY: 0, maxX: 10, maxY: 10 },
-      { minX: 20, minY: 0, maxX: 30, maxY: 10 },
-    )).toBe(false);
-    expect(mayContact(
-      { minX: 0, minY: 0, maxX: 10, maxY: 10 },
-      { minX: 10, minY: 10, maxX: 20, maxY: 20 },
-    )).toBe(true);
+    expect(
+      mayContact(
+        { minX: 0, minY: 0, maxX: 10, maxY: 10 },
+        { minX: 20, minY: 0, maxX: 30, maxY: 10 },
+      ),
+    ).toBe(false);
+    expect(
+      mayContact(
+        { minX: 0, minY: 0, maxX: 10, maxY: 10 },
+        { minX: 10, minY: 10, maxX: 20, maxY: 20 },
+      ),
+    ).toBe(true);
   });
   it('destroys matching dots in two head-on groups', () => {
     expect(resolveTravelCollisions(game(forward(), backward()), 100).transfers).toEqual([]);
@@ -41,7 +72,12 @@ describe('individual opposing dot collisions', () => {
     const original = game(forward(), backward(1));
     const next = resolveTravelCollisions(original, 100);
     expect(next.transfers).toHaveLength(1);
-    expect(next.transfers[0]).toMatchObject({ id: 1, units: 4, formationSize: 5, dotSlots: [0, 1, 3, 4] });
+    expect(next.transfers[0]).toMatchObject({
+      id: 1,
+      units: 4,
+      formationSize: 5,
+      dotSlots: [0, 1, 3, 4],
+    });
     expect(original.transfers[0].dotSlots).toEqual([0, 1, 2, 3, 4]);
     expect(next.territories).toBe(original.territories);
   });
@@ -88,7 +124,8 @@ describe('individual opposing dot collisions', () => {
   it('breaks simultaneous contacts deterministically, independent of array order', () => {
     const player = batch(1, 'player', { x: 0, y: 0 }, { x: 100, y: 0 }, 2, 0);
     const enemy = batch(2, 'enemy', { x: 0, y: 0 }, { x: -100, y: 0 }, 1, 0);
-    expect(resolveTravelCollisions(game(player, enemy), 50).transfers)
-      .toEqual(resolveTravelCollisions(game(enemy, player), 50).transfers);
+    expect(resolveTravelCollisions(game(player, enemy), 50).transfers).toEqual(
+      resolveTravelCollisions(game(enemy, player), 50).transfers,
+    );
   });
 });

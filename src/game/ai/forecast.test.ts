@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { createSimulation } from '../state';
-import { dispatchUnits } from '../dispatch';
-import { advanceRound } from '../round';
+
+import { dispatchUnits } from '@/game/dispatch';
+import { advanceRound } from '@/game/round';
+import { createSimulation } from '@/game/state';
+
 import { forecastBattle } from './forecast';
 
 const nodes = [
@@ -11,7 +13,7 @@ const nodes = [
 ];
 
 describe('known-order forecasting', () => {
-  it.each([1000, 5000, 10000])('matches real growth, launches and combat at %i ms', horizon => {
+  it.each([1000, 5000, 10000])('matches real growth, launches and combat at %i ms', (horizon) => {
     let initial = createSimulation(nodes);
     initial = dispatchUnits(initial, 'player', 'neutral');
     initial = dispatchUnits(initial, 'enemy', 'neutral', 'enemy');
@@ -26,9 +28,9 @@ describe('known-order forecasting', () => {
   it('never invents future orders or runs enemy decisions', () => {
     const forecast = forecastBattle(createSimulation(nodes), 10000);
     expect(forecast.transfers).toEqual([]);
-    expect(forecast.territories.map(n => n.units)).toEqual([30, 30, 7]);
+    expect(forecast.territories.map((n) => n.units)).toEqual([30, 30, 7]);
   });
-  it.each([-1, NaN, Infinity])('rejects invalid horizon %s', horizon => {
+  it.each([-1, NaN, Infinity])('rejects invalid horizon %s', (horizon) => {
     expect(() => forecastBattle(createSimulation(nodes), horizon)).toThrow(RangeError);
   });
 });
